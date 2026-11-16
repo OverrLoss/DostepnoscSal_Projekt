@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/room_model.dart';
+import '../theme/app_theme.dart';
 
 class InteractiveFloorMap extends StatefulWidget {
   final String floor;
@@ -143,7 +144,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF121A31),
         title: const Text('Przywróć domyślny układ', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz przywrócić pierwotne położenie wszystkich sal na kondygnacji "${widget.floor}"?',
@@ -156,7 +157,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Przywróć', style: TextStyle(color: Colors.black)),
           ),
         ],
@@ -172,7 +173,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Przywrócono domyślne położenie sal dla "${widget.floor}"'),
-            backgroundColor: Colors.orangeAccent,
+            backgroundColor: AppColors.primary,
           ),
         );
       }
@@ -214,11 +215,11 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: _isEditMode
-                            ? Colors.orangeAccent.withValues(alpha: 0.15)
-                            : const Color(0xFF1E293B),
+                            ? AppColors.primary.withValues(alpha: 0.15)
+                            : const Color(0xFF121A31),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: _isEditMode ? Colors.orangeAccent : Colors.white12,
+                          color: _isEditMode ? AppColors.primary : Colors.white12,
                           width: _isEditMode ? 1.5 : 1,
                         ),
                       ),
@@ -226,7 +227,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                         children: [
                           Icon(
                             _isEditMode ? Icons.open_with : Icons.edit_location_alt_rounded,
-                            color: _isEditMode ? Colors.orangeAccent : Colors.white70,
+                            color: _isEditMode ? AppColors.primary : Colors.white70,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -237,7 +238,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                                 Text(
                                   _isEditMode ? 'TRYB PRZESTAWIANIA' : 'Układ sal na planie',
                                   style: TextStyle(
-                                    color: _isEditMode ? Colors.orangeAccent : Colors.white,
+                                    color: _isEditMode ? AppColors.primary : Colors.white,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -273,7 +274,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _isEditMode ? Colors.orangeAccent : const Color(0xFF334155),
+                              backgroundColor: _isEditMode ? AppColors.primary : const Color(0xFF232E52),
                               foregroundColor: _isEditMode ? Colors.black : Colors.white,
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -292,18 +293,18 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withValues(alpha: 0.18),
+                        color: AppColors.primary.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.orangeAccent),
+                        border: Border.all(color: AppColors.primary),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.open_with, color: Colors.orangeAccent, size: 14),
+                          Icon(Icons.open_with, color: AppColors.primary, size: 14),
                           SizedBox(width: 8),
                           Text(
                             'Tryb przestawiania aktywny – przeciągaj sale po planie',
-                            style: TextStyle(color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -319,18 +320,18 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                         width: _canvasWidth,
                         height: _canvasHeight,
                         decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: const Color(0xFF121A31),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                           color: _isEditMode
-                              ? Colors.orangeAccent.withValues(alpha: 0.6)
+                              ? AppColors.primary.withValues(alpha: 0.6)
                               : Colors.white12,
                           width: _isEditMode ? 2 : 1,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: _isEditMode
-                                ? Colors.orangeAccent.withValues(alpha: 0.2)
+                                ? AppColors.primary.withValues(alpha: 0.2)
                                 : Colors.black38,
                             blurRadius: 16,
                             offset: const Offset(0, 6),
@@ -361,7 +362,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                                         height: 8,
                                         decoration: const BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.orangeAccent,
+                                          color: AppColors.primary,
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -382,7 +383,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                                         ? '✥ Przeciągnij salę, aby zmienić jej położenie'
                                         : 'Dotknij: zmiana stanu • Przytrzymaj: szczegóły',
                                     style: TextStyle(
-                                      color: _isEditMode ? Colors.orangeAccent : Colors.orangeAccent.withValues(alpha: 0.8),
+                                      color: _isEditMode ? AppColors.primary : AppColors.primary.withValues(alpha: 0.8),
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -412,7 +413,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                     width: 360,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: const Color(0xFF121A31),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.white12),
                     ),
@@ -421,7 +422,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.meeting_room_outlined, color: Colors.orangeAccent, size: 18),
+                            const Icon(Icons.meeting_room_outlined, color: AppColors.primary, size: 18),
                             const SizedBox(width: 8),
                             Text(
                               'DODATKOWE SALE (${widget.floor})'.toUpperCase(),
@@ -473,7 +474,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A).withValues(alpha: 0.9),
+                color: const Color(0xFF0A1020).withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.white24, width: 0.8),
                 boxShadow: const [
@@ -491,7 +492,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                     onPressed: _zoomOut,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.fit_screen_rounded, size: 18, color: Colors.cyanAccent),
+                    icon: const Icon(Icons.fit_screen_rounded, size: 18, color: AppColors.cyan),
                     tooltip: 'Dopasuj do ekranu',
                     padding: const EdgeInsets.all(6),
                     constraints: const BoxConstraints(),
@@ -579,16 +580,16 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.orangeAccent.withValues(alpha: 0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.4)),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('WEJŚCIE', style: TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                Text('WEJŚCIE', style: TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold)),
                 SizedBox(width: 4),
-                Icon(Icons.arrow_forward_rounded, color: Colors.orangeAccent, size: 14),
+                Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 14),
               ],
             ),
           ),
@@ -613,16 +614,16 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.orangeAccent.withValues(alpha: 0.15),
+            color: AppColors.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.4)),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
           ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.arrow_back_rounded, color: Colors.orangeAccent, size: 12),
+              Icon(Icons.arrow_back_rounded, color: AppColors.primary, size: 12),
               SizedBox(width: 4),
-              Text('wejście', style: TextStyle(color: Colors.orangeAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+              Text('wejście', style: TextStyle(color: AppColors.primary, fontSize: 9, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -697,17 +698,17 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isDragging
-                      ? Colors.orangeAccent
-                      : ((garazRoom.isAvailable) ? Colors.greenAccent : Colors.redAccent),
+                      ? AppColors.primary
+                      : ((garazRoom.isAvailable) ? AppColors.success : AppColors.danger),
                   width: isDragging ? 3 : 2,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: isDragging
-                        ? Colors.orangeAccent.withValues(alpha: 0.4)
+                        ? AppColors.primary.withValues(alpha: 0.4)
                         : ((garazRoom.isAvailable)
-                            ? Colors.greenAccent.withValues(alpha: 0.15)
-                            : Colors.redAccent.withValues(alpha: 0.15)),
+                            ? AppColors.success.withValues(alpha: 0.15)
+                            : AppColors.danger.withValues(alpha: 0.15)),
                     blurRadius: isDragging ? 24 : 16,
                     spreadRadius: isDragging ? 4 : 2,
                   ),
@@ -720,7 +721,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.orangeAccent,
+                        color: AppColors.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Row(
@@ -737,7 +738,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                   Icon(
                     Icons.directions_car_rounded,
                     size: 44,
-                    color: (garazRoom.isAvailable) ? Colors.greenAccent : Colors.redAccent,
+                    color: (garazRoom.isAvailable) ? AppColors.success : AppColors.danger,
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -894,10 +895,10 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final isAvailable = room.isAvailable;
     final isAlert = room.isAlertDue;
     final color = isDragging
-        ? Colors.orangeAccent
+        ? AppColors.primary
         : (isAlert
-            ? Colors.amberAccent
-            : (isAvailable ? Colors.greenAccent : Colors.redAccent));
+            ? AppColors.warning
+            : (isAvailable ? AppColors.success : AppColors.danger));
     final bgColor = isDragging
         ? Colors.orange.withValues(alpha: 0.35)
         : (isAlert
@@ -922,9 +923,9 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
         boxShadow: [
           BoxShadow(
             color: isDragging
-                ? Colors.orangeAccent.withValues(alpha: 0.5)
+                ? AppColors.primary.withValues(alpha: 0.5)
                 : (isAlert
-                    ? Colors.redAccent.withValues(alpha: 0.4)
+                    ? AppColors.danger.withValues(alpha: 0.4)
                     : color.withValues(alpha: 0.2)),
             blurRadius: isDragging ? 12 : (isAlert ? 10 : 6),
             spreadRadius: isDragging ? 2 : (isAlert ? 2 : 1),
@@ -981,13 +982,13 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (isAlert) ...[
-                      const Icon(Icons.warning_amber_rounded, size: 10, color: Colors.amberAccent),
+                      const Icon(Icons.warning_amber_rounded, size: 10, color: AppColors.warning),
                       const SizedBox(width: 2),
                     ],
                     Text(
                       duration,
                       style: TextStyle(
-                        color: isAlert ? Colors.amberAccent : Colors.white70,
+                        color: isAlert ? AppColors.warning : Colors.white70,
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                         fontFamily: 'monospace',
@@ -1006,7 +1007,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                 padding: const EdgeInsets.all(2),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.redAccent,
+                  color: AppColors.danger,
                 ),
                 child: const Icon(Icons.priority_high, size: 8, color: Colors.white),
               ),
@@ -1020,7 +1021,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                 height: 6,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.orangeAccent,
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -1031,7 +1032,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
 
   Widget _buildExtraRoomChip(Room room) {
     final isAvailable = room.isAvailable;
-    final color = isAvailable ? Colors.greenAccent : Colors.redAccent;
+    final color = isAvailable ? AppColors.success : AppColors.danger;
 
     return InkWell(
       onTap: () {

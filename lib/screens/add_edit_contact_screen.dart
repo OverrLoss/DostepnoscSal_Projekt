@@ -3,6 +3,7 @@ import '../models/contact_model.dart';
 import '../services/database_helper.dart';
 import '../services/settings_service.dart';
 import '../widgets/contact_avatar.dart';
+import '../theme/app_theme.dart';
 
 class AddEditContactScreen extends StatefulWidget {
   final AddressContact? contact;
@@ -69,11 +70,11 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
   Color _getCategoryColor(String category) {
     switch (category) {
       case 'Praca':
-        return Colors.orangeAccent;
+        return AppColors.warning;
       case 'Rodzina':
-        return Colors.greenAccent;
+        return AppColors.primary;
       case 'Prywatny':
-        return Colors.lightBlueAccent;
+        return AppColors.primary;
       case 'Inne':
       default:
         return Colors.purpleAccent;
@@ -102,7 +103,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Podaj przynajmniej imię lub nazwisko kontaktu!'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppColors.danger,
         ),
       );
       return;
@@ -164,7 +165,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Błąd zapisu w bazie danych SQLite: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.danger,
           ),
         );
       }
@@ -179,7 +180,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF121A31),
         title: const Text('Usuń kontakt', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć kontakt "${widget.contact!.fullName}" z bazy SQLite?',
@@ -192,7 +193,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             child: const Text('Usuń', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -205,7 +206,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Usunięto kontakt: ${widget.contact!.fullName}'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.danger,
           ),
         );
         Navigator.of(context).pop(true);
@@ -218,9 +219,9 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
     final themeColor = _getCategoryColor(_selectedCategory);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF0A1020),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF121A31),
         elevation: 0,
         title: Text(
           _isEditing ? 'Edytuj Kontakt' : 'Nowy Kontakt',
@@ -233,7 +234,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
         actions: [
           if (_isEditing)
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              icon: const Icon(Icons.delete_outline, color: AppColors.danger),
               tooltip: 'Usuń kontakt',
               onPressed: _isSaving ? null : _confirmDelete,
             ),
@@ -244,7 +245,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
-                : const Icon(Icons.check, color: Colors.greenAccent),
+                : const Icon(Icons.check, color: AppColors.primary),
             tooltip: 'Zapisz',
             onPressed: _isSaving ? null : _saveContact,
           ),
@@ -272,10 +273,10 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
                     const SizedBox(height: 8),
                     TextButton.icon(
                       onPressed: _pickAvatar,
-                      icon: const Icon(Icons.edit, size: 16, color: Colors.greenAccent),
+                      icon: const Icon(Icons.edit, size: 16, color: AppColors.primary),
                       label: Text(
                         _avatar != null ? 'Zmień awatar' : 'Dodaj awatar',
-                        style: const TextStyle(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -295,7 +296,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
                     label: Text(cat),
                     selected: isSelected,
                     selectedColor: catColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF1E293B),
+                    backgroundColor: const Color(0xFF121A31),
                     labelStyle: TextStyle(
                       color: isSelected ? catColor : Colors.white70,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -417,7 +418,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent,
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.black87,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -464,7 +465,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: const Color(0xFF121A31),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
@@ -477,7 +478,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.white60),
-          prefixIcon: Icon(icon, color: Colors.greenAccent.withValues(alpha: 0.7)),
+          prefixIcon: Icon(icon, color: AppColors.primary.withValues(alpha: 0.7)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),

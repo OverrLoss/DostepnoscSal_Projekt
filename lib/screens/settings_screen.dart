@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../services/settings_service.dart';
 import '../services/database_helper.dart';
 
@@ -50,10 +51,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF121A31),
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+            Icon(Icons.warning_amber_rounded, color: AppColors.danger),
             SizedBox(width: 10),
             Text('Wyczyść bazę danych', style: TextStyle(color: Colors.white, fontSize: 18)),
           ],
@@ -69,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             child: const Text('Wyczyść wszystko', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -84,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Wszystkie kontakty zostały usunięte z bazy danych.'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.danger,
           ),
         );
       }
@@ -101,9 +102,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final accent = settings.accentColor;
 
         return Scaffold(
-          backgroundColor: const Color(0xFF0F172A),
+          backgroundColor: const Color(0xFF0A1020),
           appBar: AppBar(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF121A31),
             elevation: 0,
             title: Row(
               children: [
@@ -193,7 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       _buildColorDot('green', Colors.greenAccent, 'Szmaragd', settings),
                       const SizedBox(width: 12),
-                      _buildColorDot('blue', Colors.lightBlueAccent, 'Błękit', settings),
+                      _buildColorDot('blue', AppColors.primary, 'Niebieski', settings),
                       const SizedBox(width: 12),
                       _buildColorDot('purple', Colors.purpleAccent, 'Fiolet', settings),
                       const SizedBox(width: 12),
@@ -218,7 +219,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   trailing: DropdownButton<String>(
                     value: settings.defaultCategory,
-                    dropdownColor: const Color(0xFF1E293B),
+                    dropdownColor: const Color(0xFF121A31),
                     underline: const SizedBox(),
                     icon: Icon(Icons.arrow_drop_down, color: accent),
                     items: ['Prywatny', 'Praca', 'Rodzina', 'Inne'].map((c) {
@@ -243,7 +244,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   trailing: DropdownButton<String>(
                     value: settings.defaultSort,
-                    dropdownColor: const Color(0xFF1E293B),
+                    dropdownColor: const Color(0xFF121A31),
                     underline: const SizedBox(),
                     icon: Icon(Icons.arrow_drop_down, color: accent),
                     items: const [
@@ -305,8 +306,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: const Icon(Icons.delete_sweep_outlined, size: 16),
                           label: const Text('Wyczyść bazę', style: TextStyle(fontSize: 12)),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.redAccent,
-                            side: const BorderSide(color: Colors.redAccent),
+                            foregroundColor: AppColors.danger,
+                            side: const BorderSide(color: AppColors.danger),
                             disabledForegroundColor: Colors.white24,
                             padding: const EdgeInsets.symmetric(vertical: 10),
                           ),
@@ -379,7 +380,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: const Color(0xFF121A31),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [

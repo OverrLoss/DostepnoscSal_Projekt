@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/room_model.dart';
 import '../services/room_database_helper.dart';
 import '../widgets/interactive_floor_map.dart';
+import '../theme/app_theme.dart';
 
 class TvDashboardScreen extends StatefulWidget {
   const TvDashboardScreen({super.key});
@@ -96,7 +97,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
             Expanded(
               child: _isLoading && _rooms.isEmpty
                   ? const Center(
-                      child: CircularProgressIndicator(color: Colors.orangeAccent),
+                      child: CircularProgressIndicator(color: AppColors.primary),
                     )
                   : _buildMainContent(),
             ),
@@ -111,7 +112,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: const BoxDecoration(
-        color: Color(0xFF0F172A),
+        color: Color(0xFF0A1020),
         border: Border(bottom: BorderSide(color: Colors.white12, width: 1)),
       ),
       child: Row(
@@ -122,11 +123,11 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.orangeAccent.withValues(alpha: 0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.5)),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
                 ),
-                child: const Icon(Icons.school, color: Colors.orangeAccent, size: 28),
+                child: const Icon(Icons.school, color: AppColors.primary, size: 28),
               ),
               const SizedBox(width: 14),
               const Column(
@@ -144,7 +145,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   Text(
                     'TABLICA INFORMACYJNA • DOSTĘPNOŚĆ SAL',
                     style: TextStyle(
-                      color: Colors.orangeAccent,
+                      color: AppColors.primary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.8,
@@ -161,7 +162,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: const Color(0xFF121A31),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: Colors.white12),
             ),
@@ -170,38 +171,38 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                 Container(
                   width: 10,
                   height: 10,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.greenAccent),
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.success),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'WOLNE: $_freeCount',
-                  style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
                 const SizedBox(width: 16),
                 Container(
                   width: 10,
                   height: 10,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.redAccent),
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.danger),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'ZAJĘTE: $_occupiedCount',
-                  style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
                 const SizedBox(width: 14),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.cyanAccent.withValues(alpha: 0.15),
+                    color: AppColors.cyan.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.wifi, color: Colors.cyanAccent, size: 12),
+                      Icon(Icons.wifi, color: AppColors.cyan, size: 12),
                       SizedBox(width: 4),
                       Text(
                         'LIVE',
-                        style: TextStyle(color: Colors.cyanAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AppColors.cyan, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -264,7 +265,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   child: _buildFloorPanel(
                     floorName: 'Parter',
                     floorTitle: 'PARTER (POZIOM 0)',
-                    accentColor: Colors.cyanAccent,
+                    accentColor: AppColors.cyan,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -273,7 +274,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   child: _buildFloorPanel(
                     floorName: 'Piętro',
                     floorTitle: 'I PIĘTRO (POZIOM +1)',
-                    accentColor: Colors.orangeAccent,
+                    accentColor: AppColors.primary,
                   ),
                 ),
               ],
@@ -288,13 +289,13 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                 _buildFloorPanel(
                   floorName: 'Parter',
                   floorTitle: 'PARTER (POZIOM 0)',
-                  accentColor: Colors.cyanAccent,
+                  accentColor: AppColors.cyan,
                 ),
                 const SizedBox(height: 16),
                 _buildFloorPanel(
                   floorName: 'Piętro',
                   floorTitle: 'I PIĘTRO (POZIOM +1)',
-                  accentColor: Colors.orangeAccent,
+                  accentColor: AppColors.primary,
                 ),
               ],
             ),
@@ -315,7 +316,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF131D2E),
+        color: const Color(0xFF101830),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white12),
         boxShadow: const [
@@ -328,7 +329,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: const Color(0xFF121A31),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               border: Border(bottom: BorderSide(color: accentColor.withValues(alpha: 0.3))),
             ),
@@ -359,7 +360,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   child: Text(
                     'Wolne: $free / $total',
                     style: TextStyle(
-                      color: free > 0 ? Colors.greenAccent : Colors.redAccent,
+                      color: free > 0 ? AppColors.success : AppColors.danger,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -403,7 +404,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: const BoxDecoration(
-        color: Color(0xFF0F172A),
+        color: Color(0xFF0A1020),
         border: Border(top: BorderSide(color: Colors.white12, width: 1)),
       ),
       child: ListView.separated(
@@ -426,8 +427,8 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isAvail
-                        ? Colors.greenAccent.withValues(alpha: 0.4)
-                        : Colors.redAccent.withValues(alpha: 0.4),
+                        ? AppColors.success.withValues(alpha: 0.4)
+                        : AppColors.danger.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Row(
@@ -438,7 +439,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                       height: 7,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isAvail ? Colors.greenAccent : Colors.redAccent,
+                        color: isAvail ? AppColors.success : AppColors.danger,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -454,7 +455,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                     Text(
                       r.name,
                       style: TextStyle(
-                        color: isAvail ? Colors.greenAccent : (r.isAlertDue ? Colors.amberAccent : Colors.redAccent),
+                        color: isAvail ? AppColors.success : (r.isAlertDue ? AppColors.warning : AppColors.danger),
                         fontSize: 11,
                       ),
                     ),
@@ -463,7 +464,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                         decoration: BoxDecoration(
-                          color: r.isAlertDue ? Colors.amberAccent : Colors.white12,
+                          color: r.isAlertDue ? AppColors.warning : Colors.white12,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

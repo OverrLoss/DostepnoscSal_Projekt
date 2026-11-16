@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../models/room_model.dart';
 import '../services/room_database_helper.dart';
 import '../services/room_sync_service.dart';
+import '../theme/app_theme.dart';
 
 class EspDevicesDialog extends StatefulWidget {
   const EspDevicesDialog({super.key});
@@ -96,7 +97,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
           content: Text(
             success ? '✅ Pomyślnie przypisano urządzenie do sali $roomNumber!' : '❌ Błąd przypisywania urządzenia.',
           ),
-          backgroundColor: success ? const Color(0xFF10B981) : Colors.redAccent,
+          backgroundColor: success ? AppColors.success : AppColors.danger,
         ),
       );
       _loadData();
@@ -107,7 +108,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF121A31),
         title: const Text('Usunąć sterownik?', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć kontroler "$name"? Urządzenie straci autoryzację do serwera.',
@@ -119,7 +120,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
             child: const Text('Anuluj', style: TextStyle(color: Colors.white60)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger, foregroundColor: Colors.white),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Usuń'),
           ),
@@ -133,7 +134,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(ok ? '🗑️ Usunięto sterownik.' : '❌ Błąd podczas usuwania sterownika.'),
-            backgroundColor: ok ? const Color(0xFF10B981) : Colors.redAccent,
+            backgroundColor: ok ? AppColors.success : AppColors.danger,
           ),
         );
         _loadData();
@@ -151,11 +152,11 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
       builder: (dialogCtx) => StatefulBuilder(
         builder: (ctx, setDlgState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF121A31),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Row(
               children: [
-                Icon(Icons.add_circle_outline, color: Colors.cyanAccent),
+                Icon(Icons.add_circle_outline, color: AppColors.cyan),
                 SizedBox(width: 10),
                 Text('Zarejestruj sterownik ESP', style: TextStyle(color: Colors.white, fontSize: 17)),
               ],
@@ -171,7 +172,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                     children: [
                       Expanded(
                         child: ChoiceChip(
-                          avatar: const Icon(Icons.smart_display, size: 16, color: Colors.cyanAccent),
+                          avatar: const Icon(Icons.smart_display, size: 16, color: AppColors.cyan),
                           label: const Text('ESP32 CYD', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                           selected: selectedType == 'esp32',
                           selectedColor: Colors.cyan.withValues(alpha: 0.3),
@@ -188,7 +189,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ChoiceChip(
-                          avatar: const Icon(Icons.developer_board, size: 16, color: Colors.orangeAccent),
+                          avatar: const Icon(Icons.developer_board, size: 16, color: AppColors.warning),
                           label: const Text('ESP8266 Wemos', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                           selected: selectedType == 'esp8266',
                           selectedColor: Colors.orange.withValues(alpha: 0.3),
@@ -212,7 +213,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: const Color(0xFF0A1020),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     ),
@@ -223,14 +224,14 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0A1020),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: selectedRoom,
                         isExpanded: true,
-                        dropdownColor: const Color(0xFF1E293B),
+                        dropdownColor: const Color(0xFF121A31),
                         style: const TextStyle(color: Colors.white, fontSize: 13),
                         items: _allRooms.map((r) {
                           return DropdownMenuItem<String>(
@@ -265,7 +266,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                 icon: const Icon(Icons.check, size: 16),
                 label: const Text('Zarejestruj'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.cyanAccent,
+                  backgroundColor: AppColors.cyan,
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
@@ -295,11 +296,11 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF121A31),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.key, color: Colors.greenAccent),
+            Icon(Icons.key, color: AppColors.success),
             SizedBox(width: 10),
             Text('Token urządzenia', style: TextStyle(color: Colors.white, fontSize: 16)),
           ],
@@ -315,15 +316,15 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
             const SizedBox(height: 12),
             const Text(
               'Wprowadź poniższy token w panelu konfiguracyjnym ESP (Token jest wyświetlany tylko raz):',
-              style: TextStyle(color: Colors.orangeAccent, fontSize: 12),
+              style: TextStyle(color: AppColors.warning, fontSize: 12),
             ),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
+                color: const Color(0xFF0A1020),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+                border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: [
@@ -331,7 +332,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                     child: SelectableText(
                       token,
                       style: const TextStyle(
-                        color: Colors.greenAccent,
+                        color: AppColors.success,
                         fontFamily: 'monospace',
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -339,14 +340,14 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.copy, color: Colors.greenAccent, size: 20),
+                    icon: const Icon(Icons.copy, color: AppColors.success, size: 20),
                     tooltip: 'Kopiuj token',
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: token));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Skopiowano token do schowka!'),
-                          backgroundColor: Color(0xFF10B981),
+                          backgroundColor: AppColors.success,
                           duration: Duration(seconds: 2),
                         ),
                       );
@@ -359,7 +360,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
         ),
         actions: [
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF334155), foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF232E52), foregroundColor: Colors.white),
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Zamknij'),
           ),
@@ -379,7 +380,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
     final esp8266Count = _devices.where((d) => _getDeviceType(d) == 'esp8266').length;
 
     return Dialog(
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: const Color(0xFF121A31),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: 620,
@@ -394,10 +395,10 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.cyanAccent.withValues(alpha: 0.15),
+                    color: AppColors.cyan.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.memory, color: Colors.cyanAccent, size: 22),
+                  child: const Icon(Icons.memory, color: AppColors.cyan, size: 22),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -420,7 +421,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add_circle, color: Colors.cyanAccent, size: 22),
+                  icon: const Icon(Icons.add_circle, color: AppColors.cyan, size: 22),
                   tooltip: 'Dodaj sterownik ESP',
                   onPressed: _showAddDeviceDialog,
                 ),
@@ -453,24 +454,24 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                   onSelected: (_) => setState(() => _filterType = 'all'),
                 ),
                 FilterChip(
-                  avatar: const Icon(Icons.smart_display, size: 14, color: Colors.cyanAccent),
+                  avatar: const Icon(Icons.smart_display, size: 14, color: AppColors.cyan),
                   label: Text('ESP32 CYD ($esp32Count)'),
                   selected: _filterType == 'esp32',
-                  selectedColor: Colors.cyanAccent.withValues(alpha: 0.25),
+                  selectedColor: AppColors.cyan.withValues(alpha: 0.25),
                   labelStyle: TextStyle(
-                    color: _filterType == 'esp32' ? Colors.cyanAccent : Colors.white70,
+                    color: _filterType == 'esp32' ? AppColors.cyan : Colors.white70,
                     fontSize: 11,
                     fontWeight: _filterType == 'esp32' ? FontWeight.bold : FontWeight.normal,
                   ),
                   onSelected: (_) => setState(() => _filterType = 'esp32'),
                 ),
                 FilterChip(
-                  avatar: const Icon(Icons.developer_board, size: 14, color: Colors.orangeAccent),
+                  avatar: const Icon(Icons.developer_board, size: 14, color: AppColors.warning),
                   label: Text('ESP8266 Wemos ($esp8266Count)'),
                   selected: _filterType == 'esp8266',
-                  selectedColor: Colors.orangeAccent.withValues(alpha: 0.25),
+                  selectedColor: AppColors.warning.withValues(alpha: 0.25),
                   labelStyle: TextStyle(
-                    color: _filterType == 'esp8266' ? Colors.orangeAccent : Colors.white70,
+                    color: _filterType == 'esp8266' ? AppColors.warning : Colors.white70,
                     fontSize: 11,
                     fontWeight: _filterType == 'esp8266' ? FontWeight.bold : FontWeight.normal,
                   ),
@@ -483,7 +484,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
             // Content
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.cyanAccent))
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.cyan))
                   : ListView(
                       children: [
                         // Pairing Alert / Banner
@@ -498,19 +499,19 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.orangeAccent, width: 1.5),
+                              border: Border.all(color: AppColors.warning, width: 1.5),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Row(
                                   children: [
-                                    Icon(Icons.sensors, color: Colors.orangeAccent, size: 18),
+                                    Icon(Icons.sensors, color: AppColors.warning, size: 18),
                                     SizedBox(width: 8),
                                     Text(
                                       'Wykryto urządzenie w trybie parowania!',
                                       style: TextStyle(
-                                        color: Colors.orangeAccent,
+                                        color: AppColors.warning,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13,
                                       ),
@@ -531,7 +532,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                     margin: const EdgeInsets.only(bottom: 8),
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF0F172A),
+                                      color: const Color(0xFF0A1020),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Row(
@@ -548,7 +549,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                         const Spacer(),
                                         DropdownButton<String>(
                                           value: currentSelection,
-                                          dropdownColor: const Color(0xFF1E293B),
+                                          dropdownColor: const Color(0xFF121A31),
                                           style: const TextStyle(color: Colors.white, fontSize: 12),
                                           underline: const SizedBox(),
                                           items: _allRooms.map((r) {
@@ -568,7 +569,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                         const SizedBox(width: 8),
                                         ElevatedButton.icon(
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.orangeAccent,
+                                            backgroundColor: AppColors.warning,
                                             foregroundColor: Colors.black,
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                             textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
@@ -606,7 +607,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
+                              color: const Color(0xFF0A1020),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Center(
@@ -621,8 +622,8 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                   ),
                                   const SizedBox(height: 8),
                                   TextButton.icon(
-                                    icon: const Icon(Icons.add, size: 16, color: Colors.cyanAccent),
-                                    label: const Text('Zarejestruj sterownik', style: TextStyle(color: Colors.cyanAccent, fontSize: 12)),
+                                    icon: const Icon(Icons.add, size: 16, color: AppColors.cyan),
+                                    label: const Text('Zarejestruj sterownik', style: TextStyle(color: AppColors.cyan, fontSize: 12)),
                                     onPressed: _showAddDeviceDialog,
                                   ),
                                 ],
@@ -653,11 +654,11 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                               margin: const EdgeInsets.only(bottom: 8),
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
+                                color: const Color(0xFF0A1020),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: hasRoom
-                                      ? (isAvail ? Colors.greenAccent.withValues(alpha: 0.4) : Colors.redAccent.withValues(alpha: 0.4))
+                                      ? (isAvail ? AppColors.success.withValues(alpha: 0.4) : AppColors.danger.withValues(alpha: 0.4))
                                       : Colors.white12,
                                 ),
                               ),
@@ -668,13 +669,13 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: isEsp32
-                                          ? Colors.cyanAccent.withValues(alpha: 0.15)
-                                          : Colors.orangeAccent.withValues(alpha: 0.15),
+                                          ? AppColors.cyan.withValues(alpha: 0.15)
+                                          : AppColors.warning.withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Icon(
                                       isEsp32 ? Icons.smart_display : Icons.developer_board,
-                                      color: isEsp32 ? Colors.cyanAccent : Colors.orangeAccent,
+                                      color: isEsp32 ? AppColors.cyan : AppColors.warning,
                                       size: 20,
                                     ),
                                   ),
@@ -698,14 +699,14 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                                               decoration: BoxDecoration(
                                                 color: isEsp32
-                                                    ? Colors.cyanAccent.withValues(alpha: 0.2)
-                                                    : Colors.orangeAccent.withValues(alpha: 0.2),
+                                                    ? AppColors.cyan.withValues(alpha: 0.2)
+                                                    : AppColors.warning.withValues(alpha: 0.2),
                                                 borderRadius: BorderRadius.circular(4),
                                               ),
                                               child: Text(
                                                 isEsp32 ? 'ESP32 CYD' : 'ESP8266 Wemos',
                                                 style: TextStyle(
-                                                  color: isEsp32 ? Colors.cyanAccent : Colors.orangeAccent,
+                                                  color: isEsp32 ? AppColors.cyan : AppColors.warning,
                                                   fontSize: 9,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -715,13 +716,13 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                                               decoration: BoxDecoration(
-                                                color: Colors.greenAccent.withValues(alpha: 0.15),
+                                                color: AppColors.success.withValues(alpha: 0.15),
                                                 borderRadius: BorderRadius.circular(4),
                                               ),
                                               child: const Text(
                                                 'Auto-OTA Aktywne',
                                                 style: TextStyle(
-                                                  color: Colors.greenAccent,
+                                                  color: AppColors.success,
                                                   fontSize: 9,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -732,12 +733,12 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.redAccent.withValues(alpha: 0.2),
+                                                  color: AppColors.danger.withValues(alpha: 0.2),
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 child: const Text(
                                                   'NIEAKTYWNY',
-                                                  style: TextStyle(color: Colors.redAccent, fontSize: 9, fontWeight: FontWeight.bold),
+                                                  style: TextStyle(color: AppColors.danger, fontSize: 9, fontWeight: FontWeight.bold),
                                                 ),
                                               ),
                                             ],
@@ -749,7 +750,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                               ? 'Przypisano: Sala $roomNum (${assignedRoom?.name ?? "..."}) • Stan: ${isAvail ? "WOLNA" : "ZAJĘTA"}'
                                               : 'Brak przypisanej sali (Oczekuje na przypisanie)',
                                           style: TextStyle(
-                                            color: hasRoom ? (isAvail ? Colors.greenAccent : Colors.redAccent) : Colors.white54,
+                                            color: hasRoom ? (isAvail ? AppColors.success : AppColors.danger) : Colors.white54,
                                             fontSize: 11,
                                           ),
                                         ),
@@ -763,7 +764,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                   ),
                                   PopupMenuButton<String>(
                                     icon: const Icon(Icons.more_vert, color: Colors.white70, size: 20),
-                                    color: const Color(0xFF334155),
+                                    color: const Color(0xFF232E52),
                                     onSelected: (val) {
                                       if (val == '__delete__') {
                                         _deleteDevice(devId, devName);
@@ -785,9 +786,9 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                         value: '__delete__',
                                         child: Row(
                                           children: [
-                                            Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+                                            Icon(Icons.delete_outline, color: AppColors.danger, size: 16),
                                             SizedBox(width: 8),
-                                            Text('Usuń kontroler', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                                            Text('Usuń kontroler', style: TextStyle(color: AppColors.danger, fontSize: 12)),
                                           ],
                                         ),
                                       ),
@@ -804,7 +805,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0F172A),
+                            color: const Color(0xFF0A1020),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.white10),
                           ),
@@ -814,7 +815,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                               Row(
                                 children: [
                                   ChoiceChip(
-                                    avatar: const Icon(Icons.smart_display, size: 14, color: Colors.cyanAccent),
+                                    avatar: const Icon(Icons.smart_display, size: 14, color: AppColors.cyan),
                                     label: const Text('Instrukcja ESP32 CYD', style: TextStyle(fontSize: 11)),
                                     selected: _guideTabIndex == 0,
                                     selectedColor: Colors.cyan.withValues(alpha: 0.25),
@@ -822,7 +823,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                   ),
                                   const SizedBox(width: 8),
                                   ChoiceChip(
-                                    avatar: const Icon(Icons.developer_board, size: 14, color: Colors.orangeAccent),
+                                    avatar: const Icon(Icons.developer_board, size: 14, color: AppColors.warning),
                                     label: const Text('Instrukcja ESP8266 Wemos', style: TextStyle(fontSize: 11)),
                                     selected: _guideTabIndex == 1,
                                     selectedColor: Colors.orange.withValues(alpha: 0.25),
@@ -834,7 +835,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                               if (_guideTabIndex == 0) ...[
                                 const Text(
                                   '📱 ESP32 CYD (Cheap Yellow Display 2.8" TFT Touch):',
-                                  style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                                  style: TextStyle(color: AppColors.cyan, fontWeight: FontWeight.bold, fontSize: 12),
                                 ),
                                 const SizedBox(height: 4),
                                 const Text(
@@ -849,7 +850,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                               ] else ...[
                                 const Text(
                                   '🔌 ESP8266 (Wemos D1 mini + Przyciski & Diody):',
-                                  style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                                  style: TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold, fontSize: 12),
                                 ),
                                 const SizedBox(height: 4),
                                 const Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/settings_service.dart';
+import '../theme/app_theme.dart';
 import 'address_book_screen.dart';
 import 'settings_screen.dart';
 
@@ -37,13 +38,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           bottomNavigationBar: Container(
             decoration: const BoxDecoration(
-              color: Color(0xFF1E293B),
-              border: Border(top: BorderSide(color: Colors.white10)),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(color: Colors.black38, blurRadius: 16, offset: Offset(0, -4)),
+              ],
             ),
+            clipBehavior: Clip.antiAlias,
             child: NavigationBar(
               selectedIndex: _currentIndex,
-              backgroundColor: const Color(0xFF1E293B),
-              indicatorColor: accent.withValues(alpha: 0.25),
+              backgroundColor: Colors.transparent,
+              indicatorColor: accent.withValues(alpha: 0.18),
               elevation: 0,
               onDestinationSelected: (index) {
                 setState(() => _currentIndex = index);
@@ -53,12 +58,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               },
               destinations: [
                 NavigationDestination(
-                  icon: const Icon(Icons.contacts_outlined, color: Colors.white60),
+                  icon: const Icon(Icons.contacts_outlined, color: AppColors.textSecondary),
                   selectedIcon: Icon(Icons.contacts, color: accent),
                   label: 'Kontakty',
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.settings_outlined, color: Colors.white60),
+                  icon: const Icon(Icons.settings_outlined, color: AppColors.textSecondary),
                   selectedIcon: Icon(Icons.settings, color: accent),
                   label: 'Ustawienia',
                 ),

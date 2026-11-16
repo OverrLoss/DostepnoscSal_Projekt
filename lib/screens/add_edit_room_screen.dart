@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/room_model.dart';
 import '../services/room_database_helper.dart';
+import '../theme/app_theme.dart';
 
 class AddEditRoomScreen extends StatefulWidget {
   final Room? room;
@@ -142,7 +143,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Błąd zapisu sali w bazie: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.danger,
           ),
         );
       }
@@ -157,7 +158,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF121A31),
         title: const Text('Usuń salę', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć salę "${widget.room!.displayName}" z bazy danych?',
@@ -170,7 +171,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             child: const Text('Usuń', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -183,7 +184,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Usunięto salę: ${widget.room!.displayName}'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.danger,
           ),
         );
         Navigator.of(context).pop(true);
@@ -194,9 +195,9 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF0A1020),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF121A31),
         elevation: 0,
         title: Text(
           _isEditing ? 'Edycja Sali' : 'Nowa Sala',
@@ -205,7 +206,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
         actions: [
           if (_isEditing)
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              icon: const Icon(Icons.delete_outline, color: AppColors.danger),
               tooltip: 'Usuń salę',
               onPressed: _isSaving ? null : _deleteRoom,
             ),
@@ -216,7 +217,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
-                : const Icon(Icons.check, color: Colors.greenAccent),
+                : const Icon(Icons.check, color: AppColors.success),
             tooltip: 'Zapisz',
             onPressed: _isSaving ? null : _saveRoom,
           ),
@@ -238,7 +239,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                       : Colors.red.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: _isAvailable ? Colors.greenAccent : Colors.redAccent,
+                    color: _isAvailable ? AppColors.success : AppColors.danger,
                     width: 1.5,
                   ),
                 ),
@@ -246,7 +247,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                   children: [
                     Icon(
                       _isAvailable ? Icons.check_circle : Icons.cancel,
-                      color: _isAvailable ? Colors.greenAccent : Colors.redAccent,
+                      color: _isAvailable ? AppColors.success : AppColors.danger,
                       size: 28,
                     ),
                     const SizedBox(width: 12),
@@ -257,7 +258,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                           Text(
                             _isAvailable ? 'SALA DOSTĘPNA (WOLNA)' : 'SALA NIEDOSTĘPNA (ZAJĘTA)',
                             style: TextStyle(
-                              color: _isAvailable ? Colors.greenAccent : Colors.redAccent,
+                              color: _isAvailable ? AppColors.success : AppColors.danger,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -272,8 +273,8 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                     ),
                     Switch(
                       value: _isAvailable,
-                      activeThumbColor: Colors.greenAccent,
-                      inactiveThumbColor: Colors.redAccent,
+                      activeThumbColor: AppColors.success,
+                      inactiveThumbColor: AppColors.danger,
                       onChanged: (val) {
                         setState(() => _isAvailable = val);
                       },
@@ -331,15 +332,15 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                   return ChoiceChip(
                     label: Text(fl),
                     selected: isSelected,
-                    selectedColor: Colors.orangeAccent.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF1E293B),
+                    selectedColor: AppColors.primary.withValues(alpha: 0.25),
+                    backgroundColor: const Color(0xFF121A31),
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.orangeAccent : Colors.white70,
+                      color: isSelected ? AppColors.primary : Colors.white70,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: isSelected ? Colors.orangeAccent : Colors.white12),
+                      side: BorderSide(color: isSelected ? AppColors.primary : Colors.white12),
                     ),
                     onSelected: (selected) {
                       if (selected) setState(() => _selectedFloor = fl);
@@ -360,15 +361,15 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                   return ChoiceChip(
                     label: Text(cat),
                     selected: isSelected,
-                    selectedColor: Colors.lightBlueAccent.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF1E293B),
+                    selectedColor: AppColors.primary.withValues(alpha: 0.25),
+                    backgroundColor: const Color(0xFF121A31),
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.lightBlueAccent : Colors.white70,
+                      color: isSelected ? AppColors.primary : Colors.white70,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: isSelected ? Colors.lightBlueAccent : Colors.white12),
+                      side: BorderSide(color: isSelected ? AppColors.primary : Colors.white12),
                     ),
                     onSelected: (selected) {
                       if (selected) setState(() => _selectedCategory = cat);
@@ -395,16 +396,16 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                     ChoiceChip(
                       label: Text('$m min'),
                       selected: _selectedAlertLimitMinutes == m,
-                      selectedColor: Colors.amberAccent.withValues(alpha: 0.25),
-                      backgroundColor: const Color(0xFF1E293B),
+                      selectedColor: AppColors.warning.withValues(alpha: 0.25),
+                      backgroundColor: const Color(0xFF121A31),
                       labelStyle: TextStyle(
-                        color: _selectedAlertLimitMinutes == m ? Colors.amberAccent : Colors.white70,
+                        color: _selectedAlertLimitMinutes == m ? AppColors.warning : Colors.white70,
                         fontWeight: _selectedAlertLimitMinutes == m ? FontWeight.bold : FontWeight.normal,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                         side: BorderSide(
-                          color: _selectedAlertLimitMinutes == m ? Colors.amberAccent : Colors.white12,
+                          color: _selectedAlertLimitMinutes == m ? AppColors.warning : Colors.white12,
                         ),
                       ),
                       onSelected: (selected) {
@@ -419,18 +420,18 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                           : 'Własny...',
                     ),
                     backgroundColor: ![15, 30, 45, 60, 90, 120].contains(_selectedAlertLimitMinutes)
-                        ? Colors.amberAccent.withValues(alpha: 0.25)
-                        : const Color(0xFF1E293B),
+                        ? AppColors.warning.withValues(alpha: 0.25)
+                        : const Color(0xFF121A31),
                     labelStyle: TextStyle(
                       color: ![15, 30, 45, 60, 90, 120].contains(_selectedAlertLimitMinutes)
-                          ? Colors.amberAccent
+                          ? AppColors.warning
                           : Colors.white70,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                       side: BorderSide(
                         color: ![15, 30, 45, 60, 90, 120].contains(_selectedAlertLimitMinutes)
-                            ? Colors.amberAccent
+                            ? AppColors.warning
                             : Colors.white12,
                       ),
                     ),
@@ -439,7 +440,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                       final val = await showDialog<int>(
                         context: context,
                         builder: (dCtx) => AlertDialog(
-                          backgroundColor: const Color(0xFF1E293B),
+                          backgroundColor: const Color(0xFF121A31),
                           title: const Text('Własny limit czasu', style: TextStyle(color: Colors.white, fontSize: 16)),
                           content: TextField(
                             controller: ctrl,
@@ -466,7 +467,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.amberAccent,
+                                backgroundColor: AppColors.warning,
                                 foregroundColor: Colors.black87,
                               ),
                               child: const Text('Zatwierdź'),
@@ -523,7 +524,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _isSaving ? null : _saveRoom,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent,
+                    backgroundColor: AppColors.success,
                     foregroundColor: Colors.black87,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
@@ -571,7 +572,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: const Color(0xFF121A31),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
@@ -586,7 +587,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
           hintText: hint,
           hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 13),
           labelStyle: const TextStyle(color: Colors.white60),
-          prefixIcon: Icon(icon, color: Colors.orangeAccent.withValues(alpha: 0.7)),
+          prefixIcon: Icon(icon, color: AppColors.primary.withValues(alpha: 0.7)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),

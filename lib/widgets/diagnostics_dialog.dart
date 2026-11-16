@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/diagnostics_service.dart';
+import '../theme/app_theme.dart';
 
 class DiagnosticsDialog extends StatefulWidget {
   const DiagnosticsDialog({super.key});
@@ -65,7 +66,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
     final traffic = server?['traffic_metrics'] as Map<String, dynamic>?;
 
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: const Color(0xFF121A31),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
@@ -100,7 +101,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Section 1: Klient
-                    _buildSectionHeader('📱 Urządzenie & Klient', Colors.cyanAccent),
+                    _buildSectionHeader('📱 Urządzenie & Klient', AppColors.cyan),
                     _buildInfoCard([
                       _buildRow('Platforma:', client?['platform']?.toString() ?? '-'),
                       _buildRow('System operacyjny:', client?['os_version']?.toString() ?? '-'),
@@ -116,7 +117,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
                     const SizedBox(height: 12),
 
                     // Section 2: Sieć i Tunel
-                    _buildSectionHeader('🌐 Łączność & Tunel Cloudflare', Colors.greenAccent),
+                    _buildSectionHeader('🌐 Łączność & Tunel Cloudflare', AppColors.success),
                     _buildInfoCard([
                       _buildRow('Status synchronizacji:', syncStatus?['connection_state']?.toString().toUpperCase() ?? '-'),
                       _buildRow('Adres serwera:', syncStatus?['server_url']?.toString() ?? '-'),
@@ -132,7 +133,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
                     const SizedBox(height: 12),
 
                     // Section 3: Serwer Bazy Danych
-                    _buildSectionHeader('🖥️ Serwer Synchronizacji (SQLite)', Colors.orangeAccent),
+                    _buildSectionHeader('🖥️ Serwer Synchronizacji (SQLite)', AppColors.warning),
                     if (server != null && server['status'] != 'unreachable')
                       _buildInfoCard([
                         _buildRow('Czas działania (Uptime):', server['uptime_human']?.toString() ?? '-'),
@@ -147,13 +148,13 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.redAccent.withValues(alpha: 0.15),
+                          color: AppColors.danger.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                          border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
                         ),
                         child: const Row(
                           children: [
-                            Icon(Icons.cloud_off, color: Colors.redAccent, size: 18),
+                            Icon(Icons.cloud_off, color: AppColors.danger, size: 18),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -181,7 +182,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF334155),
+            backgroundColor: const Color(0xFF232E52),
             foregroundColor: Colors.white,
           ),
           onPressed: () => Navigator.of(context).pop(),
@@ -205,7 +206,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: const Color(0xFF0A1020),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),

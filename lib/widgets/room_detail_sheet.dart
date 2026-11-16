@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/room_model.dart';
 import '../services/room_database_helper.dart';
+import '../theme/app_theme.dart';
 
 void showRoomDetailSheet({
   required BuildContext context,
@@ -11,12 +12,12 @@ void showRoomDetailSheet({
   Future<void> Function(Room updatedRoom, int newLimitSeconds)? onLimitChanged,
 }) {
   final isAvailable = room.isAvailable;
-  final statusColor = isAvailable ? Colors.greenAccent : Colors.redAccent;
+  final statusColor = isAvailable ? AppColors.success : AppColors.danger;
 
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF1E293B),
+    backgroundColor: const Color(0xFF121A31),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -107,7 +108,7 @@ void showRoomDetailSheet({
                                   ),
                                   child: Text(
                                     room.category,
-                                    style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 11),
+                                    style: const TextStyle(color: AppColors.primary, fontSize: 11),
                                   ),
                                 ),
                               ],
@@ -128,10 +129,10 @@ void showRoomDetailSheet({
                       decoration: BoxDecoration(
                         color: room.isAlertDue
                             ? Colors.red.withValues(alpha: 0.25)
-                            : const Color(0xFF0F172A),
+                            : const Color(0xFF0A1020),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: room.isAlertDue ? Colors.amberAccent : Colors.redAccent.withValues(alpha: 0.4),
+                          color: room.isAlertDue ? AppColors.warning : AppColors.danger.withValues(alpha: 0.4),
                           width: room.isAlertDue ? 1.5 : 1,
                         ),
                       ),
@@ -141,13 +142,13 @@ void showRoomDetailSheet({
                           if (room.isAlertDue) ...[
                             const Row(
                               children: [
-                                Icon(Icons.warning_amber_rounded, color: Colors.amberAccent, size: 18),
+                                Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 18),
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     'PRZEKROCZONO LIMIT CZASU SESJI!',
                                     style: TextStyle(
-                                      color: Colors.amberAccent,
+                                      color: AppColors.warning,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                     ),
@@ -164,7 +165,7 @@ void showRoomDetailSheet({
                               Text(
                                 room.durationFormatted,
                                 style: TextStyle(
-                                  color: room.isAlertDue ? Colors.amberAccent : Colors.white,
+                                  color: room.isAlertDue ? AppColors.warning : Colors.white,
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'monospace',
@@ -196,7 +197,7 @@ void showRoomDetailSheet({
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0A1020),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white12),
                     ),
@@ -208,7 +209,7 @@ void showRoomDetailSheet({
                           children: [
                             const Row(
                               children: [
-                                Icon(Icons.timer_outlined, color: Colors.amberAccent, size: 18),
+                                Icon(Icons.timer_outlined, color: AppColors.warning, size: 18),
                                 SizedBox(width: 8),
                                 Text(
                                   'LIMIT CZASU DLA TEJ SALI',
@@ -224,20 +225,20 @@ void showRoomDetailSheet({
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: Colors.amberAccent.withValues(alpha: 0.18),
+                                color: AppColors.warning.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.6)),
+                                border: Border.all(color: AppColors.warning.withValues(alpha: 0.6)),
                               ),
                               child: isSavingLimit
                                   ? const SizedBox(
                                       width: 12,
                                       height: 12,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.amberAccent),
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.warning),
                                     )
                                   : Text(
                                       '${currentLimitSec ~/ 60} min',
                                       style: const TextStyle(
-                                        color: Colors.amberAccent,
+                                        color: AppColors.warning,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
                                       ),
@@ -295,7 +296,7 @@ void showRoomDetailSheet({
                                       final chosenMin = await showDialog<int>(
                                         context: context,
                                         builder: (dCtx) => AlertDialog(
-                                          backgroundColor: const Color(0xFF1E293B),
+                                          backgroundColor: const Color(0xFF121A31),
                                           title: Text(
                                             'Własny limit czasu (sala ${room.number})',
                                             style: const TextStyle(color: Colors.white, fontSize: 16),
@@ -311,10 +312,10 @@ void showRoomDetailSheet({
                                               suffixText: 'min',
                                               suffixStyle: TextStyle(color: Colors.white60),
                                               enabledBorder: UnderlineInputBorder(
-                                                borderSide: BorderSide(color: Colors.amberAccent),
+                                                borderSide: BorderSide(color: AppColors.warning),
                                               ),
                                               focusedBorder: UnderlineInputBorder(
-                                                borderSide: BorderSide(color: Colors.amberAccent, width: 2),
+                                                borderSide: BorderSide(color: AppColors.warning, width: 2),
                                               ),
                                             ),
                                           ),
@@ -331,7 +332,7 @@ void showRoomDetailSheet({
                                                 }
                                               },
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.amberAccent,
+                                                backgroundColor: AppColors.warning,
                                                 foregroundColor: Colors.black87,
                                               ),
                                               child: const Text('Zapisz'),
@@ -368,12 +369,12 @@ void showRoomDetailSheet({
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                                 decoration: BoxDecoration(
                                   color: ![900, 1800, 2700, 3600, 5400, 7200].contains(currentLimitSec)
-                                      ? Colors.amberAccent.withValues(alpha: 0.25)
+                                      ? AppColors.warning.withValues(alpha: 0.25)
                                       : Colors.white.withValues(alpha: 0.06),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: ![900, 1800, 2700, 3600, 5400, 7200].contains(currentLimitSec)
-                                        ? Colors.amberAccent
+                                        ? AppColors.warning
                                         : Colors.white12,
                                     width: ![900, 1800, 2700, 3600, 5400, 7200].contains(currentLimitSec) ? 1.5 : 1,
                                   ),
@@ -385,7 +386,7 @@ void showRoomDetailSheet({
                                       Icons.edit_outlined,
                                       size: 13,
                                       color: ![900, 1800, 2700, 3600, 5400, 7200].contains(currentLimitSec)
-                                          ? Colors.amberAccent
+                                          ? AppColors.warning
                                           : Colors.white70,
                                     ),
                                     const SizedBox(width: 4),
@@ -395,7 +396,7 @@ void showRoomDetailSheet({
                                           : 'Własny...',
                                       style: TextStyle(
                                         color: ![900, 1800, 2700, 3600, 5400, 7200].contains(currentLimitSec)
-                                            ? Colors.amberAccent
+                                            ? AppColors.warning
                                             : Colors.white70,
                                         fontWeight: ![900, 1800, 2700, 3600, 5400, 7200].contains(currentLimitSec)
                                             ? FontWeight.bold
@@ -425,7 +426,7 @@ void showRoomDetailSheet({
                         await onToggleAvailability(room);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isAvailable ? Colors.redAccent : Colors.greenAccent,
+                        backgroundColor: isAvailable ? AppColors.danger : AppColors.success,
                         foregroundColor: Colors.black87,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         elevation: 4,
@@ -472,10 +473,10 @@ void showRoomDetailSheet({
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.info_outline, color: Colors.orangeAccent, size: 16),
+                        const Icon(Icons.info_outline, color: AppColors.primary, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text('Uwagi: ${room.customNote}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 13)),
+                          child: Text('Uwagi: ${room.customNote}', style: const TextStyle(color: AppColors.primary, fontSize: 13)),
                         ),
                       ],
                     ),
@@ -493,8 +494,8 @@ void showRoomDetailSheet({
                           Navigator.of(ctx).pop();
                           onDelete();
                         },
-                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
-                        label: const Text('Usuń salę', style: TextStyle(color: Colors.redAccent)),
+                        icon: const Icon(Icons.delete_outline, color: AppColors.danger, size: 18),
+                        label: const Text('Usuń salę', style: TextStyle(color: AppColors.danger)),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton.icon(
@@ -505,7 +506,7 @@ void showRoomDetailSheet({
                         icon: const Icon(Icons.edit_outlined, size: 18),
                         label: const Text('Edytuj dane'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0F172A),
+                          backgroundColor: const Color(0xFF0A1020),
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white24),
                         ),
@@ -533,17 +534,17 @@ Widget _buildLimitChip({
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: selected ? Colors.amberAccent.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.06),
+        color: selected ? AppColors.warning.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: selected ? Colors.amberAccent : Colors.white12,
+          color: selected ? AppColors.warning : Colors.white12,
           width: selected ? 1.5 : 1,
         ),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: selected ? Colors.amberAccent : Colors.white70,
+          color: selected ? AppColors.warning : Colors.white70,
           fontWeight: selected ? FontWeight.bold : FontWeight.w500,
           fontSize: 12,
         ),

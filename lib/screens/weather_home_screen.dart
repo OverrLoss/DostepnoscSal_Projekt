@@ -195,7 +195,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
 
   List<Color> _getBackgroundGradient(WeatherData? weather) {
     if (weather == null) {
-      return [const Color(0xFF0F172A), const Color(0xFF1E293B)];
+      return [const Color(0xFF0A1020), const Color(0xFF121A31)];
     }
 
     if (!weather.isDay) {
@@ -264,7 +264,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
                   child: RefreshIndicator(
                     onRefresh: () => _loadWeatherData(_selectedCity),
                     color: Colors.white,
-                    backgroundColor: const Color(0xFF1E293B),
+                    backgroundColor: const Color(0xFF121A31),
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

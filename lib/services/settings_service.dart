@@ -11,7 +11,7 @@ class SettingsService extends ChangeNotifier {
   static const String _keyDefaultSort = 'app_default_sort';
 
   ThemeMode _themeMode = ThemeMode.dark;
-  String _accentColorName = 'green';
+  String _accentColorName = 'blue';
   String _defaultCategory = 'Prywatny';
   String _defaultSort = 'lastName_asc';
   bool _isInitialized = false;
@@ -25,7 +25,7 @@ class SettingsService extends ChangeNotifier {
   Color get accentColor {
     switch (_accentColorName) {
       case 'blue':
-        return Colors.lightBlueAccent;
+        return const Color(0xFF4D7CFE);
       case 'purple':
         return Colors.purpleAccent;
       case 'amber':
@@ -63,7 +63,7 @@ class SettingsService extends ChangeNotifier {
       _themeMode = ThemeMode.dark;
     }
 
-    _accentColorName = prefs.getString(_keyAccentColor) ?? 'green';
+    _accentColorName = prefs.getString(_keyAccentColor) ?? 'blue';
     _defaultCategory = prefs.getString(_keyDefaultCategory) ?? 'Prywatny';
     _defaultSort = prefs.getString(_keyDefaultSort) ?? 'lastName_asc';
 
