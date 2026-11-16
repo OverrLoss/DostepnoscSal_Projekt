@@ -117,8 +117,9 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
       ),
       child: Row(
         children: [
-          // Left: University Logo & Title
-          Row(
+          // Left: University Logo & Title (skraca się, gdy brakuje miejsca)
+          Expanded(
+            child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -130,11 +131,14 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                 child: const Icon(Icons.school, color: AppColors.primary, size: 28),
               ),
               const SizedBox(width: 14),
-              const Column(
+              const Flexible(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'POLITECHNIKA RZESZOWSKA',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -143,7 +147,9 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                     ),
                   ),
                   Text(
-                    'TABLICA INFORMACYJNA • DOSTĘPNOŚĆ SAL',
+                    'Tablica informacyjna, dostępność sal',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: AppColors.primary,
                       fontSize: 12,
@@ -153,13 +159,18 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   ),
                 ],
               ),
+              ),
             ],
           ),
+          ),
 
-          const Spacer(),
+          const SizedBox(width: 16),
 
-          // Center: Live Availability Counter
-          Container(
+          // Center: Live Availability Counter (zmniejsza się zamiast wychodzić poza ekran)
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: const Color(0xFF141414),
@@ -210,11 +221,20 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
               ],
             ),
           ),
+            ),
+          ),
 
-          const Spacer(),
+          const SizedBox(width: 16),
 
           // Right: Real-time Clock & Controls
-          Row(
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -242,6 +262,9 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
+          ),
+              ),
+            ),
           ),
         ],
       ),

@@ -53,6 +53,7 @@ class RoomSyncService {
   // --- WebSocket live updates ---
   WebSocketChannel? _wsChannel;
   Timer? _wsReconnectTimer;
+  int _wsFailures = 0;
   bool _wsEnabled = false;
   final StreamController<Map<String, dynamic>> _roomUpdateController =
       StreamController<Map<String, dynamic>>.broadcast();
@@ -739,12 +740,17 @@ class RoomSyncService {
       final wsBase = base
           .replaceFirst('https://', 'wss://')
           .replaceFirst('http://', 'ws://');
-      final wsUri = Uri.parse('$wsBase/api/v1/ws');
+      var wsUri = Uri.parse('$wsBase/api/v1/ws');
+      // Dart nie zna domyślnych portów dla ws/wss (zwraca 0) — ustawiamy je jawnie.
+      if (!wsUri.hasPort) {
+        wsUri = wsUri.replace(port: wsUri.scheme == 'wss' ? 443 : 80);
+      }
       debugPrint('[WS] Connecting to $wsUri');
 
       _wsChannel = WebSocketChannel.connect(wsUri);
       _wsChannel!.stream.listen(
         (raw) {
+          _wsFailures = 0;
           try {
             final msg = json.decode(raw as String) as Map<String, dynamic>;
             final type = msg['type']?.toString() ?? '';
@@ -761,25 +767,31 @@ class RoomSyncService {
           } catch (_) {}
         },
         onDone: () {
-          debugPrint('[WS] Connection closed — reconnecting in 3s');
+          debugPrint('[WS] Connection closed — reconnecting');
           _scheduleWsReconnect();
         },
         onError: (e) {
-          debugPrint('[WS] Error: $e — reconnecting in 3s');
+          debugPrint('[WS] Error: $e — reconnecting');
           _scheduleWsReconnect();
         },
         cancelOnError: true,
       );
     } catch (e) {
-      debugPrint('[WS] Connect failed: $e — reconnecting in 5s');
-      _scheduleWsReconnect(delay: const Duration(seconds: 5));
+      debugPrint('[WS] Connect failed: $e — reconnecting');
+      _scheduleWsReconnect();
     }
   }
 
-  void _scheduleWsReconnect({Duration delay = const Duration(seconds: 3)}) {
+  /// Ponowne łączenie z narastającą przerwą (3 s, 6 s, 12 s … maks. 60 s),
+  /// żeby przy wyłączonym serwerze nie zasypywać go próbami co 3 sekundy.
+  void _scheduleWsReconnect() {
     if (!_wsEnabled) return;
     _wsChannel = null;
     _wsReconnectTimer?.cancel();
-    _wsReconnectTimer = Timer(delay, _connectWebSocket);
+    final shift = _wsFailures > 5 ? 5 : _wsFailures;
+    var seconds = 3 * (1 << shift);
+    if (seconds > 60) seconds = 60;
+    _wsFailures++;
+    _wsReconnectTimer = Timer(Duration(seconds: seconds), _connectWebSocket);
   }
 }
