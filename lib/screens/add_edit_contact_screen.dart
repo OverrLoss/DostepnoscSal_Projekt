@@ -180,7 +180,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F36),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Usuń kontakt', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć kontakt "${widget.contact!.fullName}" z bazy SQLite?',
@@ -219,9 +219,9 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
     final themeColor = _getCategoryColor(_selectedCategory);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF101326),
+      backgroundColor: const Color(0xFF000000),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1F36),
+        backgroundColor: const Color(0xFF141414),
         elevation: 0,
         title: Text(
           _isEditing ? 'Edytuj Kontakt' : 'Nowy Kontakt',
@@ -296,7 +296,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
                     label: Text(cat),
                     selected: isSelected,
                     selectedColor: catColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF1A1F36),
+                    backgroundColor: const Color(0xFF141414),
                     labelStyle: TextStyle(
                       color: isSelected ? catColor : Colors.white70,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -465,7 +465,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1F36),
+        color: const Color(0xFF141414),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),

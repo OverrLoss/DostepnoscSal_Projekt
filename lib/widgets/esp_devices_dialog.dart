@@ -108,7 +108,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F36),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Usunąć sterownik?', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć kontroler "$name"? Urządzenie straci autoryzację do serwera.',
@@ -152,7 +152,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
       builder: (dialogCtx) => StatefulBuilder(
         builder: (ctx, setDlgState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1A1F36),
+            backgroundColor: const Color(0xFF141414),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Row(
               children: [
@@ -213,7 +213,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFF101326),
+                      fillColor: const Color(0xFF000000),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     ),
@@ -224,14 +224,14 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF101326),
+                      color: const Color(0xFF000000),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: selectedRoom,
                         isExpanded: true,
-                        dropdownColor: const Color(0xFF1A1F36),
+                        dropdownColor: const Color(0xFF141414),
                         style: const TextStyle(color: Colors.white, fontSize: 13),
                         items: _allRooms.map((r) {
                           return DropdownMenuItem<String>(
@@ -296,7 +296,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F36),
+        backgroundColor: const Color(0xFF141414),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
@@ -322,7 +322,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF101326),
+                color: const Color(0xFF000000),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
               ),
@@ -360,7 +360,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
         ),
         actions: [
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E3550), foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2A2A2A), foregroundColor: Colors.white),
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Zamknij'),
           ),
@@ -380,7 +380,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
     final esp8266Count = _devices.where((d) => _getDeviceType(d) == 'esp8266').length;
 
     return Dialog(
-      backgroundColor: const Color(0xFF1A1F36),
+      backgroundColor: const Color(0xFF141414),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: 620,
@@ -532,7 +532,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                     margin: const EdgeInsets.only(bottom: 8),
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF101326),
+                                      color: const Color(0xFF000000),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Row(
@@ -549,7 +549,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                         const Spacer(),
                                         DropdownButton<String>(
                                           value: currentSelection,
-                                          dropdownColor: const Color(0xFF1A1F36),
+                                          dropdownColor: const Color(0xFF141414),
                                           style: const TextStyle(color: Colors.white, fontSize: 12),
                                           underline: const SizedBox(),
                                           items: _allRooms.map((r) {
@@ -607,7 +607,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF101326),
+                              color: const Color(0xFF000000),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Center(
@@ -654,7 +654,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                               margin: const EdgeInsets.only(bottom: 8),
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF101326),
+                                color: const Color(0xFF000000),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: hasRoom
@@ -764,7 +764,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                   ),
                                   PopupMenuButton<String>(
                                     icon: const Icon(Icons.more_vert, color: Colors.white70, size: 20),
-                                    color: const Color(0xFF2E3550),
+                                    color: const Color(0xFF2A2A2A),
                                     onSelected: (val) {
                                       if (val == '__delete__') {
                                         _deleteDevice(devId, devName);
@@ -805,7 +805,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF101326),
+                            color: const Color(0xFF000000),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.white10),
                           ),

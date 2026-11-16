@@ -112,7 +112,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: const BoxDecoration(
-        color: Color(0xFF101326),
+        color: Color(0xFF000000),
         border: Border(bottom: BorderSide(color: Colors.white12, width: 1)),
       ),
       child: Row(
@@ -162,7 +162,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF1A1F36),
+              color: const Color(0xFF141414),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: Colors.white12),
             ),
@@ -316,7 +316,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF181C31),
+        color: const Color(0xFF111111),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white12),
         boxShadow: const [
@@ -329,7 +329,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF1A1F36),
+              color: const Color(0xFF141414),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               border: Border(bottom: BorderSide(color: accentColor.withValues(alpha: 0.3))),
             ),
@@ -404,7 +404,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: const BoxDecoration(
-        color: Color(0xFF101326),
+        color: Color(0xFF000000),
         border: Border(top: BorderSide(color: Colors.white12, width: 1)),
       ),
       child: ListView.separated(

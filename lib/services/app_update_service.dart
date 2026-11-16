@@ -129,12 +129,24 @@ class AppUpdateService {
     bool autoPrompt = false,
     bool showUpToDate = false,
   }) async {
+    // Aktualizacje przez APK istnieją tylko na Androidzie.
+    // Na iOS / macOS / Windows aplikację instaluje się na nowo (Xcode, TestFlight).
+    if (!kIsWeb && defaultTargetPlatform != TargetPlatform.android) {
+      if (showUpToDate && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Na tym urządzeniu aktualizację instaluje się przez Xcode lub TestFlight.'),
+          ),
+        );
+      }
+      return;
+    }
     if (kIsWeb) {
       if (showUpToDate && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Wersja Web jest zawsze na bieżąco z serwerem.'),
-            backgroundColor: Color(0xFF1A1F36),
+            backgroundColor: Color(0xFF141414),
           ),
         );
       }
@@ -166,7 +178,7 @@ class AppUpdateService {
       barrierDismissible: false,
       builder: (ctx) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1A1F36),
+          backgroundColor: const Color(0xFF141414),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
@@ -193,7 +205,7 @@ class AppUpdateService {
             children: [
               Text(
                 'Dostępna jest nowa wersja ${info.versionName} (${info.formattedSize})',
-                style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 6),
               Text(
@@ -258,11 +270,11 @@ class AppUpdateService {
         return PopScope(
           canPop: false,
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1A1F36),
+            backgroundColor: const Color(0xFF141414),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: const Row(
               children: [
-                Icon(Icons.downloading_rounded, color: Colors.orangeAccent),
+                Icon(Icons.downloading_rounded, color: Colors.white),
                 SizedBox(width: 10),
                 Text('Pobieranie aktualizacji', style: TextStyle(color: Colors.white, fontSize: 16)),
               ],
@@ -368,7 +380,7 @@ class AppUpdateService {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Zezwól na instalację z nieznanych źródeł w Ustawieniach, a następnie wróć do aplikacji.'),
-              backgroundColor: Colors.orangeAccent,
+              backgroundColor: Color(0xFF1F1F1F),
               duration: Duration(seconds: 5),
             ),
           );

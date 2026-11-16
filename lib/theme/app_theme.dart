@@ -4,48 +4,50 @@ import 'package:flutter/material.dart';
 
 /// Centralny design system aplikacji — styl „liquid glass”.
 ///
-/// Ekran główny leży na ciemnym tle z kolorowymi poświatami, a karty,
-/// statystyki i pola są półprzezroczystymi taflami szkła z jasną krawędzią.
+/// Czerń i odcienie szarości. Ekran główny leży na czarnym tle z miękkim,
+/// białym światłem, a karty, statystyki i pola są taflami szkła z jasną
+/// krawędzią. Kolor pojawia się tylko w statusie sali: zielony i czerwony.
+/// Akcentem jest biel (zaznaczone elementy: białe tło, czarny tekst).
 /// Pozostałe ekrany i okna dialogowe używają pełnych (nieprzezroczystych)
 /// powierzchni w tej samej kolorystyce, żeby tekst był zawsze czytelny.
 class AppColors {
   AppColors._();
 
   // ── Powierzchnie pełne ────────────────────────────────────────────────
-  /// Tło ekranów (głęboki granatowo-fioletowy).
-  static const Color background = Color(0xFF101326);
+  /// Tło ekranów (czerń).
+  static const Color background = Color(0xFF000000);
 
   /// Pełne tło kart na zwykłych ekranach, dialogów i arkuszy.
-  static const Color surface = Color(0xFF1A1F36);
+  static const Color surface = Color(0xFF141414);
 
   /// Jaśniejsza pełna powierzchnia (menu, wyróżnienia).
-  static const Color surfaceAlt = Color(0xFF242A45);
+  static const Color surfaceAlt = Color(0xFF1F1F1F);
 
   /// Obramowania na pełnych powierzchniach.
-  static const Color stroke = Color(0xFF2E3550);
+  static const Color stroke = Color(0xFF2A2A2A);
 
   // ── Szkło ─────────────────────────────────────────────────────────────
   /// Wypełnienie tafli szkła.
-  static const Color glass = Color(0x1FFFFFFF);
+  static const Color glass = Color(0x14FFFFFF);
 
   /// Mocniejsze szkło (nagłówki kart, puste paski).
-  static const Color glassHi = Color(0x33FFFFFF);
+  static const Color glassHi = Color(0x24FFFFFF);
 
   /// Jasna krawędź tafli szkła.
-  static const Color glassStroke = Color(0x38FFFFFF);
+  static const Color glassStroke = Color(0x29FFFFFF);
 
   // ── Akcenty ───────────────────────────────────────────────────────────
-  static const Color primary = Color(0xFF5B9BFF);
-  static const Color onPrimary = Colors.white;
-  static const Color success = Color(0xFF3DDC97);
-  static const Color warning = Color(0xFFFFB547);
-  static const Color danger = Color(0xFFFF6B81);
-  static const Color cyan = Color(0xFF67E8F9);
+  static const Color primary = Color(0xFFF2F2F2);
+  static const Color onPrimary = Color(0xFF000000);
+  static const Color success = Color(0xFF34C759);
+  static const Color warning = Color(0xFFD4D4D4);
+  static const Color danger = Color(0xFFFF453A);
+  static const Color cyan = Color(0xFFBDBDBD);
 
   // ── Tekst ─────────────────────────────────────────────────────────────
   static const Color textPrimary = Colors.white;
-  static const Color textSecondary = Color(0xB3FFFFFF);
-  static const Color textFaint = Color(0x73FFFFFF);
+  static const Color textSecondary = Color(0x99FFFFFF);
+  static const Color textFaint = Color(0x59FFFFFF);
 
   // ── Promienie ─────────────────────────────────────────────────────────
   static const double radiusCard = 22;
@@ -62,7 +64,7 @@ class AppColors {
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0x2EFFFFFF), Color(0x0FFFFFFF)],
+        colors: [Color(0x1FFFFFFF), Color(0x08FFFFFF)],
       ),
       border: Border.all(color: borderColor ?? glassStroke, width: 1),
     );
@@ -174,7 +176,7 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.2),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.14),
         height: 64,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
@@ -192,7 +194,7 @@ class AppTheme {
   }
 }
 
-/// Tło pod szkłem: ciemny gradient z trzema miękkimi kolorowymi poświatami.
+/// Tło pod szkłem: czerń z dwiema miękkimi plamami białego światła.
 class GlassBackground extends StatelessWidget {
   final Widget child;
 
@@ -208,20 +210,19 @@ class GlassBackground extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF151A3D), Color(0xFF0E1024), Color(0xFF1C1233)],
+                colors: [Color(0xFF111111), Color(0xFF000000), Color(0xFF0A0A0A)],
               ),
             ),
           ),
         ),
-        _glow(const Alignment(-1.2, -1.0), const Color(0xFF4F7CFF), 360),
-        _glow(const Alignment(1.3, -0.25), const Color(0xFFB15CFF), 320),
-        _glow(const Alignment(-0.7, 1.15), const Color(0xFF22D3C5), 340),
+        _glow(const Alignment(-1.1, -1.05), 0.10, 420),
+        _glow(const Alignment(1.2, 0.35), 0.06, 360),
         Positioned.fill(child: child),
       ],
     );
   }
 
-  static Widget _glow(Alignment alignment, Color color, double size) {
+  static Widget _glow(Alignment alignment, double strength, double size) {
     return Positioned.fill(
       child: IgnorePointer(
         child: Align(
@@ -233,8 +234,8 @@ class GlassBackground extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  color.withValues(alpha: 0.5),
-                  color.withValues(alpha: 0.0),
+                  Colors.white.withValues(alpha: strength),
+                  Colors.white.withValues(alpha: 0.0),
                 ],
               ),
             ),

@@ -187,7 +187,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF1A1F36),
+            backgroundColor: const Color(0xFF141414),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -227,7 +227,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F36),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Przywróć domyślne sale', style: TextStyle(color: Colors.white)),
         content: const Text(
           'Czy chcesz przywrócić pierwotną listę sal z planu Politechniki Rzeszowskiej (Noc Nauki)?',
@@ -279,7 +279,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F36),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Usuń salę', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć "${room.displayName}"?',
@@ -348,7 +348,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           }
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF1A1F36),
+            backgroundColor: const Color(0xFF141414),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Row(
               children: [
@@ -368,7 +368,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF101326),
+                      color: const Color(0xFF000000),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
                     ),
@@ -417,7 +417,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFF101326),
+                      fillColor: const Color(0xFF000000),
                       hintText: 'https://sale.pwojtaszek.codes',
                       hintStyle: const TextStyle(color: Colors.white30),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
@@ -442,7 +442,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                     SnackBar(
                                       content: Text('Pobrano adres serwera lokalnego: $detected'),
                                       duration: const Duration(seconds: 2),
-                                      backgroundColor: const Color(0xFF101326),
+                                      backgroundColor: const Color(0xFF000000),
                                     ),
                                   );
                                 }
@@ -457,7 +457,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     children: [
                       ActionChip(
                         avatar: const Icon(Icons.cloud, size: 14, color: AppColors.primary),
-                        backgroundColor: const Color(0xFF2E3550),
+                        backgroundColor: const Color(0xFF2A2A2A),
                         label: const Text('sale.pwojtaszek.codes', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                         onPressed: () {
                           serverController.text = 'https://sale.pwojtaszek.codes';
@@ -472,7 +472,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                 child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.cyan),
                               )
                             : const Icon(Icons.wifi, size: 14, color: AppColors.cyan),
-                        backgroundColor: const Color(0xFF1A1F36),
+                        backgroundColor: const Color(0xFF141414),
                         side: const BorderSide(color: AppColors.cyan, width: 0.8),
                         label: Text(
                           isDetectingLan
@@ -499,7 +499,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                     SnackBar(
                                       content: Text('Pobrano adres serwera w sieci Wi-Fi: $detected'),
                                       duration: const Duration(seconds: 2),
-                                      backgroundColor: const Color(0xFF101326),
+                                      backgroundColor: const Color(0xFF000000),
                                     ),
                                   );
                                 } else {
@@ -521,14 +521,14 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     decoration: BoxDecoration(
                       color: Colors.blueGrey.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
+                      border: Border.all(color: AppColors.textSecondary.withValues(alpha: 0.3)),
                     ),
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.language, color: Colors.blueAccent, size: 16),
+                            Icon(Icons.language, color: AppColors.textSecondary, size: 16),
                             SizedBox(width: 6),
                             Text('Aplikacja w przeglądarce Web:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                           ],
@@ -613,7 +613,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               ),
             ],
           ),
-          backgroundColor: Color(0xFF1A1F36),
+          backgroundColor: Color(0xFF141414),
           duration: Duration(seconds: 4),
         ),
       );
@@ -636,7 +636,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           final assignedRoom = sync.operatorRoomId;
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF1A1F36),
+            backgroundColor: const Color(0xFF141414),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             title: Row(
               children: [
@@ -662,7 +662,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                           Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF101326),
+                              color: const Color(0xFF000000),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.white12),
                             ),
@@ -739,7 +739,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text('Wylogowano pomyślnie.'),
-                                      backgroundColor: Color(0xFF1A1F36),
+                                      backgroundColor: Color(0xFF141414),
                                     ),
                                   );
                                 }
@@ -762,7 +762,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: const Color(0xFF101326),
+                              fillColor: const Color(0xFF000000),
                               hintText: 'Login (np. operator_104 lub admin)',
                               hintStyle: const TextStyle(color: Colors.white30),
                               prefixIcon: const Icon(Icons.person, color: Colors.white54, size: 20),
@@ -777,7 +777,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: const Color(0xFF101326),
+                              fillColor: const Color(0xFF000000),
                               hintText: 'Hasło',
                               hintStyle: const TextStyle(color: Colors.white30),
                               prefixIcon: const Icon(Icons.lock, color: Colors.white54, size: 20),
@@ -804,42 +804,38 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             children: [
                               ActionChip(
                                 avatar: const Icon(Icons.admin_panel_settings, size: 14, color: AppColors.cyan),
-                                backgroundColor: const Color(0xFF101326),
+                                backgroundColor: const Color(0xFF000000),
                                 side: const BorderSide(color: AppColors.cyan, width: 0.8),
                                 label: const Text('Admin', style: TextStyle(color: AppColors.cyan, fontSize: 11)),
                                 onPressed: () {
                                   usernameController.text = 'admin';
-                                  passwordController.text = 'admin123';
                                 },
                               ),
                               ActionChip(
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
-                                backgroundColor: const Color(0xFF101326),
+                                backgroundColor: const Color(0xFF000000),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
                                 label: const Text('Sala 104', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: () {
                                   usernameController.text = 'operator_104';
-                                  passwordController.text = 'operator123';
                                 },
                               ),
                               ActionChip(
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
-                                backgroundColor: const Color(0xFF101326),
+                                backgroundColor: const Color(0xFF000000),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
                                 label: const Text('AULA', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: () {
                                   usernameController.text = 'operator_aula';
-                                  passwordController.text = 'operator123';
                                 },
                               ),
                               ActionChip(
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
-                                backgroundColor: const Color(0xFF101326),
+                                backgroundColor: const Color(0xFF000000),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
                                 label: const Text('Garaż', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: () {
                                   usernameController.text = 'operator_garaz';
-                                  passwordController.text = 'operator123';
                                 },
                               ),
                             ],
@@ -951,7 +947,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               final isOperator = RoomSyncService.instance.isOperator;
               final opRoom = RoomSyncService.instance.operatorRoomId;
 
-              Color chipColor = const Color(0xFF101326);
+              Color chipColor = const Color(0xFF000000);
               Color textColor = Colors.white70;
               IconData icon = Icons.person_outline;
               String label = 'Gość';
@@ -1082,7 +1078,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white70),
-            color: const Color(0xFF2E3550),
+            color: const Color(0xFF2A2A2A),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             onSelected: (val) {
               if (val == 'tv_dashboard') {
@@ -1149,7 +1145,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 value: 'diagnostics',
                 child: Row(
                   children: [
-                    Icon(Icons.analytics_outlined, color: Colors.blueAccent, size: 18),
+                    Icon(Icons.analytics_outlined, color: AppColors.textSecondary, size: 18),
                     SizedBox(width: 10),
                     Text('Diagnostyka serwisowa', style: TextStyle(color: Colors.white)),
                   ],
@@ -1735,7 +1731,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F36),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Przywróć domyślny układ', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz przywrócić pierwotne położenie wszystkich sal na kondygnacji "$floor"?',

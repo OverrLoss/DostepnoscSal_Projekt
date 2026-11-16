@@ -158,7 +158,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F36),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Usuń salę', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć salę "${widget.room!.displayName}" z bazy danych?',
@@ -195,9 +195,9 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF101326),
+      backgroundColor: const Color(0xFF000000),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1F36),
+        backgroundColor: const Color(0xFF141414),
         elevation: 0,
         title: Text(
           _isEditing ? 'Edycja Sali' : 'Nowa Sala',
@@ -333,7 +333,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                     label: Text(fl),
                     selected: isSelected,
                     selectedColor: AppColors.primary.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF1A1F36),
+                    backgroundColor: const Color(0xFF141414),
                     labelStyle: TextStyle(
                       color: isSelected ? AppColors.primary : Colors.white70,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -362,7 +362,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                     label: Text(cat),
                     selected: isSelected,
                     selectedColor: AppColors.primary.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF1A1F36),
+                    backgroundColor: const Color(0xFF141414),
                     labelStyle: TextStyle(
                       color: isSelected ? AppColors.primary : Colors.white70,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -397,7 +397,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                       label: Text('$m min'),
                       selected: _selectedAlertLimitMinutes == m,
                       selectedColor: AppColors.warning.withValues(alpha: 0.25),
-                      backgroundColor: const Color(0xFF1A1F36),
+                      backgroundColor: const Color(0xFF141414),
                       labelStyle: TextStyle(
                         color: _selectedAlertLimitMinutes == m ? AppColors.warning : Colors.white70,
                         fontWeight: _selectedAlertLimitMinutes == m ? FontWeight.bold : FontWeight.normal,
@@ -421,7 +421,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                     ),
                     backgroundColor: ![15, 30, 45, 60, 90, 120].contains(_selectedAlertLimitMinutes)
                         ? AppColors.warning.withValues(alpha: 0.25)
-                        : const Color(0xFF1A1F36),
+                        : const Color(0xFF141414),
                     labelStyle: TextStyle(
                       color: ![15, 30, 45, 60, 90, 120].contains(_selectedAlertLimitMinutes)
                           ? AppColors.warning
@@ -440,7 +440,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                       final val = await showDialog<int>(
                         context: context,
                         builder: (dCtx) => AlertDialog(
-                          backgroundColor: const Color(0xFF1A1F36),
+                          backgroundColor: const Color(0xFF141414),
                           title: const Text('Własny limit czasu', style: TextStyle(color: Colors.white, fontSize: 16)),
                           content: TextField(
                             controller: ctrl,
@@ -572,7 +572,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1F36),
+        color: const Color(0xFF141414),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),

@@ -34,7 +34,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
 WEB_DIR = os.path.join(PROJECT_ROOT, "build", "web")
 DB_PATH = os.path.join(BASE_DIR, "rooms_backend.db")
-SECRET_KEY = os.environ.get("SERVER_SECRET_KEY", "dostepnosc-sal-secret-key-2026")
+SECRET_KEY = os.environ.get("SERVER_SECRET_KEY") or secrets.token_hex(32)
 SERVER_START_TIME = datetime.now(timezone.utc)
 APP_VERSION_FILE = os.path.join(BASE_DIR, "app_version.json")
 
