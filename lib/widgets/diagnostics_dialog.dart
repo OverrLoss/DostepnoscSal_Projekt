@@ -66,7 +66,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
     final traffic = server?['traffic_metrics'] as Map<String, dynamic>?;
 
     return AlertDialog(
-      backgroundColor: const Color(0xFF121A31),
+      backgroundColor: const Color(0xFF22262D),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
@@ -182,7 +182,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF232E52),
+            backgroundColor: const Color(0xFF353A44),
             foregroundColor: Colors.white,
           ),
           onPressed: () => Navigator.of(context).pop(),
@@ -206,7 +206,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0A1020),
+        color: const Color(0xFF1A1D22),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),

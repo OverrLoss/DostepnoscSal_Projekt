@@ -144,7 +144,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF121A31),
+        backgroundColor: const Color(0xFF22262D),
         title: const Text('Przywróć domyślny układ', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz przywrócić pierwotne położenie wszystkich sal na kondygnacji "${widget.floor}"?',
@@ -216,7 +216,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       decoration: BoxDecoration(
                         color: _isEditMode
                             ? AppColors.primary.withValues(alpha: 0.15)
-                            : const Color(0xFF121A31),
+                            : const Color(0xFF22262D),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: _isEditMode ? AppColors.primary : Colors.white12,
@@ -274,7 +274,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _isEditMode ? AppColors.primary : const Color(0xFF232E52),
+                              backgroundColor: _isEditMode ? AppColors.primary : const Color(0xFF353A44),
                               foregroundColor: _isEditMode ? Colors.black : Colors.white,
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -320,7 +320,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                         width: _canvasWidth,
                         height: _canvasHeight,
                         decoration: BoxDecoration(
-                        color: const Color(0xFF121A31),
+                        color: const Color(0xFF22262D),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                           color: _isEditMode
@@ -413,7 +413,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                     width: 360,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF121A31),
+                      color: const Color(0xFF22262D),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.white12),
                     ),
@@ -474,7 +474,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF0A1020).withValues(alpha: 0.9),
+                color: const Color(0xFF1A1D22).withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.white24, width: 0.8),
                 boxShadow: const [

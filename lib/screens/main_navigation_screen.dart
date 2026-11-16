@@ -39,16 +39,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           bottomNavigationBar: Container(
             decoration: const BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(color: Colors.black38, blurRadius: 16, offset: Offset(0, -4)),
-              ],
+              border: Border(top: BorderSide(color: AppColors.stroke)),
             ),
-            clipBehavior: Clip.antiAlias,
             child: NavigationBar(
               selectedIndex: _currentIndex,
               backgroundColor: Colors.transparent,
-              indicatorColor: accent.withValues(alpha: 0.18),
+              indicatorColor: accent.withValues(alpha: 0.16),
               elevation: 0,
               onDestinationSelected: (index) {
                 setState(() => _currentIndex = index);

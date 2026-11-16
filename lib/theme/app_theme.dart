@@ -2,52 +2,53 @@ import 'package:flutter/material.dart';
 
 /// Centralny design system aplikacji.
 ///
-/// Styl inspirowany nowoczesnymi dashboardami aplikacji health/fitness:
-/// bardzo ciemne granatowe tło, lekko jaśniejsze karty o mocno
-/// zaokrąglonych rogach, duże pogrubione wartości, stonowane etykiety
-/// oraz wyraziste kolorowe akcenty (niebieski / zielony / pomarańczowy /
-/// czerwony).
+/// Styl oznakowania budynku uczelni: grafitowe tło, ciepła biel tekstu,
+/// jeden mosiężny akcent (jak tabliczki na drzwiach sal), małe zaokrąglenia,
+/// bez cieni. Zieleń i czerwień są zarezerwowane wyłącznie dla statusu sali.
 class AppColors {
   AppColors._();
 
   // ── Powierzchnie ──────────────────────────────────────────────────────
-  /// Główne tło aplikacji (bardzo ciemny granat).
-  static const Color background = Color(0xFF0A1020);
+  /// Główne tło aplikacji (grafit).
+  static const Color background = Color(0xFF1A1D22);
 
   /// Tło kart i kafelków.
-  static const Color surface = Color(0xFF121A31);
+  static const Color surface = Color(0xFF22262D);
 
   /// Jaśniejsza powierzchnia (menu, pola formularzy, wyróżnione elementy).
-  static const Color surfaceAlt = Color(0xFF1B2444);
+  static const Color surfaceAlt = Color(0xFF2B3038);
 
   /// Subtelne obramowania kart.
-  static const Color stroke = Color(0xFF232E52);
+  static const Color stroke = Color(0xFF353A44);
 
   // ── Akcenty ───────────────────────────────────────────────────────────
-  /// Główny akcent — niebieski.
-  static const Color primary = Color(0xFF4D7CFE);
+  /// Jedyny akcent — mosiądz, jak tabliczki na drzwiach sal.
+  static const Color primary = Color(0xFFD4A955);
+
+  /// Tekst i ikony na tle w kolorze akcentu.
+  static const Color onPrimary = Color(0xFF1A1D22);
 
   /// Sukces / wolna sala.
-  static const Color success = Color(0xFF2BD48A);
+  static const Color success = Color(0xFF4CAF7F);
 
   /// Ostrzeżenie.
-  static const Color warning = Color(0xFFF6A94A);
+  static const Color warning = Color(0xFFE08A3C);
 
   /// Błąd / zajęta sala.
-  static const Color danger = Color(0xFFF2555A);
+  static const Color danger = Color(0xFFE0625A);
 
   /// Dodatkowy akcent (cyjan — tryb TV itp.).
-  static const Color cyan = Color(0xFF38D4E4);
+  static const Color cyan = Color(0xFF8AB4C8);
 
   // ── Tekst ─────────────────────────────────────────────────────────────
-  static const Color textPrimary = Colors.white;
-  static const Color textSecondary = Color(0xFF8E97B8);
-  static const Color textFaint = Color(0xFF5B6487);
+  static const Color textPrimary = Color(0xFFEDEBE6);
+  static const Color textSecondary = Color(0xFF9C9FA6);
+  static const Color textFaint = Color(0xFF6B6F78);
 
   // ── Promienie ─────────────────────────────────────────────────────────
-  static const double radiusCard = 20;
-  static const double radiusControl = 14;
-  static const double radiusPill = 100;
+  static const double radiusCard = 10;
+  static const double radiusControl = 8;
+  static const double radiusPill = 8;
 }
 
 class AppTheme {
@@ -60,7 +61,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
-        onPrimary: Colors.white,
+        onPrimary: AppColors.onPrimary,
         secondary: AppColors.cyan,
         surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
@@ -84,7 +85,7 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
       popupMenuTheme: base.popupMenuTheme.copyWith(
@@ -98,7 +99,7 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
         ),
       ),
       switchTheme: SwitchThemeData(
@@ -120,10 +121,11 @@ class AppTheme {
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
+        foregroundColor: AppColors.onPrimary,
+        elevation: 0,
+        highlightElevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppColors.radiusCard),
         ),
       ),
       snackBarTheme: base.snackBarTheme.copyWith(
@@ -156,8 +158,11 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.18),
-        height: 68,
+        indicatorColor: AppColors.primary.withValues(alpha: 0.16),
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppColors.radiusControl),
+        ),
+        height: 64,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
@@ -169,71 +174,6 @@ class AppTheme {
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.primary,
-      ),
-    );
-  }
-}
-
-/// Kafelek statystyki w stylu health-dashboard: ikona w barwionym
-/// zaokrąglonym kwadracie, duża pogrubiona wartość i stonowana etykieta.
-class StatTile extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String value;
-  final String label;
-
-  const StatTile({
-    super.key,
-    required this.icon,
-    required this.color,
-    required this.value,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppColors.radiusCard),
-        border: Border.all(color: AppColors.stroke),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              height: 1.1,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-            ),
-          ),
-        ],
       ),
     );
   }

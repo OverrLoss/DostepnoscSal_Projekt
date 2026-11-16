@@ -291,7 +291,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
       onKeyEvent: _onKeyEvent,
       autofocus: true,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0A1020),
+        backgroundColor: const Color(0xFF1A1D22),
         appBar: AppBar(
           title: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -309,7 +309,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
             ],
           ),
           centerTitle: true,
-          backgroundColor: const Color(0xFF121A31),
+          backgroundColor: const Color(0xFF22262D),
           elevation: 4,
           actions: [
             IconButton(
@@ -340,7 +340,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
                     aspectRatio: 1,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF121A31),
+                        color: const Color(0xFF22262D),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: wallCollision
@@ -386,7 +386,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF121A31),
+        color: const Color(0xFF22262D),
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
@@ -422,12 +422,12 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFF232E52),
+              color: const Color(0xFF353A44),
               borderRadius: BorderRadius.circular(8),
             ),
             child: DropdownButton<GameDifficulty>(
               value: selectedDifficulty,
-              dropdownColor: const Color(0xFF232E52),
+              dropdownColor: const Color(0xFF353A44),
               underline: const SizedBox(),
               icon: const Icon(Icons.arrow_drop_down, color: Colors.greenAccent),
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -562,7 +562,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
           return Container(
             margin: const EdgeInsets.all(0.5),
             decoration: BoxDecoration(
-              color: const Color(0xFF0A1020).withValues(alpha: 0.4),
+              color: const Color(0xFF1A1D22).withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(2),
             ),
           );
@@ -716,7 +716,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
                 onPressed: () => _changeDirection(Direction.up),
                 icon: const Icon(Icons.arrow_drop_up, size: 32),
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF232E52),
+                  backgroundColor: const Color(0xFF353A44),
                   foregroundColor: Colors.white,
                 ),
               ),
@@ -727,7 +727,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
                     onPressed: () => _changeDirection(Direction.left),
                     icon: const Icon(Icons.arrow_left, size: 32),
                     style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xFF232E52),
+                      backgroundColor: const Color(0xFF353A44),
                       foregroundColor: Colors.white,
                     ),
                   ),
@@ -736,7 +736,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
                     onPressed: () => _changeDirection(Direction.right),
                     icon: const Icon(Icons.arrow_right, size: 32),
                     style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xFF232E52),
+                      backgroundColor: const Color(0xFF353A44),
                       foregroundColor: Colors.white,
                     ),
                   ),
@@ -746,7 +746,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
                 onPressed: () => _changeDirection(Direction.down),
                 icon: const Icon(Icons.arrow_drop_down, size: 32),
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF232E52),
+                  backgroundColor: const Color(0xFF353A44),
                   foregroundColor: Colors.white,
                 ),
               ),

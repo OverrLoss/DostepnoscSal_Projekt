@@ -51,7 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF121A31),
+        backgroundColor: const Color(0xFF22262D),
         title: const Row(
           children: [
             Icon(Icons.warning_amber_rounded, color: AppColors.danger),
@@ -102,9 +102,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final accent = settings.accentColor;
 
         return Scaffold(
-          backgroundColor: const Color(0xFF0A1020),
+          backgroundColor: const Color(0xFF1A1D22),
           appBar: AppBar(
-            backgroundColor: const Color(0xFF121A31),
+            backgroundColor: const Color(0xFF22262D),
             elevation: 0,
             title: Row(
               children: [
@@ -194,7 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       _buildColorDot('green', Colors.greenAccent, 'Szmaragd', settings),
                       const SizedBox(width: 12),
-                      _buildColorDot('blue', AppColors.primary, 'Niebieski', settings),
+                      _buildColorDot('blue', AppColors.primary, 'Mosiądz', settings),
                       const SizedBox(width: 12),
                       _buildColorDot('purple', Colors.purpleAccent, 'Fiolet', settings),
                       const SizedBox(width: 12),
@@ -219,7 +219,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   trailing: DropdownButton<String>(
                     value: settings.defaultCategory,
-                    dropdownColor: const Color(0xFF121A31),
+                    dropdownColor: const Color(0xFF22262D),
                     underline: const SizedBox(),
                     icon: Icon(Icons.arrow_drop_down, color: accent),
                     items: ['Prywatny', 'Praca', 'Rodzina', 'Inne'].map((c) {
@@ -244,7 +244,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   trailing: DropdownButton<String>(
                     value: settings.defaultSort,
-                    dropdownColor: const Color(0xFF121A31),
+                    dropdownColor: const Color(0xFF22262D),
                     underline: const SizedBox(),
                     icon: Icon(Icons.arrow_drop_down, color: accent),
                     items: const [
@@ -380,7 +380,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF121A31),
+        color: const Color(0xFF22262D),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [
