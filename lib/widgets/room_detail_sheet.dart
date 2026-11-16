@@ -17,7 +17,7 @@ void showRoomDetailSheet({
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF22262D),
+    backgroundColor: const Color(0xFF1A1F36),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -129,7 +129,7 @@ void showRoomDetailSheet({
                       decoration: BoxDecoration(
                         color: room.isAlertDue
                             ? Colors.red.withValues(alpha: 0.25)
-                            : const Color(0xFF1A1D22),
+                            : const Color(0xFF101326),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: room.isAlertDue ? AppColors.warning : AppColors.danger.withValues(alpha: 0.4),
@@ -197,7 +197,7 @@ void showRoomDetailSheet({
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1A1D22),
+                      color: const Color(0xFF101326),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white12),
                     ),
@@ -296,7 +296,7 @@ void showRoomDetailSheet({
                                       final chosenMin = await showDialog<int>(
                                         context: context,
                                         builder: (dCtx) => AlertDialog(
-                                          backgroundColor: const Color(0xFF22262D),
+                                          backgroundColor: const Color(0xFF1A1F36),
                                           title: Text(
                                             'Własny limit czasu (sala ${room.number})',
                                             style: const TextStyle(color: Colors.white, fontSize: 16),
@@ -506,7 +506,7 @@ void showRoomDetailSheet({
                         icon: const Icon(Icons.edit_outlined, size: 18),
                         label: const Text('Edytuj dane'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1A1D22),
+                          backgroundColor: const Color(0xFF101326),
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white24),
                         ),

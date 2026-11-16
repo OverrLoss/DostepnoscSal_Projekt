@@ -39,7 +39,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           bottomNavigationBar: Container(
             decoration: const BoxDecoration(
               color: AppColors.surface,
-              border: Border(top: BorderSide(color: AppColors.stroke)),
+              border: Border(top: BorderSide(color: AppColors.glassStroke)),
             ),
             child: NavigationBar(
               selectedIndex: _currentIndex,

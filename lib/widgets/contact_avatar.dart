@@ -112,7 +112,7 @@ class ContactAvatar extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF1A1D22), width: 2),
+                  border: Border.all(color: const Color(0xFF101326), width: 2),
                 ),
                 child: const Icon(
                   Icons.camera_alt,
@@ -155,7 +155,7 @@ Future<String?> showAvatarPickerSheet({
   return showModalBottomSheet<String?>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF22262D),
+    backgroundColor: const Color(0xFF1A1F36),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -204,7 +204,7 @@ Future<String?> showAvatarPickerSheet({
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A1D22),
+                      backgroundColor: const Color(0xFF101326),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -240,7 +240,7 @@ Future<String?> showAvatarPickerSheet({
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A1D22),
+                      backgroundColor: const Color(0xFF101326),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -292,7 +292,7 @@ Future<String?> showAvatarPickerSheet({
               height: 170,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1D22),
+                color: const Color(0xFF101326),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.white12),
               ),

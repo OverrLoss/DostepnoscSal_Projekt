@@ -105,7 +105,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF22262D),
+        backgroundColor: const Color(0xFF1A1F36),
         title: const Text('Usuń kontakt', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć "${contact.fullName}" z bazy SQLite?',
@@ -147,7 +147,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           decoration: BoxDecoration(
-            color: const Color(0xFF22262D),
+            color: const Color(0xFF1A1F36),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white12),
           ),
@@ -178,7 +178,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: const Color(0xFF22262D),
+          backgroundColor: const Color(0xFF1A1F36),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
@@ -241,7 +241,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF22262D),
+      backgroundColor: const Color(0xFF1A1F36),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -418,9 +418,9 @@ class AddressBookScreenState extends State<AddressBookScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1D22),
+      backgroundColor: const Color(0xFF101326),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF22262D),
+        backgroundColor: const Color(0xFF1A1F36),
         elevation: 0,
         title: const Row(
           children: [
@@ -480,7 +480,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF22262D),
+                  color: const Color(0xFF1A1F36),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
@@ -526,7 +526,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                       label: Text(cat),
                       selected: isSelected,
                       selectedColor: color.withValues(alpha: 0.25),
-                      backgroundColor: const Color(0xFF22262D),
+                      backgroundColor: const Color(0xFF1A1F36),
                       labelStyle: TextStyle(
                         color: isSelected ? color : Colors.white70,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -585,7 +585,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                       : RefreshIndicator(
                           onRefresh: _loadContacts,
                           color: AppColors.primary,
-                          backgroundColor: const Color(0xFF22262D),
+                          backgroundColor: const Color(0xFF1A1F36),
                           child: ListView.builder(
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
                             itemCount: _contacts.length,
@@ -686,7 +686,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF22262D),
+        color: const Color(0xFF1A1F36),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [
@@ -796,7 +796,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
               // Action buttons (Edit & Delete popup)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, color: Colors.white54),
-                color: const Color(0xFF353A44),
+                color: const Color(0xFF2E3550),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 onSelected: (val) {
                   if (val == 'edit') {
@@ -903,7 +903,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
-        color: Color(0xFF22262D),
+        color: Color(0xFF1A1F36),
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
@@ -1001,7 +1001,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
                             label: Text(cat),
                             selected: isSel,
                             selectedColor: AppColors.primary.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF1A1D22),
+                            backgroundColor: const Color(0xFF101326),
                             labelStyle: TextStyle(
                               color: isSel ? AppColors.primary : Colors.white70,
                               fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
@@ -1032,7 +1032,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1A1D22),
+                  color: const Color(0xFF101326),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
@@ -1135,7 +1135,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
-                color: Color(0xFF22262D),
+                color: Color(0xFF1A1F36),
                 border: Border(top: BorderSide(color: Colors.white12)),
               ),
               child: Row(

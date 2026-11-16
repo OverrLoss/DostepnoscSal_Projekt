@@ -187,7 +187,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF22262D),
+            backgroundColor: const Color(0xFF1A1F36),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -227,7 +227,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF22262D),
+        backgroundColor: const Color(0xFF1A1F36),
         title: const Text('Przywróć domyślne sale', style: TextStyle(color: Colors.white)),
         content: const Text(
           'Czy chcesz przywrócić pierwotną listę sal z planu Politechniki Rzeszowskiej (Noc Nauki)?',
@@ -279,7 +279,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF22262D),
+        backgroundColor: const Color(0xFF1A1F36),
         title: const Text('Usuń salę', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć "${room.displayName}"?',
@@ -348,7 +348,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           }
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF22262D),
+            backgroundColor: const Color(0xFF1A1F36),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Row(
               children: [
@@ -368,7 +368,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1A1D22),
+                      color: const Color(0xFF101326),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
                     ),
@@ -417,7 +417,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFF1A1D22),
+                      fillColor: const Color(0xFF101326),
                       hintText: 'https://sale.pwojtaszek.codes',
                       hintStyle: const TextStyle(color: Colors.white30),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
@@ -442,7 +442,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                     SnackBar(
                                       content: Text('Pobrano adres serwera lokalnego: $detected'),
                                       duration: const Duration(seconds: 2),
-                                      backgroundColor: const Color(0xFF1A1D22),
+                                      backgroundColor: const Color(0xFF101326),
                                     ),
                                   );
                                 }
@@ -457,7 +457,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     children: [
                       ActionChip(
                         avatar: const Icon(Icons.cloud, size: 14, color: AppColors.primary),
-                        backgroundColor: const Color(0xFF353A44),
+                        backgroundColor: const Color(0xFF2E3550),
                         label: const Text('sale.pwojtaszek.codes', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                         onPressed: () {
                           serverController.text = 'https://sale.pwojtaszek.codes';
@@ -472,7 +472,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                 child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.cyan),
                               )
                             : const Icon(Icons.wifi, size: 14, color: AppColors.cyan),
-                        backgroundColor: const Color(0xFF22262D),
+                        backgroundColor: const Color(0xFF1A1F36),
                         side: const BorderSide(color: AppColors.cyan, width: 0.8),
                         label: Text(
                           isDetectingLan
@@ -499,7 +499,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                     SnackBar(
                                       content: Text('Pobrano adres serwera w sieci Wi-Fi: $detected'),
                                       duration: const Duration(seconds: 2),
-                                      backgroundColor: const Color(0xFF1A1D22),
+                                      backgroundColor: const Color(0xFF101326),
                                     ),
                                   );
                                 } else {
@@ -613,7 +613,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               ),
             ],
           ),
-          backgroundColor: Color(0xFF22262D),
+          backgroundColor: Color(0xFF1A1F36),
           duration: Duration(seconds: 4),
         ),
       );
@@ -636,7 +636,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           final assignedRoom = sync.operatorRoomId;
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF22262D),
+            backgroundColor: const Color(0xFF1A1F36),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             title: Row(
               children: [
@@ -662,7 +662,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                           Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1A1D22),
+                              color: const Color(0xFF101326),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.white12),
                             ),
@@ -739,7 +739,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text('Wylogowano pomyślnie.'),
-                                      backgroundColor: Color(0xFF22262D),
+                                      backgroundColor: Color(0xFF1A1F36),
                                     ),
                                   );
                                 }
@@ -762,7 +762,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: const Color(0xFF1A1D22),
+                              fillColor: const Color(0xFF101326),
                               hintText: 'Login (np. operator_104 lub admin)',
                               hintStyle: const TextStyle(color: Colors.white30),
                               prefixIcon: const Icon(Icons.person, color: Colors.white54, size: 20),
@@ -777,7 +777,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: const Color(0xFF1A1D22),
+                              fillColor: const Color(0xFF101326),
                               hintText: 'Hasło',
                               hintStyle: const TextStyle(color: Colors.white30),
                               prefixIcon: const Icon(Icons.lock, color: Colors.white54, size: 20),
@@ -804,7 +804,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             children: [
                               ActionChip(
                                 avatar: const Icon(Icons.admin_panel_settings, size: 14, color: AppColors.cyan),
-                                backgroundColor: const Color(0xFF1A1D22),
+                                backgroundColor: const Color(0xFF101326),
                                 side: const BorderSide(color: AppColors.cyan, width: 0.8),
                                 label: const Text('Admin', style: TextStyle(color: AppColors.cyan, fontSize: 11)),
                                 onPressed: () {
@@ -814,7 +814,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                               ),
                               ActionChip(
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
-                                backgroundColor: const Color(0xFF1A1D22),
+                                backgroundColor: const Color(0xFF101326),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
                                 label: const Text('Sala 104', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: () {
@@ -824,7 +824,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                               ),
                               ActionChip(
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
-                                backgroundColor: const Color(0xFF1A1D22),
+                                backgroundColor: const Color(0xFF101326),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
                                 label: const Text('AULA', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: () {
@@ -834,7 +834,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                               ),
                               ActionChip(
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
-                                backgroundColor: const Color(0xFF1A1D22),
+                                backgroundColor: const Color(0xFF101326),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
                                 label: const Text('Garaż', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: () {
@@ -917,10 +917,11 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return GlassBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -928,10 +929,10 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             const Text(
               'Dostępność sal',
               style: TextStyle(
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.3,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
                 color: AppColors.textPrimary,
-                fontSize: 20,
+                fontSize: 18,
               ),
             ),
             const Text(
@@ -950,7 +951,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               final isOperator = RoomSyncService.instance.isOperator;
               final opRoom = RoomSyncService.instance.operatorRoomId;
 
-              Color chipColor = const Color(0xFF1A1D22);
+              Color chipColor = const Color(0xFF101326);
               Color textColor = Colors.white70;
               IconData icon = Icons.person_outline;
               String label = 'Gość';
@@ -1081,7 +1082,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white70),
-            color: const Color(0xFF353A44),
+            color: const Color(0xFF2E3550),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             onSelected: (val) {
               if (val == 'tv_dashboard') {
@@ -1253,13 +1254,14 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
+      ),
     );
   }
 
   Widget _buildTopControls() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      color: AppColors.background,
+      color: Colors.transparent,
       child: Column(
         children: [
           // Switch between Map and List View
@@ -1285,7 +1287,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                       if (states.contains(WidgetState.selected)) {
                         return AppColors.primary.withValues(alpha: 0.22);
                       }
-                      return AppColors.background;
+                      return AppColors.glass;
                     }),
                     foregroundColor: WidgetStateProperty.resolveWith((states) {
                       if (states.contains(WidgetState.selected)) {
@@ -1294,7 +1296,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                       return AppColors.textSecondary;
                     }),
                     side: const WidgetStatePropertyAll(
-                      BorderSide(color: AppColors.stroke),
+                      BorderSide(color: AppColors.glassStroke),
                     ),
                   ),
                   onSelectionChanged: (set) {
@@ -1374,7 +1376,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
       ),
       style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: AppColors.stroke, width: 1),
+        side: const BorderSide(color: AppColors.glassStroke, width: 1),
         backgroundColor: AppColors.primary.withValues(alpha: 0.12),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.radiusPill)),
@@ -1395,7 +1397,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.cyan.withValues(alpha: 0.12),
         elevation: 0,
-        side: const BorderSide(color: AppColors.stroke, width: 1),
+        side: const BorderSide(color: AppColors.glassStroke, width: 1),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.radiusPill)),
       ),
@@ -1413,7 +1415,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         selected: isSelected,
         showCheckmark: false,
         selectedColor: AppColors.primary,
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.glass,
         labelStyle: TextStyle(
           color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -1421,7 +1423,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppColors.radiusPill),
-          side: BorderSide(color: isSelected ? AppColors.primary : AppColors.stroke),
+          side: BorderSide(color: isSelected ? AppColors.primary : AppColors.glassStroke),
         ),
         onSelected: (selected) {
           if (selected) {
@@ -1450,7 +1452,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-      child: Column(
+      child: Glass(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        child: Column(
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -1460,8 +1464,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 '$free',
                 style: const TextStyle(
                   color: AppColors.success,
-                  fontSize: 34,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
                   height: 1,
                 ),
               ),
@@ -1487,9 +1491,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           const SizedBox(height: 10),
           // Pasek obłożenia: zielone = wolne, czerwone = zajęte
           ClipRRect(
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(AppColors.radiusPill),
             child: SizedBox(
-              height: 4,
+              height: 6,
               child: Row(
                 children: [
                   if (free > 0)
@@ -1503,12 +1507,13 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                       child: Container(color: AppColors.danger),
                     ),
                   if (total == 0)
-                    Expanded(child: Container(color: AppColors.surfaceAlt)),
+                    Expanded(child: Container(color: AppColors.glassHi)),
                 ],
               ),
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -1617,7 +1622,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.surfaceAlt,
+            color: AppColors.glassHi,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Row(
@@ -1674,9 +1679,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       return Container(
         height: fixedHeight,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.glass,
           borderRadius: BorderRadius.circular(AppColors.radiusCard),
-          border: Border.all(color: AppColors.stroke),
+          border: Border.all(color: AppColors.glassStroke),
         ),
         clipBehavior: Clip.antiAlias,
         child: cardContent,
@@ -1685,9 +1690,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.glass,
         borderRadius: BorderRadius.circular(AppColors.radiusCard),
-        border: Border.all(color: AppColors.stroke),
+        border: Border.all(color: AppColors.glassStroke),
       ),
       clipBehavior: Clip.antiAlias,
       child: cardContent,
@@ -1730,7 +1735,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF22262D),
+        backgroundColor: const Color(0xFF1A1F36),
         title: const Text('Przywróć domyślny układ', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz przywrócić pierwotne położenie wszystkich sal na kondygnacji "$floor"?',
@@ -1772,9 +1777,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: AppColors.glass,
               borderRadius: BorderRadius.circular(AppColors.radiusControl),
-              border: Border.all(color: AppColors.stroke),
+              border: Border.all(color: AppColors.glassStroke),
             ),
             child: TextField(
               controller: _searchController,
@@ -1821,10 +1826,10 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   decoration: BoxDecoration(
                     color: _isReorderMode
                         ? AppColors.primary.withValues(alpha: 0.2)
-                        : AppColors.surface,
+                        : AppColors.glass,
                     borderRadius: BorderRadius.circular(AppColors.radiusPill),
                     border: Border.all(
-                      color: _isReorderMode ? AppColors.primary : AppColors.stroke,
+                      color: _isReorderMode ? AppColors.primary : AppColors.glassStroke,
                     ),
                   ),
                   child: Row(
@@ -1909,7 +1914,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       label: Text(label),
       selected: isSelected,
       selectedColor: activeColor.withValues(alpha: 0.16),
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.glass,
       labelStyle: TextStyle(
         color: isSelected ? activeColor : AppColors.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -1918,7 +1923,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       showCheckmark: false,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppColors.radiusPill),
-        side: BorderSide(color: isSelected ? activeColor : AppColors.stroke),
+        side: BorderSide(color: isSelected ? activeColor : AppColors.glassStroke),
       ),
       onSelected: (_) {
         setState(() => _statusFilter = label);
@@ -1934,13 +1939,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppColors.radiusCard),
-        border: Border.all(
-          color: isReordering ? AppColors.primary : AppColors.stroke,
-          width: 1,
-        ),
+      decoration: AppColors.glassDecoration(
+        borderColor: isReordering ? AppColors.primary : null,
       ),
       child: InkWell(
         onTap: isReordering ? null : () => _toggleAvailability(room),
@@ -1960,32 +1960,34 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               },
         borderRadius: BorderRadius.circular(AppColors.radiusCard),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 12, 12, 12),
+          padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
           child: Row(
             children: [
               // Pasek statusu (zielony = wolna, czerwony = zajęta)
               Container(
-                width: 4,
-                height: 40,
+                width: 8,
+                height: 8,
                 decoration: BoxDecoration(
                   color: statusColor,
-                  borderRadius: BorderRadius.circular(2),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: statusColor.withValues(alpha: 0.6), blurRadius: 8),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
 
               // Numer sali jak na tabliczce
               SizedBox(
-                width: 66,
+                width: 50,
                 child: Text(
                   room.number,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.4,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -2014,7 +2016,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      runSpacing: 2,
                       children: [
                         Text(
                           room.floor,
@@ -2118,22 +2122,23 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               else
                 InkWell(
                   onTap: () => _toggleAvailability(room),
-                  borderRadius: BorderRadius.circular(AppColors.radiusControl),
+                  borderRadius: BorderRadius.circular(AppColors.radiusPill),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    width: 76,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    width: 64,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(AppColors.radiusControl),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.6)),
+                      color: statusColor.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(AppColors.radiusPill),
+                      border: Border.all(color: statusColor.withValues(alpha: 0.45)),
                     ),
                     child: Text(
                       isAvailable ? 'Wolna' : 'Zajęta',
                       style: TextStyle(
                         color: statusColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
                       ),
                     ),
                   ),

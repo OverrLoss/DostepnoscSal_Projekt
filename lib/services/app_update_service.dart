@@ -134,7 +134,7 @@ class AppUpdateService {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Wersja Web jest zawsze na bieżąco z serwerem.'),
-            backgroundColor: Color(0xFF22262D),
+            backgroundColor: Color(0xFF1A1F36),
           ),
         );
       }
@@ -166,7 +166,7 @@ class AppUpdateService {
       barrierDismissible: false,
       builder: (ctx) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF22262D),
+          backgroundColor: const Color(0xFF1A1F36),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
@@ -258,7 +258,7 @@ class AppUpdateService {
         return PopScope(
           canPop: false,
           child: AlertDialog(
-            backgroundColor: const Color(0xFF22262D),
+            backgroundColor: const Color(0xFF1A1F36),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: const Row(
               children: [

@@ -1,54 +1,72 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
-/// Centralny design system aplikacji.
+/// Centralny design system aplikacji — styl „liquid glass”.
 ///
-/// Styl oznakowania budynku uczelni: grafitowe tło, ciepła biel tekstu,
-/// jeden mosiężny akcent (jak tabliczki na drzwiach sal), małe zaokrąglenia,
-/// bez cieni. Zieleń i czerwień są zarezerwowane wyłącznie dla statusu sali.
+/// Ekran główny leży na ciemnym tle z kolorowymi poświatami, a karty,
+/// statystyki i pola są półprzezroczystymi taflami szkła z jasną krawędzią.
+/// Pozostałe ekrany i okna dialogowe używają pełnych (nieprzezroczystych)
+/// powierzchni w tej samej kolorystyce, żeby tekst był zawsze czytelny.
 class AppColors {
   AppColors._();
 
-  // ── Powierzchnie ──────────────────────────────────────────────────────
-  /// Główne tło aplikacji (grafit).
-  static const Color background = Color(0xFF1A1D22);
+  // ── Powierzchnie pełne ────────────────────────────────────────────────
+  /// Tło ekranów (głęboki granatowo-fioletowy).
+  static const Color background = Color(0xFF101326);
 
-  /// Tło kart i kafelków.
-  static const Color surface = Color(0xFF22262D);
+  /// Pełne tło kart na zwykłych ekranach, dialogów i arkuszy.
+  static const Color surface = Color(0xFF1A1F36);
 
-  /// Jaśniejsza powierzchnia (menu, pola formularzy, wyróżnione elementy).
-  static const Color surfaceAlt = Color(0xFF2B3038);
+  /// Jaśniejsza pełna powierzchnia (menu, wyróżnienia).
+  static const Color surfaceAlt = Color(0xFF242A45);
 
-  /// Subtelne obramowania kart.
-  static const Color stroke = Color(0xFF353A44);
+  /// Obramowania na pełnych powierzchniach.
+  static const Color stroke = Color(0xFF2E3550);
+
+  // ── Szkło ─────────────────────────────────────────────────────────────
+  /// Wypełnienie tafli szkła.
+  static const Color glass = Color(0x1FFFFFFF);
+
+  /// Mocniejsze szkło (nagłówki kart, puste paski).
+  static const Color glassHi = Color(0x33FFFFFF);
+
+  /// Jasna krawędź tafli szkła.
+  static const Color glassStroke = Color(0x38FFFFFF);
 
   // ── Akcenty ───────────────────────────────────────────────────────────
-  /// Jedyny akcent — mosiądz, jak tabliczki na drzwiach sal.
-  static const Color primary = Color(0xFFD4A955);
-
-  /// Tekst i ikony na tle w kolorze akcentu.
-  static const Color onPrimary = Color(0xFF1A1D22);
-
-  /// Sukces / wolna sala.
-  static const Color success = Color(0xFF4CAF7F);
-
-  /// Ostrzeżenie.
-  static const Color warning = Color(0xFFE08A3C);
-
-  /// Błąd / zajęta sala.
-  static const Color danger = Color(0xFFE0625A);
-
-  /// Dodatkowy akcent (cyjan — tryb TV itp.).
-  static const Color cyan = Color(0xFF8AB4C8);
+  static const Color primary = Color(0xFF5B9BFF);
+  static const Color onPrimary = Colors.white;
+  static const Color success = Color(0xFF3DDC97);
+  static const Color warning = Color(0xFFFFB547);
+  static const Color danger = Color(0xFFFF6B81);
+  static const Color cyan = Color(0xFF67E8F9);
 
   // ── Tekst ─────────────────────────────────────────────────────────────
-  static const Color textPrimary = Color(0xFFEDEBE6);
-  static const Color textSecondary = Color(0xFF9C9FA6);
-  static const Color textFaint = Color(0xFF6B6F78);
+  static const Color textPrimary = Colors.white;
+  static const Color textSecondary = Color(0xB3FFFFFF);
+  static const Color textFaint = Color(0x73FFFFFF);
 
   // ── Promienie ─────────────────────────────────────────────────────────
-  static const double radiusCard = 10;
-  static const double radiusControl = 8;
-  static const double radiusPill = 8;
+  static const double radiusCard = 22;
+  static const double radiusControl = 14;
+  static const double radiusPill = 100;
+
+  /// Dekoracja tafli szkła: delikatny jasny gradient i jasna krawędź.
+  static BoxDecoration glassDecoration({
+    double radius = radiusCard,
+    Color? borderColor,
+  }) {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(radius),
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0x2EFFFFFF), Color(0x0FFFFFFF)],
+      ),
+      border: Border.all(color: borderColor ?? glassStroke, width: 1),
+    );
+  }
 }
 
 class AppTheme {
@@ -85,21 +103,21 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(26),
         ),
       ),
       popupMenuTheme: base.popupMenuTheme.copyWith(
         color: AppColors.surfaceAlt,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
         ),
       ),
       bottomSheetTheme: base.bottomSheetTheme.copyWith(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
         ),
       ),
       switchTheme: SwitchThemeData(
@@ -119,26 +137,24 @@ class AppTheme {
           return AppColors.stroke;
         }),
       ),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
         elevation: 0,
         highlightElevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppColors.radiusCard),
-        ),
+        shape: StadiumBorder(),
       ),
       snackBarTheme: base.snackBarTheme.copyWith(
         backgroundColor: AppColors.surfaceAlt,
         contentTextStyle: const TextStyle(color: AppColors.textPrimary),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.background,
+        fillColor: AppColors.surface,
         hintStyle: const TextStyle(color: AppColors.textFaint),
         labelStyle: const TextStyle(color: AppColors.textSecondary),
         border: OutlineInputBorder(
@@ -158,10 +174,7 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.16),
-        indicatorShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppColors.radiusControl),
-        ),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.2),
         height: 64,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
@@ -174,6 +187,89 @@ class AppTheme {
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.primary,
+      ),
+    );
+  }
+}
+
+/// Tło pod szkłem: ciemny gradient z trzema miękkimi kolorowymi poświatami.
+class GlassBackground extends StatelessWidget {
+  final Widget child;
+
+  const GlassBackground({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF151A3D), Color(0xFF0E1024), Color(0xFF1C1233)],
+              ),
+            ),
+          ),
+        ),
+        _glow(const Alignment(-1.2, -1.0), const Color(0xFF4F7CFF), 360),
+        _glow(const Alignment(1.3, -0.25), const Color(0xFFB15CFF), 320),
+        _glow(const Alignment(-0.7, 1.15), const Color(0xFF22D3C5), 340),
+        Positioned.fill(child: child),
+      ],
+    );
+  }
+
+  static Widget _glow(Alignment alignment, Color color, double size) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Align(
+          alignment: alignment,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  color.withValues(alpha: 0.5),
+                  color.withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tafla matowego szkła z rozmyciem tego, co pod spodem.
+/// Używana oszczędnie (rozmycie jest kosztowne) — dla dużych elementów.
+class Glass extends StatelessWidget {
+  final Widget child;
+  final double radius;
+  final EdgeInsetsGeometry padding;
+
+  const Glass({
+    super.key,
+    required this.child,
+    this.radius = AppColors.radiusCard,
+    this.padding = EdgeInsets.zero,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: padding,
+          decoration: AppColors.glassDecoration(radius: radius),
+          child: child,
+        ),
       ),
     );
   }

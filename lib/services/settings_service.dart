@@ -25,7 +25,7 @@ class SettingsService extends ChangeNotifier {
   Color get accentColor {
     switch (_accentColorName) {
       case 'blue':
-        return const Color(0xFFD4A955); // mosiądz (domyślny akcent)
+        return const Color(0xFF5B9BFF); // niebieski (domyślny akcent)
       case 'purple':
         return Colors.purpleAccent;
       case 'amber':
