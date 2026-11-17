@@ -146,7 +146,7 @@ void showRoomDetailSheet({
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'PRZEKROCZONO LIMIT CZASU SESJI!',
+                                    'Przekroczono limit czasu sesji',
                                     style: TextStyle(
                                       color: AppColors.warning,
                                       fontWeight: FontWeight.bold,
@@ -157,6 +157,29 @@ void showRoomDetailSheet({
                               ],
                             ),
                             const SizedBox(height: 8),
+                          ],
+                          if (room.occupantName != null) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Zajmuje:', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                                const SizedBox(width: 12),
+                                Flexible(
+                                  child: Text(
+                                    room.occupantName!,
+                                    textAlign: TextAlign.right,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
                           ],
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,

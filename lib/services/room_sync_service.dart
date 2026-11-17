@@ -444,14 +444,18 @@ class RoomSyncService {
 
   // --- ROOM STATUS MUTATION ---
 
-  Future<bool> changeRoomStatus(String roomId, String targetStatus) async {
+  Future<bool> changeRoomStatus(String roomId, String targetStatus, {String? occupantName}) async {
     try {
       final uri = _buildUri('/api/v1/rooms/$roomId/status');
       final res = await http
           .patch(
             uri,
             headers: _headers(),
-            body: json.encode({'status': targetStatus}),
+            body: json.encode({
+              'status': targetStatus,
+              if (targetStatus == 'occupied' && occupantName != null && occupantName.trim().isNotEmpty)
+                'occupant_name': occupantName.trim(),
+            }),
           )
           .timeout(const Duration(seconds: 5));
 
@@ -469,9 +473,9 @@ class RoomSyncService {
     }
   }
 
-  Future<bool> toggleRemoteAvailability(String roomNumber, bool currentAvailable) async {
+  Future<bool> toggleRemoteAvailability(String roomNumber, bool currentAvailable, {String? occupantName}) async {
     final nextStatus = currentAvailable ? 'occupied' : 'free';
-    return await changeRoomStatus(roomNumber, nextStatus);
+    return await changeRoomStatus(roomNumber, nextStatus, occupantName: occupantName);
   }
 
   Future<bool> setRoomAlertLimit(String roomId, int limitSeconds) async {

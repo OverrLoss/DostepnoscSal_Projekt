@@ -14,6 +14,7 @@ import '../services/app_update_service.dart';
 import 'add_edit_room_screen.dart';
 import 'tv_dashboard_screen.dart';
 import '../theme/app_theme.dart';
+import '../services/occupant_nick.dart';
 
 class RoomMainScreen extends StatefulWidget {
   const RoomMainScreen({super.key});
@@ -159,11 +160,24 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       return;
     }
 
+    // Przy zajmowaniu sali zapisujemy, kto ją zajmuje.
+    String? occupantName;
+    if (room.isAvailable) {
+      if (sync.isLoggedIn && sync.userDisplayName.trim().isNotEmpty) {
+        occupantName = sync.userDisplayName.trim();
+      } else {
+        final picked = await _askOccupantName(room);
+        if (picked == null) return; // anulowano
+        occupantName = picked.isEmpty ? null : picked;
+      }
+    }
+
     final newStatus = !room.isAvailable;
     final success = await RoomDatabaseHelper.instance.toggleAvailability(
       room.id ?? 0,
       room.isAvailable,
       roomNumber: room.number,
+      occupantName: occupantName,
     );
     await _loadRooms(showLoading: false);
 
@@ -181,8 +195,12 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Sala ${room.number}: ${newStatus ? "DOSTĘPNA (WOLNA)" : "ZAJĘTA"}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    newStatus
+                        ? 'Sala ${room.number} jest wolna'
+                        : (occupantName != null
+                            ? 'Sala ${room.number} zajęta przez $occupantName'
+                            : 'Sala ${room.number} zajęta'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -200,6 +218,57 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         );
       }
     }
+  }
+
+  /// Pyta o nick osoby zajmującej salę. Zwraca null, gdy anulowano,
+  /// pusty tekst, gdy wybrano „Bez podpisu”.
+  Future<String?> _askOccupantName(Room room) async {
+    final saved = await OccupantNick.load();
+    if (!mounted) return null;
+    final controller = TextEditingController(text: saved);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Kto zajmuje salę ${room.number}?',
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 40,
+          textCapitalization: TextCapitalization.words,
+          textInputAction: TextInputAction.done,
+          style: const TextStyle(color: AppColors.textPrimary),
+          decoration: const InputDecoration(hintText: 'Twój nick lub imię'),
+          onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Anuluj', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(''),
+            child: const Text('Bez podpisu', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              elevation: 0,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+            child: const Text('Zajmij'),
+          ),
+        ],
+      ),
+    );
+    if (result != null && result.isNotEmpty) {
+      await OccupantNick.save(result);
+    }
+    return result;
   }
 
   Future<void> _setAllFloorAvailability(bool isAvailable) async {
@@ -2016,6 +2085,29 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       runSpacing: 2,
                       children: [
+                        if (room.occupantName != null) ...[
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.person_rounded, size: 13, color: AppColors.textPrimary),
+                              const SizedBox(width: 3),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 140),
+                                child: Text(
+                                  room.occupantName!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 10),
+                        ],
                         Text(
                           room.floor,
                           style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),

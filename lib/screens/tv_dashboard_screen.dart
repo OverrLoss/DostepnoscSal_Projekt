@@ -4,6 +4,7 @@ import '../models/room_model.dart';
 import '../services/room_database_helper.dart';
 import '../widgets/interactive_floor_map.dart';
 import '../theme/app_theme.dart';
+import '../services/room_sync_service.dart';
 
 class TvDashboardScreen extends StatefulWidget {
   const TvDashboardScreen({super.key});
@@ -62,7 +63,13 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
 
   Future<void> _toggleAvailability(Room room) async {
     if (room.id == null) return;
-    await RoomDatabaseHelper.instance.toggleAvailability(room.id!, room.isAvailable);
+    final sync = RoomSyncService.instance;
+    await RoomDatabaseHelper.instance.toggleAvailability(
+      room.id!,
+      room.isAvailable,
+      roomNumber: room.number,
+      occupantName: room.isAvailable && sync.isLoggedIn ? sync.userDisplayName : null,
+    );
     await _loadRooms(silent: true);
   }
 
@@ -445,8 +452,8 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: isAvail
-                      ? Colors.green.withValues(alpha: 0.15)
-                      : Colors.red.withValues(alpha: 0.15),
+                      ? AppColors.success.withValues(alpha: 0.12)
+                      : AppColors.danger.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isAvail
@@ -482,6 +489,15 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                         fontSize: 11,
                       ),
                     ),
+                    if (r.occupantName != null) ...[
+                      const SizedBox(width: 6),
+                      const Icon(Icons.person_rounded, size: 12, color: Colors.white70),
+                      const SizedBox(width: 2),
+                      Text(
+                        r.occupantName!,
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ],
                     if (!isAvail && r.durationFormatted.isNotEmpty) ...[
                       const SizedBox(width: 6),
                       Container(
@@ -491,7 +507,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          r.isAlertDue ? '⚠️ ${r.durationFormatted}' : r.durationFormatted,
+                          r.durationFormatted,
                           style: TextStyle(
                             color: r.isAlertDue ? Colors.black : Colors.white,
                             fontSize: 9,

@@ -278,6 +278,11 @@ def init_db():
         CREATE UNIQUE INDEX IF NOT EXISTS idx_active_session_per_room
         ON occupancy_sessions(room_id) WHERE ended_at IS NULL
     """)
+    # Migracja: kto zajmuje salę (nick / nazwa wyświetlana)
+    try:
+        cursor.execute("ALTER TABLE occupancy_sessions ADD COLUMN occupant_name TEXT")
+    except sqlite3.OperationalError:
+        pass  # kolumna już istnieje
 
     # 6. Alerts
     cursor.execute("""
@@ -536,8 +541,21 @@ def format_active_session(session_row: Optional[sqlite3.Row]) -> Optional[Dict[s
         "alert_limit_seconds": session_row["alert_limit_seconds"],
         "alert_due_at": alert_due_at,
         "alert_triggered_at": session_row["alert_triggered_at"],
-        "alert_due": is_alert_due
+        "alert_due": is_alert_due,
+        "occupant_name": _session_occupant(session_row),
     }
+
+
+def _session_occupant(session_row) -> Optional[str]:
+    """Nick osoby zajmującej salę (wiersz z bazy albo słownik z zapytania JOIN)."""
+    try:
+        if isinstance(session_row, dict):
+            return session_row.get("occupant_name")
+        if "occupant_name" in session_row.keys():
+            return session_row["occupant_name"]
+    except Exception:
+        pass
+    return None
 
 # Background Alert Checker Loop
 async def alert_monitor_loop():
@@ -617,7 +635,7 @@ def get_public_rooms(floor: Optional[str] = None, db: sqlite3.Connection = Depen
     query = """
         SELECT r.*, 
                s.id as s_id, s.started_at as s_started_at, s.alert_limit_seconds as s_limit, 
-               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at
+               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at, s.occupant_name as s_occupant
         FROM rooms r
         LEFT JOIN occupancy_sessions s ON r.id = s.room_id AND s.ended_at IS NULL
     """
@@ -644,7 +662,8 @@ def get_public_rooms(floor: Optional[str] = None, db: sqlite3.Connection = Depen
                 "started_at": r["s_started_at"],
                 "alert_limit_seconds": r["s_limit"],
                 "alert_due_at": r["s_due_at"],
-                "alert_triggered_at": r["s_triggered_at"]
+                "alert_triggered_at": r["s_triggered_at"],
+                "occupant_name": r["s_occupant"]
             })
         
         result.append({
@@ -671,7 +690,7 @@ def get_public_room(room_id: str, db: sqlite3.Connection = Depends(get_db)):
     cursor.execute("""
         SELECT r.*, 
                s.id as s_id, s.started_at as s_started_at, s.alert_limit_seconds as s_limit, 
-               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at
+               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at, s.occupant_name as s_occupant
         FROM rooms r
         LEFT JOIN occupancy_sessions s ON r.id = s.room_id AND s.ended_at IS NULL
         WHERE r.id = ?
@@ -688,7 +707,8 @@ def get_public_room(room_id: str, db: sqlite3.Connection = Depends(get_db)):
             "started_at": r["s_started_at"],
             "alert_limit_seconds": r["s_limit"],
             "alert_due_at": r["s_due_at"],
-            "alert_triggered_at": r["s_triggered_at"]
+            "alert_triggered_at": r["s_triggered_at"],
+            "occupant_name": r["s_occupant"]
         })
 
     return {
@@ -812,6 +832,7 @@ def get_me(user: sqlite3.Row = Depends(require_current_user)):
 # ==============================================================================
 class StatusChangeRequest(BaseModel):
     status: str = Field(..., pattern="^(free|occupied)$")
+    occupant_name: Optional[str] = Field(None, max_length=40)
 
 @app.get("/api/v1/rooms", tags=["Rooms"])
 def get_rooms_detailed(user: sqlite3.Row = Depends(require_current_user), db: sqlite3.Connection = Depends(get_db)):
@@ -819,7 +840,7 @@ def get_rooms_detailed(user: sqlite3.Row = Depends(require_current_user), db: sq
     query = """
         SELECT r.*, 
                s.id as s_id, s.started_at as s_started_at, s.alert_limit_seconds as s_limit, 
-               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at
+               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at, s.occupant_name as s_occupant
         FROM rooms r
         LEFT JOIN occupancy_sessions s ON r.id = s.room_id AND s.ended_at IS NULL
     """
@@ -845,7 +866,8 @@ def get_rooms_detailed(user: sqlite3.Row = Depends(require_current_user), db: sq
                 "started_at": r["s_started_at"],
                 "alert_limit_seconds": r["s_limit"],
                 "alert_due_at": r["s_due_at"],
-                "alert_triggered_at": r["s_triggered_at"]
+                "alert_triggered_at": r["s_triggered_at"],
+                "occupant_name": r["s_occupant"]
             })
         
         result.append({
@@ -878,7 +900,7 @@ def get_room_detailed(room_id: str, user: sqlite3.Row = Depends(require_current_
     cursor.execute("""
         SELECT r.*, 
                s.id as s_id, s.started_at as s_started_at, s.alert_limit_seconds as s_limit, 
-               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at
+               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at, s.occupant_name as s_occupant
         FROM rooms r
         LEFT JOIN occupancy_sessions s ON r.id = s.room_id AND s.ended_at IS NULL
         WHERE r.id = ?
@@ -895,7 +917,8 @@ def get_room_detailed(room_id: str, user: sqlite3.Row = Depends(require_current_
             "started_at": r["s_started_at"],
             "alert_limit_seconds": r["s_limit"],
             "alert_due_at": r["s_due_at"],
-            "alert_triggered_at": r["s_triggered_at"]
+            "alert_triggered_at": r["s_triggered_at"],
+            "occupant_name": r["s_occupant"]
         })
 
     return {
@@ -961,10 +984,16 @@ async def change_room_status(
         due_iso = due_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         session_id = str(uuid.uuid4())
 
+        # Kto zajmuje salę: podany nick, a dla zalogowanych ich nazwa wyświetlana
+        occupant = " ".join((req.occupant_name or "").split())[:40]
+        if not occupant and user:
+            occupant = user["display_name"]
+        occupant = occupant or None
+
         cursor.execute("""
-            INSERT INTO occupancy_sessions (id, room_id, started_at, ended_at, alert_limit_seconds, alert_due_at, alert_triggered_at, started_by, ended_by)
-            VALUES (?, ?, ?, NULL, ?, ?, NULL, ?, NULL)
-        """, (session_id, room_id, now_iso, effective_limit, due_iso, actor_str))
+            INSERT INTO occupancy_sessions (id, room_id, started_at, ended_at, alert_limit_seconds, alert_due_at, alert_triggered_at, started_by, ended_by, occupant_name)
+            VALUES (?, ?, ?, NULL, ?, ?, NULL, ?, NULL, ?)
+        """, (session_id, room_id, now_iso, effective_limit, due_iso, actor_str, occupant))
 
         cursor.execute("UPDATE rooms SET status = 'occupied', updated_at = ? WHERE id = ?", (now_iso, room_id))
         db.commit()
@@ -972,7 +1001,7 @@ async def change_room_status(
 
         cursor.execute("SELECT * FROM occupancy_sessions WHERE id = ?", (session_id,))
         active_session = cursor.fetchone()
-        log_audit(db, actor_type, actor_id, "session_started", "room", room_id, {"session_id": session_id, "limit": effective_limit})
+        log_audit(db, actor_type, actor_id, "session_started", "room", room_id, {"session_id": session_id, "limit": effective_limit, "occupant": occupant})
 
     elif current_status == "occupied" and target_status == "free":
         if active_session:
@@ -1481,7 +1510,7 @@ def get_device_assigned_room_state(
     cursor.execute("""
         SELECT r.*, 
                s.id as s_id, s.started_at as s_started_at, s.alert_limit_seconds as s_limit, 
-               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at
+               s.alert_due_at as s_due_at, s.alert_triggered_at as s_triggered_at, s.occupant_name as s_occupant
         FROM rooms r
         LEFT JOIN occupancy_sessions s ON r.id = s.room_id AND s.ended_at IS NULL
         WHERE r.id = ?
@@ -1498,7 +1527,8 @@ def get_device_assigned_room_state(
             "started_at": r["s_started_at"],
             "alert_limit_seconds": r["s_limit"],
             "alert_due_at": r["s_due_at"],
-            "alert_triggered_at": r["s_triggered_at"]
+            "alert_triggered_at": r["s_triggered_at"],
+            "occupant_name": r["s_occupant"]
         })
 
     # Update device last_seen_at and metadata

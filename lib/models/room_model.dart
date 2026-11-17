@@ -6,6 +6,9 @@ class RoomSession {
   final bool alertDue;
   final String? alertTriggeredAt;
 
+  /// Nick / nazwa osoby, która zajęła salę (może być pusta).
+  final String? occupantName;
+
   RoomSession({
     required this.id,
     required this.startedAt,
@@ -13,6 +16,7 @@ class RoomSession {
     required this.alertLimitSeconds,
     this.alertDue = false,
     this.alertTriggeredAt,
+    this.occupantName,
   });
 
   factory RoomSession.fromMap(Map<String, dynamic> map) {
@@ -23,6 +27,9 @@ class RoomSession {
       alertLimitSeconds: (map['alert_limit_seconds'] is num) ? (map['alert_limit_seconds'] as num).toInt() : 900,
       alertDue: map['alert_due'] == true,
       alertTriggeredAt: map['alert_triggered_at']?.toString(),
+      occupantName: (map['occupant_name']?.toString().trim().isNotEmpty ?? false)
+          ? map['occupant_name'].toString().trim()
+          : null,
     );
   }
 
@@ -34,6 +41,7 @@ class RoomSession {
       'alert_limit_seconds': alertLimitSeconds,
       'alert_due': alertDue,
       if (alertTriggeredAt != null) 'alert_triggered_at': alertTriggeredAt,
+      if (occupantName != null) 'occupant_name': occupantName,
     };
   }
 }
@@ -87,6 +95,9 @@ class Room {
   String get statusText => (status == 'free' || isAvailable) ? 'Dostępna (Wolna)' : 'Niedostępna (Zajęta)';
 
   bool get isAlertDue => activeSession?.alertDue ?? false;
+
+  /// Kto obecnie zajmuje salę (tylko gdy sala jest zajęta i nick jest znany).
+  String? get occupantName => isAvailable ? null : activeSession?.occupantName;
 
   int get currentDurationSeconds {
     if (activeSession == null) return 0;

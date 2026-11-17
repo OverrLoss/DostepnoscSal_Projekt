@@ -900,12 +900,12 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
             ? AppColors.warning
             : (isAvailable ? AppColors.success : AppColors.danger));
     final bgColor = isDragging
-        ? Colors.orange.withValues(alpha: 0.35)
+        ? AppColors.primary.withValues(alpha: 0.25)
         : (isAlert
-            ? Colors.red.withValues(alpha: 0.4)
+            ? AppColors.danger.withValues(alpha: 0.4)
             : (isAvailable
-                ? Colors.green.withValues(alpha: 0.25)
-                : Colors.red.withValues(alpha: 0.25)));
+                ? AppColors.success.withValues(alpha: 0.22)
+                : AppColors.danger.withValues(alpha: 0.22)));
 
     final duration = room.durationFormatted;
 
@@ -984,6 +984,21 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                     if (isAlert) ...[
                       const Icon(Icons.warning_amber_rounded, size: 10, color: AppColors.warning),
                       const SizedBox(width: 2),
+                    ],
+                    if (room.occupantName != null) ...[
+                      Flexible(
+                        child: Text(
+                          room.occupantName!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
                     ],
                     Text(
                       duration,

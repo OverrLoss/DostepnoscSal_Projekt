@@ -294,12 +294,16 @@ class RoomDatabaseHelper {
     return count;
   }
 
-  Future<bool> toggleAvailability(int id, bool currentStatus, {String? roomNumber}) async {
+  Future<bool> toggleAvailability(int id, bool currentStatus, {String? roomNumber, String? occupantName}) async {
     final effectiveRoomNumber = (roomNumber != null && roomNumber.isNotEmpty)
         ? roomNumber
         : (await getRoomById(id))?.number ?? id.toString();
 
-    final success = await RoomSyncService.instance.toggleRemoteAvailability(effectiveRoomNumber, currentStatus);
+    final success = await RoomSyncService.instance.toggleRemoteAvailability(
+      effectiveRoomNumber,
+      currentStatus,
+      occupantName: occupantName,
+    );
 
     if (kIsWeb) {
       if (_webRoomsCache != null) {
