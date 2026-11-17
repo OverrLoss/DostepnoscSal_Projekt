@@ -533,8 +533,13 @@ class RoomDatabaseHelper {
         onlyOccupied: onlyOccupied,
       );
       if (remoteRooms != null && remoteRooms.isNotEmpty) {
-        // Update local SQLite in background to stay in sync (for offline mode)
-        _updateLocalDbFromRemote(remoteRooms).ignore();
+        // Kopia lokalna na wypadek braku serwera. Pełna lista (bez filtrów)
+        // zastępuje całą kopię; lista przefiltrowana tylko ją uzupełnia.
+        final isFullSnapshot = (floor == null || floor.isEmpty || floor == 'Wszystkie') &&
+            (searchQuery == null || searchQuery.trim().isEmpty) &&
+            onlyAvailable != true &&
+            onlyOccupied != true;
+        _updateLocalDbFromRemote(remoteRooms, fullSnapshot: isFullSnapshot).ignore();
         return remoteRooms;
       }
     } catch (_) {
@@ -542,6 +547,43 @@ class RoomDatabaseHelper {
     }
 
     // Offline fallback: read from local SQLite
+    try {
+      final local = await _queryLocalRooms(
+        floor: floor,
+        searchQuery: searchQuery,
+        onlyAvailable: onlyAvailable,
+        onlyOccupied: onlyOccupied,
+      );
+      if (local.isNotEmpty) return local;
+    } catch (_) {}
+
+    // Brak serwera i pustej kopii: pokaż domyślne sale PRz w ich ułożeniu,
+    // zamiast pustej mapy.
+    var defaults = _getInitialRooms();
+    if (floor != null && floor.isNotEmpty && floor != 'Wszystkie') {
+      defaults = floor == 'Parter'
+          ? defaults.where((r) => r.floor == 'Parter' || r.floor == 'Garaż podziemny').toList()
+          : defaults.where((r) => r.floor == floor).toList();
+    }
+    if (onlyAvailable == true) defaults = defaults.where((r) => r.isAvailable).toList();
+    if (onlyOccupied == true) defaults = defaults.where((r) => !r.isAvailable).toList();
+    if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+      final q = searchQuery.trim().toLowerCase();
+      defaults = defaults.where((r) =>
+          r.number.toLowerCase().contains(q) ||
+          r.name.toLowerCase().contains(q) ||
+          r.description.toLowerCase().contains(q) ||
+          r.category.toLowerCase().contains(q)).toList();
+    }
+    return defaults;
+  }
+
+  Future<List<Room>> _queryLocalRooms({
+    String? floor,
+    String? searchQuery,
+    bool? onlyAvailable,
+    bool? onlyOccupied,
+  }) async {
     final db = await database;
 
     final conditions = <String>[];
@@ -583,14 +625,23 @@ class RoomDatabaseHelper {
   }
 
   /// Update local SQLite with fresh data from server (background, non-blocking).
-  Future<void> _updateLocalDbFromRemote(List<Room> remoteRooms) async {
+  /// Lokalna tabela nie ma kolumn operator_id / device_id — wcześniej przez nie
+  /// zapis się nie udawał i kopia offline zostawała pusta.
+  Future<void> _updateLocalDbFromRemote(List<Room> remoteRooms, {bool fullSnapshot = false}) async {
     try {
       final db = await database;
       final batch = db.batch();
+      if (fullSnapshot) {
+        // Sale bez liczbowego id (AULA, HOL, Garaż) dublowały się przy każdym zapisie
+        batch.delete(tableName);
+      }
       for (final r in remoteRooms) {
+        final row = r.toMap()
+          ..remove('operator_id')
+          ..remove('device_id');
         batch.insert(
           tableName,
-          r.toMap(),
+          row,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
