@@ -30,13 +30,15 @@ class RoomDatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN posX REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN posY REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN sortOrder INTEGER DEFAULT 0'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN default_alert_limit_seconds INTEGER'); } catch (_) {}
+        try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_scale REAL'); } catch (_) {}
+        try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_angle REAL'); } catch (_) {}
       },
     );
 
@@ -63,6 +65,8 @@ class RoomDatabaseHelper {
         posX REAL,
         posY REAL,
         sortOrder INTEGER DEFAULT 0,
+        layout_scale REAL,
+        layout_angle REAL,
         default_alert_limit_seconds INTEGER,
         updatedAt TEXT
       )
@@ -294,12 +298,16 @@ class RoomDatabaseHelper {
     return count;
   }
 
-  Future<bool> toggleAvailability(int id, bool currentStatus, {String? roomNumber}) async {
+  Future<bool> toggleAvailability(int id, bool currentStatus, {String? roomNumber, String? occupantName}) async {
     final effectiveRoomNumber = (roomNumber != null && roomNumber.isNotEmpty)
         ? roomNumber
         : (await getRoomById(id))?.number ?? id.toString();
 
-    final success = await RoomSyncService.instance.toggleRemoteAvailability(effectiveRoomNumber, currentStatus);
+    final success = await RoomSyncService.instance.toggleRemoteAvailability(
+      effectiveRoomNumber,
+      currentStatus,
+      occupantName: occupantName,
+    );
 
     if (kIsWeb) {
       if (_webRoomsCache != null) {
@@ -383,33 +391,72 @@ class RoomDatabaseHelper {
     );
   }
 
-  Future<void> updateRoomPosition(int id, double posX, double posY) async {
-    final room = await getRoomById(id);
-    final roomNumber = room?.number ?? id.toString();
+  /// Zapisuje nowe położenie sali na planie. Szuka sali po numerze (lokalne
+  /// i serwerowe id się różnią — wcześniej zapis mógł trafić w inną salę).
+  /// Zwraca true, gdy serwer przyjął zmianę.
+  Future<bool> updateRoomPosition(Room room, double posX, double posY) async {
+    final roomNumber = room.number;
+    final updated = await RoomSyncService.instance.updateRoomPosition(roomNumber, posX, posY);
 
     if (kIsWeb) {
-      final updated = await RoomSyncService.instance.updateRoomPosition(roomNumber, posX, posY);
       if (updated != null && _webRoomsCache != null) {
-        final idx = _webRoomsCache!.indexWhere((r) => r.id == id || r.number == roomNumber);
+        final idx = _webRoomsCache!.indexWhere((r) => r.number == roomNumber);
         if (idx != -1) {
           _webRoomsCache![idx] = updated;
         }
       }
-      return;
+      return updated != null;
     }
 
-    final db = await database;
-    await db.update(
-      tableName,
-      {
-        'posX': posX,
-        'posY': posY,
-        'updatedAt': DateTime.now().toIso8601String(),
-      },
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    RoomSyncService.instance.updateRoomPosition(roomNumber, posX, posY).ignore();
+    if (updated != null) {
+      try {
+        final db = await database;
+        await db.update(
+          tableName,
+          {
+            'posX': posX,
+            'posY': posY,
+            'updatedAt': DateTime.now().toIso8601String(),
+          },
+          where: 'number = ?',
+          whereArgs: [roomNumber],
+        );
+      } catch (_) {}
+    }
+    return updated != null;
+  }
+
+  /// Zapisuje rozmiar (skalę) i obrót sali na planie. Zwraca true po zapisie na serwerze.
+  Future<bool> updateRoomLayout(Room room, double scale, double angle) async {
+    final roomNumber = room.number;
+    final updated = await RoomSyncService.instance.updateRoomLayout(roomNumber, scale, angle);
+
+    if (kIsWeb) {
+      if (updated != null && _webRoomsCache != null) {
+        final idx = _webRoomsCache!.indexWhere((r) => r.number == roomNumber);
+        if (idx != -1) {
+          _webRoomsCache![idx] = updated;
+        }
+      }
+      return updated != null;
+    }
+
+    if (updated != null) {
+      try {
+        final db = await database;
+        await db.update(
+          tableName,
+          {
+            'layout_scale': scale,
+            'layout_angle': angle,
+            'updatedAt': DateTime.now().toIso8601String(),
+          },
+          where: 'number = ?',
+          whereArgs: [roomNumber],
+        );
+      } catch (_) {}
+    }
+    return updated != null;
   }
 
   Future<void> resetRoomPositions({String? floor}) async {
@@ -428,6 +475,8 @@ class RoomDatabaseHelper {
         {
           'posX': null,
           'posY': null,
+          'layout_scale': null,
+          'layout_angle': null,
           'updatedAt': DateTime.now().toIso8601String(),
         },
         where: 'floor = ?',
@@ -439,6 +488,8 @@ class RoomDatabaseHelper {
         {
           'posX': null,
           'posY': null,
+          'layout_scale': null,
+          'layout_angle': null,
           'updatedAt': DateTime.now().toIso8601String(),
         },
       );
@@ -529,8 +580,13 @@ class RoomDatabaseHelper {
         onlyOccupied: onlyOccupied,
       );
       if (remoteRooms != null && remoteRooms.isNotEmpty) {
-        // Update local SQLite in background to stay in sync (for offline mode)
-        _updateLocalDbFromRemote(remoteRooms).ignore();
+        // Kopia lokalna na wypadek braku serwera. Pełna lista (bez filtrów)
+        // zastępuje całą kopię; lista przefiltrowana tylko ją uzupełnia.
+        final isFullSnapshot = (floor == null || floor.isEmpty || floor == 'Wszystkie') &&
+            (searchQuery == null || searchQuery.trim().isEmpty) &&
+            onlyAvailable != true &&
+            onlyOccupied != true;
+        _updateLocalDbFromRemote(remoteRooms, fullSnapshot: isFullSnapshot).ignore();
         return remoteRooms;
       }
     } catch (_) {
@@ -538,6 +594,43 @@ class RoomDatabaseHelper {
     }
 
     // Offline fallback: read from local SQLite
+    try {
+      final local = await _queryLocalRooms(
+        floor: floor,
+        searchQuery: searchQuery,
+        onlyAvailable: onlyAvailable,
+        onlyOccupied: onlyOccupied,
+      );
+      if (local.isNotEmpty) return local;
+    } catch (_) {}
+
+    // Brak serwera i pustej kopii: pokaż domyślne sale PRz w ich ułożeniu,
+    // zamiast pustej mapy.
+    var defaults = _getInitialRooms();
+    if (floor != null && floor.isNotEmpty && floor != 'Wszystkie') {
+      defaults = floor == 'Parter'
+          ? defaults.where((r) => r.floor == 'Parter' || r.floor == 'Garaż podziemny').toList()
+          : defaults.where((r) => r.floor == floor).toList();
+    }
+    if (onlyAvailable == true) defaults = defaults.where((r) => r.isAvailable).toList();
+    if (onlyOccupied == true) defaults = defaults.where((r) => !r.isAvailable).toList();
+    if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+      final q = searchQuery.trim().toLowerCase();
+      defaults = defaults.where((r) =>
+          r.number.toLowerCase().contains(q) ||
+          r.name.toLowerCase().contains(q) ||
+          r.description.toLowerCase().contains(q) ||
+          r.category.toLowerCase().contains(q)).toList();
+    }
+    return defaults;
+  }
+
+  Future<List<Room>> _queryLocalRooms({
+    String? floor,
+    String? searchQuery,
+    bool? onlyAvailable,
+    bool? onlyOccupied,
+  }) async {
     final db = await database;
 
     final conditions = <String>[];
@@ -579,14 +672,23 @@ class RoomDatabaseHelper {
   }
 
   /// Update local SQLite with fresh data from server (background, non-blocking).
-  Future<void> _updateLocalDbFromRemote(List<Room> remoteRooms) async {
+  /// Lokalna tabela nie ma kolumn operator_id / device_id — wcześniej przez nie
+  /// zapis się nie udawał i kopia offline zostawała pusta.
+  Future<void> _updateLocalDbFromRemote(List<Room> remoteRooms, {bool fullSnapshot = false}) async {
     try {
       final db = await database;
       final batch = db.batch();
+      if (fullSnapshot) {
+        // Sale bez liczbowego id (AULA, HOL, Garaż) dublowały się przy każdym zapisie
+        batch.delete(tableName);
+      }
       for (final r in remoteRooms) {
+        final row = r.toMap()
+          ..remove('operator_id')
+          ..remove('device_id');
         batch.insert(
           tableName,
-          r.toMap(),
+          row,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }

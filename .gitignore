@@ -69,3 +69,10 @@ app.*.map.json
 # Python cache
 __pycache__/
 *.py[cod]
+
+# Sekrety i dane lokalne (nie wrzucać do repo)
+.env
+.cloudflared/
+*.cloudflared.json
+server/*.db
+*.apk

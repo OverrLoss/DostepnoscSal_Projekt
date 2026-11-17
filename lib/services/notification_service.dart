@@ -14,7 +14,12 @@ class NotificationService {
 
     try {
       const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-      const initSettings = InitializationSettings(android: androidSettings);
+      const darwinSettings = DarwinInitializationSettings();
+      const initSettings = InitializationSettings(
+        android: androidSettings,
+        iOS: darwinSettings,
+        macOS: darwinSettings,
+      );
 
       await _notificationsPlugin.initialize(initSettings);
 
@@ -48,7 +53,12 @@ class NotificationService {
       icon: '@mipmap/ic_launcher',
     );
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
+    const darwinDetails = DarwinNotificationDetails();
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: darwinDetails,
+      macOS: darwinDetails,
+    );
     await _notificationsPlugin.show(id, title, body, notificationDetails);
   }
 

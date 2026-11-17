@@ -1,13 +1,21 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../models/room_model.dart';
+import '../theme/app_theme.dart';
 
 class InteractiveFloorMap extends StatefulWidget {
   final String floor;
   final List<Room> rooms;
   final Function(Room room) onRoomTap;
   final Function(Room room) onRoomQuickToggle;
-  final Function(Room room, double newX, double newY) onRoomPositionChanged;
+  /// Zwraca true, gdy nowe położenie zostało zapisane (inaczej sala wraca na miejsce).
+  final Future<bool> Function(Room room, double newX, double newY) onRoomPositionChanged;
   final Function(String floor) onResetPositions;
+
+  /// Zapis rozmiaru (skala, 1.0 = domyślna) i obrotu (stopnie) sali.
+  /// Gdy null — pasek zmiany rozmiaru i obrotu się nie pokazuje.
+  final Future<bool> Function(Room room, double scale, double angle)? onRoomLayoutChanged;
   final bool? isEditMode;
   final VoidCallback? onToggleEditMode;
   final bool showEditToolbar;
@@ -22,6 +30,7 @@ class InteractiveFloorMap extends StatefulWidget {
     required this.onRoomQuickToggle,
     required this.onRoomPositionChanged,
     required this.onResetPositions,
+    this.onRoomLayoutChanged,
     this.isEditMode,
     this.onToggleEditMode,
     this.showEditToolbar = false,
@@ -36,8 +45,116 @@ class InteractiveFloorMap extends StatefulWidget {
 class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   bool _internalEditMode = false;
   bool get _isEditMode => widget.isEditMode ?? _internalEditMode;
-  final Map<int, Offset> _draggedPositions = {};
-  int? _activeDraggingRoomId;
+  // Klucz = numer sali (AULA, HOL i Garaż nie mają liczbowego id)
+  final Map<String, Offset> _draggedPositions = {};
+  String? _activeDraggingKey;
+
+  String _roomKey(Room room) => room.number.trim().toUpperCase();
+
+  // Zaznaczona sala w trybie edycji + niezapisane jeszcze zmiany rozmiaru/obrotu
+  String? _selectedKey;
+  final Map<String, double> _scaleOverrides = {};
+  final Map<String, double> _angleOverrides = {};
+  final Map<String, double> _baseAngleDeg = {};
+
+  static const double _minScale = 0.5;
+  static const double _maxScale = 2.5;
+
+  Room? _selectedRoom() {
+    final key = _selectedKey;
+    if (key == null) return null;
+    for (final r in widget.rooms) {
+      if (_roomKey(r) == key) return r;
+    }
+    return null;
+  }
+
+  double _currentScale(Room room) =>
+      _scaleOverrides[_roomKey(room)] ?? room.layoutScale ?? 1.0;
+
+  double _currentAngleDeg(Room room) {
+    final key = _roomKey(room);
+    return _angleOverrides[key] ?? room.layoutAngle ?? (_baseAngleDeg[key] ?? 0.0);
+  }
+
+  double _normalizeAngle(double a) {
+    var v = a % 360.0;
+    if (v > 180) v -= 360;
+    if (v < -180) v += 360;
+    return v;
+  }
+
+  Future<void> _applyLayout(Room room, {double? scale, double? angle}) async {
+    final save = widget.onRoomLayoutChanged;
+    if (save == null) return;
+    final key = _roomKey(room);
+    final prevScale = _scaleOverrides[key];
+    final prevAngle = _angleOverrides[key];
+    setState(() {
+      if (scale != null) _scaleOverrides[key] = scale.clamp(_minScale, _maxScale);
+      if (angle != null) _angleOverrides[key] = _normalizeAngle(angle);
+    });
+    final saved = await save(room, _currentScale(room), _currentAngleDeg(room));
+    if (!saved && mounted) {
+      // Nie zapisano — przywróć poprzedni wygląd sali
+      setState(() {
+        if (prevScale == null) {
+          _scaleOverrides.remove(key);
+        } else {
+          _scaleOverrides[key] = prevScale;
+        }
+        if (prevAngle == null) {
+          _angleOverrides.remove(key);
+        } else {
+          _angleOverrides[key] = prevAngle;
+        }
+      });
+    }
+  }
+
+  Widget _buildLayoutToolbar(Room room) {
+    final scale = _currentScale(room);
+    final angle = _currentAngleDeg(room);
+    Widget btn(IconData icon, String tip, VoidCallback? onTap) => IconButton(
+          icon: Icon(icon, size: 18, color: onTap == null ? Colors.white24 : Colors.white),
+          tooltip: tip,
+          padding: const EdgeInsets.all(6),
+          constraints: const BoxConstraints(),
+          onPressed: onTap,
+        );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF000000).withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.6)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Sala ${room.number}',
+            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '${(scale * 100).round()}% · ${angle.round()}°',
+            style: const TextStyle(color: Colors.white54, fontSize: 11),
+          ),
+          const SizedBox(width: 6),
+          btn(Icons.rotate_left_rounded, 'Obróć w lewo (15°)', () => _applyLayout(room, angle: angle - 15)),
+          btn(Icons.rotate_right_rounded, 'Obróć w prawo (15°)', () => _applyLayout(room, angle: angle + 15)),
+          btn(Icons.remove_rounded, 'Mniejsza',
+              scale <= _minScale ? null : () => _applyLayout(room, scale: ((scale - 0.1) * 10).round() / 10)),
+          btn(Icons.add_rounded, 'Większa',
+              scale >= _maxScale ? null : () => _applyLayout(room, scale: ((scale + 0.1) * 10).round() / 10)),
+          btn(Icons.restart_alt_rounded, 'Domyślny rozmiar i obrót',
+              () => _applyLayout(room, scale: 1.0, angle: _baseAngleDeg[_roomKey(room)] ?? 0.0)),
+          btn(Icons.close_rounded, 'Odznacz salę', () => setState(() => _selectedKey = null)),
+        ],
+      ),
+    );
+  }
   final TransformationController _transformController = TransformationController();
   double _activeFitScale = 1.0;
 
@@ -99,8 +216,9 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   }
 
   Offset _getRoomOffset(Room room, Offset defaultOffset) {
-    if (room.id != null && _draggedPositions.containsKey(room.id)) {
-      return _draggedPositions[room.id!]!;
+    final key = _roomKey(room);
+    if (_draggedPositions.containsKey(key)) {
+      return _draggedPositions[key]!;
     }
     if (room.posX != null && room.posY != null) {
       return Offset(room.posX!, room.posY!);
@@ -109,33 +227,40 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   }
 
   void _onPanStart(Room room, Offset currentPos) {
-    if (room.id == null) return;
+    final key = _roomKey(room);
     setState(() {
-      _activeDraggingRoomId = room.id;
-      _draggedPositions[room.id!] = currentPos;
+      _activeDraggingKey = key;
+      _draggedPositions[key] = currentPos;
     });
   }
 
   void _onPanUpdate(Room room, DragUpdateDetails details, double width, double height) {
-    if (room.id == null) return;
-    final current = _draggedPositions[room.id!] ?? Offset(room.posX ?? 0, room.posY ?? 0);
-    final adjScale = _activeFitScale <= 0 ? 1.0 : _activeFitScale;
+    final key = _roomKey(room);
+    final current = _draggedPositions[key] ?? Offset(room.posX ?? 0, room.posY ?? 0);
+    // Uwzględnij dopasowanie planu do okna ORAZ przybliżenie (zoom),
+    // żeby sala szła dokładnie za kursorem / palcem.
+    final fit = _activeFitScale <= 0 ? 1.0 : _activeFitScale;
+    final zoom = _transformController.value.getMaxScaleOnAxis();
+    final adjScale = fit * (zoom <= 0 ? 1.0 : zoom);
     final nextX = (current.dx + details.delta.dx / adjScale).clamp(10.0, _canvasWidth - width - 10.0);
     final nextY = (current.dy + details.delta.dy / adjScale).clamp(35.0, _canvasHeight - height - 10.0);
 
     setState(() {
-      _draggedPositions[room.id!] = Offset(nextX, nextY);
+      _draggedPositions[key] = Offset(nextX, nextY);
     });
   }
 
-  void _onPanEnd(Room room, double width, double height) {
-    if (room.id == null) return;
-    final finalPos = _draggedPositions[room.id!];
+  Future<void> _onPanEnd(Room room, double width, double height) async {
+    final key = _roomKey(room);
+    final finalPos = _draggedPositions[key];
     setState(() {
-      _activeDraggingRoomId = null;
+      _activeDraggingKey = null;
     });
-    if (finalPos != null) {
-      widget.onRoomPositionChanged(room, finalPos.dx, finalPos.dy);
+    if (finalPos == null) return;
+    final saved = await widget.onRoomPositionChanged(room, finalPos.dx, finalPos.dy);
+    if (!saved && mounted) {
+      // Nie zapisano — sala wraca na swoje zapisane miejsce
+      setState(() => _draggedPositions.remove(key));
     }
   }
 
@@ -143,7 +268,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Przywróć domyślny układ', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz przywrócić pierwotne położenie wszystkich sal na kondygnacji "${widget.floor}"?',
@@ -156,7 +281,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Przywróć', style: TextStyle(color: Colors.black)),
           ),
         ],
@@ -172,7 +297,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Przywrócono domyślne położenie sal dla "${widget.floor}"'),
-            backgroundColor: Colors.orangeAccent,
+            backgroundColor: AppColors.primary,
           ),
         );
       }
@@ -214,11 +339,11 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: _isEditMode
-                            ? Colors.orangeAccent.withValues(alpha: 0.15)
-                            : const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(16),
+                            ? AppColors.primary.withValues(alpha: 0.15)
+                            : const Color(0xFF141414),
+                        borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: _isEditMode ? Colors.orangeAccent : Colors.white12,
+                          color: _isEditMode ? AppColors.primary : Colors.white12,
                           width: _isEditMode ? 1.5 : 1,
                         ),
                       ),
@@ -226,7 +351,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                         children: [
                           Icon(
                             _isEditMode ? Icons.open_with : Icons.edit_location_alt_rounded,
-                            color: _isEditMode ? Colors.orangeAccent : Colors.white70,
+                            color: _isEditMode ? AppColors.primary : Colors.white70,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -237,7 +362,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                                 Text(
                                   _isEditMode ? 'TRYB PRZESTAWIANIA' : 'Układ sal na planie',
                                   style: TextStyle(
-                                    color: _isEditMode ? Colors.orangeAccent : Colors.white,
+                                    color: _isEditMode ? AppColors.primary : Colors.white,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -273,10 +398,10 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _isEditMode ? Colors.orangeAccent : const Color(0xFF334155),
+                              backgroundColor: _isEditMode ? AppColors.primary : const Color(0xFF2A2A2A),
                               foregroundColor: _isEditMode ? Colors.black : Colors.white,
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                               elevation: 0,
                             ),
                             child: Text(
@@ -292,18 +417,18 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.orangeAccent),
+                        color: AppColors.primary.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.primary),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.open_with, color: Colors.orangeAccent, size: 14),
+                          Icon(Icons.open_with, color: AppColors.primary, size: 14),
                           SizedBox(width: 8),
                           Text(
-                            'Tryb przestawiania aktywny – przeciągaj sale po planie',
-                            style: TextStyle(color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                            'Przeciągnij salę, aby ją przesunąć. Zmiany zapisują się od razu.',
+                            style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -319,18 +444,18 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                         width: _canvasWidth,
                         height: _canvasHeight,
                         decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(24),
+                        color: const Color(0xFF141414),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: _isEditMode
-                              ? Colors.orangeAccent.withValues(alpha: 0.6)
+                              ? AppColors.primary.withValues(alpha: 0.6)
                               : Colors.white12,
                           width: _isEditMode ? 2 : 1,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: _isEditMode
-                                ? Colors.orangeAccent.withValues(alpha: 0.2)
+                                ? AppColors.primary.withValues(alpha: 0.2)
                                 : Colors.black38,
                             blurRadius: 16,
                             offset: const Offset(0, 6),
@@ -338,7 +463,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(8),
                         child: Stack(
                           children: [
                             // Building background path painter
@@ -361,7 +486,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                                         height: 8,
                                         decoration: const BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.orangeAccent,
+                                          color: AppColors.primary,
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -382,7 +507,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                                         ? '✥ Przeciągnij salę, aby zmienić jej położenie'
                                         : 'Dotknij: zmiana stanu • Przytrzymaj: szczegóły',
                                     style: TextStyle(
-                                      color: _isEditMode ? Colors.orangeAccent : Colors.orangeAccent.withValues(alpha: 0.8),
+                                      color: _isEditMode ? AppColors.primary : AppColors.primary.withValues(alpha: 0.8),
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -412,8 +537,8 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                     width: 360,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(16),
+                      color: const Color(0xFF141414),
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: Colors.white12),
                     ),
                     child: Column(
@@ -421,7 +546,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.meeting_room_outlined, color: Colors.orangeAccent, size: 18),
+                            const Icon(Icons.meeting_room_outlined, color: AppColors.primary, size: 18),
                             const SizedBox(width: 8),
                             Text(
                               'DODATKOWE SALE (${widget.floor})'.toUpperCase(),
@@ -466,6 +591,30 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
             boundaryMargin: const EdgeInsets.all(50),
             child: mapContent,
           ),
+          // Pasek obrotu i rozmiaru zaznaczonej sali (tryb edycji)
+          if (_isEditMode && widget.onRoomLayoutChanged != null && _selectedRoom() != null)
+            Positioned(
+              left: 12,
+              bottom: widget.controlsBottomOffset,
+              child: _buildLayoutToolbar(_selectedRoom()!),
+            )
+          else if (_isEditMode && widget.onRoomLayoutChanged != null)
+            Positioned(
+              left: 12,
+              bottom: widget.controlsBottomOffset,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF000000).withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: const Text(
+                  'Kliknij salę, aby ją obrócić lub zmienić rozmiar',
+                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                ),
+              ),
+            ),
           // Floating Zoom & Fit Controls
           Positioned(
             right: 12,
@@ -473,8 +622,8 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A).withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(20),
+                color: const Color(0xFF000000).withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.white24, width: 0.8),
                 boxShadow: const [
                   BoxShadow(color: Colors.black45, blurRadius: 8, offset: Offset(0, 2)),
@@ -491,7 +640,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                     onPressed: _zoomOut,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.fit_screen_rounded, size: 18, color: Colors.cyanAccent),
+                    icon: const Icon(Icons.fit_screen_rounded, size: 18, color: AppColors.cyan),
                     tooltip: 'Dopasuj do ekranu',
                     padding: const EdgeInsets.all(6),
                     constraints: const BoxConstraints(),
@@ -579,16 +728,16 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.orangeAccent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.4)),
+              color: AppColors.primary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('WEJŚCIE', style: TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                Text('WEJŚCIE', style: TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold)),
                 SizedBox(width: 4),
-                Icon(Icons.arrow_forward_rounded, color: Colors.orangeAccent, size: 14),
+                Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 14),
               ],
             ),
           ),
@@ -613,16 +762,16 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.orangeAccent.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.4)),
+            color: AppColors.primary.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
           ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.arrow_back_rounded, color: Colors.orangeAccent, size: 12),
+              Icon(Icons.arrow_back_rounded, color: AppColors.primary, size: 12),
               SizedBox(width: 4),
-              Text('wejście', style: TextStyle(color: Colors.orangeAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+              Text('wejście', style: TextStyle(color: AppColors.primary, fontSize: 9, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -668,17 +817,20 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final garazRoom = _findRoom('Garaż') ?? _findRoom('GARAŻ');
     if (garazRoom == null) return [];
 
-    final offset = _getRoomOffset(garazRoom, const Offset(50, 140));
-    final isDragging = _activeDraggingRoomId == garazRoom.id;
+    // Karta garażu zawsze na środku obrysu garażu. Zapisana pozycja tej sali
+    // dotyczy kafelka na planie parteru, więc tu jej nie używamy (wcześniej karta
+    // wychodziła poza obrys i ucinała napisy).
+    const offset = Offset(50, 140);
+    const isDragging = false;
 
     return [
       Positioned(
         left: offset.dx,
         top: offset.dy,
         child: GestureDetector(
-          onPanStart: _isEditMode ? (_) => _onPanStart(garazRoom, offset) : null,
-          onPanUpdate: _isEditMode ? (details) => _onPanUpdate(garazRoom, details, 260, 240) : null,
-          onPanEnd: _isEditMode ? (_) => _onPanEnd(garazRoom, 260, 240) : null,
+          onPanStart: null,
+          onPanUpdate: null,
+          onPanEnd: null,
           child: InkWell(
             onTap: () {
               if (!_isEditMode) widget.onRoomQuickToggle(garazRoom);
@@ -686,32 +838,21 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
             onLongPress: () {
               if (!_isEditMode) widget.onRoomTap(garazRoom);
             },
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(8),
             child: Container(
               width: 260,
               height: 240,
               decoration: BoxDecoration(
                 color: (garazRoom.isAvailable)
-                    ? Colors.green.withValues(alpha: 0.2)
-                    : Colors.red.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
+                    ? AppColors.success.withValues(alpha: 0.12)
+                    : AppColors.danger.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isDragging
-                      ? Colors.orangeAccent
-                      : ((garazRoom.isAvailable) ? Colors.greenAccent : Colors.redAccent),
-                  width: isDragging ? 3 : 2,
+                      ? AppColors.primary
+                      : ((garazRoom.isAvailable) ? AppColors.success : AppColors.danger),
+                  width: isDragging ? 2 : 1,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDragging
-                        ? Colors.orangeAccent.withValues(alpha: 0.4)
-                        : ((garazRoom.isAvailable)
-                            ? Colors.greenAccent.withValues(alpha: 0.15)
-                            : Colors.redAccent.withValues(alpha: 0.15)),
-                    blurRadius: isDragging ? 24 : 16,
-                    spreadRadius: isDragging ? 4 : 2,
-                  ),
-                ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -720,15 +861,15 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.orangeAccent,
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.open_with, color: Colors.black, size: 14),
                           SizedBox(width: 4),
-                          Text('PRZECIĄGNIJ', style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('Przeciągnij', style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -737,16 +878,15 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                   Icon(
                     Icons.directions_car_rounded,
                     size: 44,
-                    color: (garazRoom.isAvailable) ? Colors.greenAccent : Colors.redAccent,
+                    color: (garazRoom.isAvailable) ? AppColors.success : AppColors.danger,
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'GARAŻ PODZIEMNY',
+                    'Garaż podziemny',
                     style: TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       fontSize: 16,
-                      letterSpacing: 1,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -759,8 +899,11 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: (garazRoom.isAvailable) ? Colors.green : (garazRoom.isAlertDue ? Colors.amber.shade900 : Colors.red),
-                      borderRadius: BorderRadius.circular(16),
+                      color: ((garazRoom.isAvailable)
+                              ? AppColors.success
+                              : (garazRoom.isAlertDue ? AppColors.warning : AppColors.danger))
+                          .withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -775,10 +918,10 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                         const SizedBox(width: 6),
                         Text(
                           (garazRoom.isAvailable)
-                              ? 'WOLNY / DOSTĘPNY'
+                              ? 'Wolny'
                               : (garazRoom.isAlertDue
-                                  ? 'PRZEKROCZONO CZAS (${garazRoom.durationFormatted})'
-                                  : 'ZAJĘTY (${garazRoom.durationFormatted})'),
+                                  ? 'Przekroczono czas (${garazRoom.durationFormatted})'
+                                  : 'Zajęty (${garazRoom.durationFormatted})'),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -788,6 +931,20 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       ],
                     ),
                   ),
+                  if (!garazRoom.isAvailable && garazRoom.occupantName != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.person_rounded, size: 14, color: Colors.white70),
+                        const SizedBox(width: 4),
+                        Text(
+                          garazRoom.occupantName!,
+                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Text(
                     _isEditMode ? 'Przeciągaj, aby zmienić pozycję' : 'Dotknij, aby zmienić dostępność',
@@ -840,19 +997,29 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final defaultPos = Offset(defaultLeft, defaultTop);
     final pos = _getRoomOffset(room, defaultPos);
     final isCustomPosition = (room.posX != null && room.posY != null) ||
-        (room.id != null && _draggedPositions.containsKey(room.id));
-    final isDragging = room.id != null && _activeDraggingRoomId == room.id;
+        _draggedPositions.containsKey(_roomKey(room));
+    final key = _roomKey(room);
+    final isDragging = _activeDraggingKey == key;
+    final isSelected = _isEditMode && _selectedKey == key;
 
-    // Angle applies only if not custom moved or angle specified
-    final angle = isCustomPosition ? null : defaultAngle;
+    // Domyślny kąt z projektu planu (tylko dla sal w domyślnym miejscu)
+    final baseAngleDeg = (isCustomPosition || defaultAngle == null) ? 0.0 : defaultAngle * 180 / math.pi;
+    _baseAngleDeg[key] = baseAngleDeg;
+
+    // Rozmiar i obrót: zmiana w trakcie edycji > zapis z serwera > domyślne
+    final scale = _currentScale(room);
+    final angleDeg = _angleOverrides[key] ?? room.layoutAngle ?? baseAngleDeg;
+    final angle = angleDeg == 0 ? null : angleDeg * math.pi / 180;
+    final w = width * scale;
+    final h = height * scale;
 
     Widget roomWidget = _buildRoomContent(
       room: room,
-      width: width,
-      height: height,
+      width: w,
+      height: h,
       label: titleOverride ?? number,
       isBig: isBig,
-      isDragging: isDragging,
+      isDragging: isDragging || isSelected,
     );
 
     if (angle != null) {
@@ -866,17 +1033,27 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
       left: pos.dx,
       top: pos.dy,
       child: GestureDetector(
-        onPanStart: _isEditMode ? (_) => _onPanStart(room, pos) : null,
-        onPanUpdate: _isEditMode ? (details) => _onPanUpdate(room, details, width, height) : null,
-        onPanEnd: _isEditMode ? (_) => _onPanEnd(room, width, height) : null,
+        onPanStart: _isEditMode
+            ? (_) {
+                setState(() => _selectedKey = key);
+                _onPanStart(room, pos);
+              }
+            : null,
+        onPanUpdate: _isEditMode ? (details) => _onPanUpdate(room, details, w, h) : null,
+        onPanEnd: _isEditMode ? (_) => _onPanEnd(room, w, h) : null,
         child: InkWell(
           onTap: () {
-            if (!_isEditMode) widget.onRoomQuickToggle(room);
+            if (_isEditMode) {
+              // W trybie edycji kliknięcie zaznacza salę (pasek obrotu i rozmiaru)
+              setState(() => _selectedKey = key);
+            } else {
+              widget.onRoomQuickToggle(room);
+            }
           },
           onLongPress: () {
             if (!_isEditMode) widget.onRoomTap(room);
           },
-          borderRadius: BorderRadius.circular(isBig ? 16 : 8),
+          borderRadius: BorderRadius.circular(isBig ? 4 : 3),
           child: roomWidget,
         ),
       ),
@@ -894,17 +1071,17 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final isAvailable = room.isAvailable;
     final isAlert = room.isAlertDue;
     final color = isDragging
-        ? Colors.orangeAccent
+        ? AppColors.primary
         : (isAlert
-            ? Colors.amberAccent
-            : (isAvailable ? Colors.greenAccent : Colors.redAccent));
+            ? AppColors.warning
+            : (isAvailable ? AppColors.success : AppColors.danger));
     final bgColor = isDragging
-        ? Colors.orange.withValues(alpha: 0.35)
+        ? AppColors.primary.withValues(alpha: 0.2)
         : (isAlert
-            ? Colors.red.withValues(alpha: 0.4)
+            ? AppColors.danger.withValues(alpha: 0.3)
             : (isAvailable
-                ? Colors.green.withValues(alpha: 0.25)
-                : Colors.red.withValues(alpha: 0.25)));
+                ? AppColors.success.withValues(alpha: 0.14)
+                : AppColors.danger.withValues(alpha: 0.16)));
 
     final duration = room.durationFormatted;
 
@@ -914,22 +1091,14 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
       height: height,
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(isBig ? 16 : 8),
+        borderRadius: BorderRadius.circular(isBig ? 4 : 3),
         border: Border.all(
           color: color,
-          width: isDragging ? 2.5 : (isAlert ? 2.2 : (_isEditMode ? 2.0 : 1.6)),
+          width: isDragging ? 2.0 : (isAlert ? 1.6 : 1.0),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isDragging
-                ? Colors.orangeAccent.withValues(alpha: 0.5)
-                : (isAlert
-                    ? Colors.redAccent.withValues(alpha: 0.4)
-                    : color.withValues(alpha: 0.2)),
-            blurRadius: isDragging ? 12 : (isAlert ? 10 : 6),
-            spreadRadius: isDragging ? 2 : (isAlert ? 2 : 1),
-          ),
-        ],
+        boxShadow: isDragging
+            ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.35), blurRadius: 10)]
+            : null,
       ),
       alignment: Alignment.center,
       child: Stack(
@@ -967,27 +1136,43 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: isBig ? 14 : 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+                        fontSize: isBig ? 13 : 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
                       ),
                     ),
                   ),
                 ],
               ),
-              if (!isAvailable && duration.isNotEmpty) ...[
+              if (!isAvailable && (duration.isNotEmpty || room.occupantName != null)) ...[
                 const SizedBox(height: 2),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (isAlert) ...[
-                      const Icon(Icons.warning_amber_rounded, size: 10, color: Colors.amberAccent),
+                      const Icon(Icons.warning_amber_rounded, size: 10, color: AppColors.warning),
                       const SizedBox(width: 2),
                     ],
+                    if (room.occupantName != null) ...[
+                      Flexible(
+                        child: Text(
+                          room.occupantName!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    if (duration.isNotEmpty)
                     Text(
                       duration,
                       style: TextStyle(
-                        color: isAlert ? Colors.amberAccent : Colors.white70,
+                        color: isAlert ? AppColors.warning : Colors.white70,
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                         fontFamily: 'monospace',
@@ -1006,7 +1191,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                 padding: const EdgeInsets.all(2),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.redAccent,
+                  color: AppColors.danger,
                 ),
                 child: const Icon(Icons.priority_high, size: 8, color: Colors.white),
               ),
@@ -1020,7 +1205,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                 height: 6,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.orangeAccent,
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -1031,7 +1216,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
 
   Widget _buildExtraRoomChip(Room room) {
     final isAvailable = room.isAvailable;
-    final color = isAvailable ? Colors.greenAccent : Colors.redAccent;
+    final color = isAvailable ? AppColors.success : AppColors.danger;
 
     return InkWell(
       onTap: () {
@@ -1040,13 +1225,13 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
       onLongPress: () {
         if (!_isEditMode) widget.onRoomTap(room);
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(3),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isAvailable ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color, width: 1.5),
+          color: color.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(3),
+          border: Border.all(color: color, width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1066,6 +1251,15 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
               room.name,
               style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
+            if (room.occupantName != null) ...[
+              const SizedBox(width: 8),
+              const Icon(Icons.person_rounded, size: 12, color: Colors.white70),
+              const SizedBox(width: 2),
+              Text(
+                room.occupantName!,
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+              ),
+            ],
           ],
         ),
       ),
@@ -1080,17 +1274,26 @@ class _BuildingOutlinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Siatka punktów jak na rysunku technicznym
+    final dotPaint = Paint()..color = Colors.white.withValues(alpha: 0.06);
+    for (double x = 10; x < size.width; x += 20) {
+      for (double y = 10; y < size.height; y += 20) {
+        canvas.drawRect(Rect.fromLTWH(x, y, 1, 1), dotPaint);
+      }
+    }
+
     final corridorPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
+      ..color = Colors.white.withValues(alpha: 0.06)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 36
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      ..strokeCap = StrokeCap.butt
+      ..strokeJoin = StrokeJoin.miter;
 
     final wallPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.25)
+      ..color = Colors.white.withValues(alpha: 0.32)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = 1.5
+      ..strokeJoin = StrokeJoin.miter;
 
     if (floor == 'Piętro' || floor == 'Parter') {
       final corridorPath = Path();
@@ -1120,11 +1323,7 @@ class _BuildingOutlinePainter extends CustomPainter {
       canvas.drawPath(outerWall, wallPaint);
     } else {
       // Underground garage grid outline
-      final garageRect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(30, 110, 300, 300),
-        const Radius.circular(24),
-      );
-      canvas.drawRRect(garageRect, wallPaint);
+      canvas.drawRect(Rect.fromLTWH(30, 110, 300, 300), wallPaint);
 
       final gridPaint = Paint()
         ..color = Colors.white10

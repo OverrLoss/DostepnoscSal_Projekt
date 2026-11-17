@@ -13,6 +13,8 @@ import '../widgets/esp_devices_dialog.dart';
 import '../services/app_update_service.dart';
 import 'add_edit_room_screen.dart';
 import 'tv_dashboard_screen.dart';
+import '../theme/app_theme.dart';
+import '../services/occupant_nick.dart';
 
 class RoomMainScreen extends StatefulWidget {
   const RoomMainScreen({super.key});
@@ -25,6 +27,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   String _selectedFloor = 'Piętro';
+
+  /// Twoja nazwa — podpisuje sale, które zajmujesz. Zmieniana przyciskiem w nagłówku.
+  String _myNick = '';
   int _currentViewIndex = 0; // 0 = Mapa, 1 = Lista
   String _statusFilter = 'Wszystkie'; // 'Wszystkie', 'Wolne', 'Zajęte'
   bool _isReorderMode = false;
@@ -91,6 +96,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     super.initState();
     _loadSavedState();
     _loadRooms();
+    OccupantNick.load().then((nick) {
+      if (mounted) setState(() => _myNick = nick);
+    });
 
     // WebSocket: instant updates when ESP changes room status
     final sync = RoomSyncService.instance;
@@ -151,11 +159,21 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Brak uprawnień: Jesteś operatorem sali ${sync.operatorRoomId}. Nie możesz modyfikować sali ${room.number}.'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.danger,
           ),
         );
       }
       return;
+    }
+
+    // Zajmowana sala dostaje Twoją nazwę (albo nazwę konta, jeśli jej nie ustawiłeś).
+    String? occupantName;
+    if (room.isAvailable) {
+      if (_myNick.isNotEmpty) {
+        occupantName = _myNick;
+      } else if (sync.isLoggedIn && sync.userDisplayName.trim().isNotEmpty) {
+        occupantName = sync.userDisplayName.trim();
+      }
     }
 
     final newStatus = !room.isAvailable;
@@ -163,6 +181,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       room.id ?? 0,
       room.isAvailable,
       roomNumber: room.number,
+      occupantName: occupantName,
     );
     await _loadRooms(showLoading: false);
 
@@ -174,19 +193,23 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               children: [
                 Icon(
                   newStatus ? Icons.check_circle : Icons.event_busy,
-                  color: newStatus ? Colors.greenAccent : Colors.redAccent,
+                  color: newStatus ? AppColors.success : AppColors.danger,
                   size: 20,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Sala ${room.number}: ${newStatus ? "DOSTĘPNA (WOLNA)" : "ZAJĘTA"}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    newStatus
+                        ? 'Sala ${room.number} jest wolna'
+                        : (occupantName != null
+                            ? 'Sala ${room.number} zajęta przez $occupantName'
+                            : 'Sala ${room.number} zajęta'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: const Color(0xFF141414),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -194,11 +217,131 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(sync.lastErrorMessage.isNotEmpty ? sync.lastErrorMessage : 'Nie udało się zmienić statusu sali.'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.danger,
           ),
         );
       }
     }
+  }
+
+  /// Ustawianie / zmiana Twojej nazwy. Sale, które zajmujesz pod starą
+  /// nazwą, od razu dostają nową.
+  Future<void> _editMyNick() async {
+    final controller = TextEditingController(text: _myNick);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text(
+          'Twoja nazwa',
+          style: TextStyle(color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Będzie widoczna przy salach, które zajmujesz.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              maxLength: 40,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.done,
+              style: const TextStyle(color: AppColors.textPrimary),
+              decoration: const InputDecoration(hintText: 'Nick lub imię'),
+              onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Anuluj', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              elevation: 0,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+            child: const Text('Zapisz'),
+          ),
+        ],
+      ),
+    );
+    if (result == null || result == _myNick) return;
+
+    final oldNick = _myNick;
+    await OccupantNick.save(result);
+    if (!mounted) return;
+    setState(() => _myNick = result);
+
+    // Sale zajęte pod starą nazwą dostają nową
+    if (oldNick.isNotEmpty) {
+      final mine = _rooms.where((r) => r.occupantName == oldNick).toList();
+      for (final r in mine) {
+        await RoomSyncService.instance.changeRoomOccupant(r.number, result.isEmpty ? null : result);
+      }
+      if (mine.isNotEmpty) await _loadRooms(showLoading: false);
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.isEmpty ? 'Usunięto Twoją nazwę' : 'Twoja nazwa: $result'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Widget _buildMyNickButton() {
+    final hasNick = _myNick.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: InkWell(
+        onTap: _editMyNick,
+        borderRadius: BorderRadius.circular(AppColors.radiusPill),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.glass,
+            borderRadius: BorderRadius.circular(AppColors.radiusPill),
+            border: Border.all(color: AppColors.glassStroke),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                hasNick ? Icons.person_rounded : Icons.person_add_alt_1_rounded,
+                size: 15,
+                color: hasNick ? AppColors.textPrimary : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 5),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 110),
+                child: Text(
+                  hasNick ? _myNick : 'Ustaw nazwę',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: hasNick ? AppColors.textPrimary : AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _setAllFloorAvailability(bool isAvailable) async {
@@ -216,7 +359,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 ? 'Wszystkie sale na kondygnacji "$_selectedFloor" oznaczone jako WOLNE'
                 : 'Wszystkie sale na kondygnacji "$_selectedFloor" oznaczone jako ZAJĘTE',
           ),
-          backgroundColor: isAvailable ? Colors.green : Colors.redAccent,
+          backgroundColor: isAvailable ? Colors.green : AppColors.danger,
         ),
       );
     }
@@ -226,7 +369,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Przywróć domyślne sale', style: TextStyle(color: Colors.white)),
         content: const Text(
           'Czy chcesz przywrócić pierwotną listę sal z planu Politechniki Rzeszowskiej (Noc Nauki)?',
@@ -239,8 +382,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
-            child: const Text('Przywróć', style: TextStyle(color: Colors.black)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Przywróć', style: TextStyle(color: AppColors.onPrimary)),
           ),
         ],
       ),
@@ -278,7 +421,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Usuń salę', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć "${room.displayName}"?',
@@ -291,7 +434,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             child: const Text('Usuń', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -329,29 +472,29 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           String badgeText;
           switch (currentState) {
             case SyncConnectionState.connected:
-              badgeColor = Colors.greenAccent;
+              badgeColor = AppColors.success;
               badgeText = 'Połączono (Synchronizacja Live)';
               break;
             case SyncConnectionState.connecting:
-              badgeColor = Colors.orangeAccent;
+              badgeColor = AppColors.warning;
               badgeText = 'Sprawdzanie połączenia...';
               break;
             case SyncConnectionState.offline:
-              badgeColor = Colors.redAccent;
+              badgeColor = AppColors.danger;
               badgeText = 'Offline (Baza lokalna)';
               break;
             case SyncConnectionState.error:
-              badgeColor = Colors.amberAccent;
+              badgeColor = AppColors.warning;
               badgeText = 'Błąd połączenia';
               break;
           }
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            backgroundColor: const Color(0xFF141414),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
             title: const Row(
               children: [
-                Icon(Icons.cloud_sync, color: Colors.orangeAccent),
+                Icon(Icons.cloud_sync, color: AppColors.primary),
                 SizedBox(width: 10),
                 Text(
                   'Synchronizacja & Web',
@@ -367,8 +510,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFF000000),
+                      borderRadius: BorderRadius.circular(5),
                       border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
                     ),
                     child: Row(
@@ -402,10 +545,10 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             SizedBox(
                               width: 12,
                               height: 12,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.cyanAccent),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.cyan),
                             ),
                             SizedBox(width: 6),
-                            Text('Wykrywanie...', style: TextStyle(color: Colors.cyanAccent, fontSize: 11)),
+                            Text('Wykrywanie...', style: TextStyle(color: AppColors.cyan, fontSize: 11)),
                           ],
                         ),
                     ],
@@ -416,13 +559,13 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: const Color(0xFF000000),
                       hintText: 'https://sale.pwojtaszek.codes',
                       hintStyle: const TextStyle(color: Colors.white30),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.wifi_find, color: Colors.cyanAccent, size: 20),
+                        icon: const Icon(Icons.wifi_find, color: AppColors.cyan, size: 20),
                         tooltip: 'Pobierz adres serwera z sieci Wi-Fi (Auto)',
                         onPressed: isDetectingLan
                             ? null
@@ -441,7 +584,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                     SnackBar(
                                       content: Text('Pobrano adres serwera lokalnego: $detected'),
                                       duration: const Duration(seconds: 2),
-                                      backgroundColor: const Color(0xFF0F172A),
+                                      backgroundColor: const Color(0xFF000000),
                                     ),
                                   );
                                 }
@@ -455,9 +598,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     runSpacing: 6,
                     children: [
                       ActionChip(
-                        avatar: const Icon(Icons.cloud, size: 14, color: Colors.orangeAccent),
-                        backgroundColor: const Color(0xFF334155),
-                        label: const Text('sale.pwojtaszek.codes', style: TextStyle(color: Colors.orangeAccent, fontSize: 11)),
+                        avatar: const Icon(Icons.cloud, size: 14, color: AppColors.primary),
+                        backgroundColor: const Color(0xFF2A2A2A),
+                        label: const Text('sale.pwojtaszek.codes', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                         onPressed: () {
                           serverController.text = 'https://sale.pwojtaszek.codes';
                         },
@@ -468,18 +611,18 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             ? const SizedBox(
                                 width: 12,
                                 height: 12,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.cyanAccent),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.cyan),
                               )
-                            : const Icon(Icons.wifi, size: 14, color: Colors.cyanAccent),
-                        backgroundColor: const Color(0xFF1E293B),
-                        side: const BorderSide(color: Colors.cyanAccent, width: 0.8),
+                            : const Icon(Icons.wifi, size: 14, color: AppColors.cyan),
+                        backgroundColor: const Color(0xFF141414),
+                        side: const BorderSide(color: AppColors.cyan, width: 0.8),
                         label: Text(
                           isDetectingLan
                               ? 'Wykrywanie w sieci...'
                               : (RoomSyncService.instance.detectedLanUrl != null
                                   ? 'Lokalnie (${RoomSyncService.instance.detectedLanUrl!.replaceFirst("http://", "")})'
                                   : 'Lokalnie Wi-Fi (Pobierz auto)'),
-                          style: const TextStyle(color: Colors.cyanAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: AppColors.cyan, fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         onPressed: isDetectingLan
                             ? null
@@ -498,7 +641,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                     SnackBar(
                                       content: Text('Pobrano adres serwera w sieci Wi-Fi: $detected'),
                                       duration: const Duration(seconds: 2),
-                                      backgroundColor: const Color(0xFF0F172A),
+                                      backgroundColor: const Color(0xFF000000),
                                     ),
                                   );
                                 } else {
@@ -506,7 +649,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                     const SnackBar(
                                       content: Text('Nie udało się automatycznie wykryć serwera. Upewnij się, że komputer z serwerem i telefon są w tej samej sieci Wi-Fi.'),
                                       duration: Duration(seconds: 3),
-                                      backgroundColor: Colors.redAccent,
+                                      backgroundColor: AppColors.danger,
                                     ),
                                   );
                                 }
@@ -519,15 +662,15 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.blueGrey.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: AppColors.textSecondary.withValues(alpha: 0.3)),
                     ),
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.language, color: Colors.blueAccent, size: 16),
+                            Icon(Icons.language, color: AppColors.textSecondary, size: 16),
                             SizedBox(width: 6),
                             Text('Aplikacja w przeglądarce Web:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                           ],
@@ -535,7 +678,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                         SizedBox(height: 6),
                         SelectableText(
                           'https://sale.pwojtaszek.codes',
-                          style: TextStyle(color: Colors.cyanAccent, fontSize: 13, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: AppColors.cyan, fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 4),
                         Text(
@@ -553,20 +696,20 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 onPressed: () async {
                   setDialogState(() {
                     badgeText = 'Sprawdzanie...';
-                    badgeColor = Colors.orangeAccent;
+                    badgeColor = AppColors.warning;
                   });
                   await RoomSyncService.instance.setServerUrl(serverController.text);
                   await _loadRooms();
                   setDialogState(() {});
                 },
-                child: const Text('Testuj & Zapisz', style: TextStyle(color: Colors.orangeAccent)),
+                child: const Text('Testuj & Zapisz', style: TextStyle(color: AppColors.primary)),
               ),
               ElevatedButton.icon(
                 icon: const Icon(Icons.sync, size: 16),
                 label: const Text('Wymuś synchronizację'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orangeAccent,
-                  foregroundColor: Colors.black,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
                 ),
                 onPressed: () async {
                   await RoomSyncService.instance.setServerUrl(serverController.text);
@@ -602,7 +745,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         const SnackBar(
           content: Row(
             children: [
-              Icon(Icons.download_done, color: Colors.greenAccent, size: 20),
+              Icon(Icons.download_done, color: AppColors.success, size: 20),
               SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -612,7 +755,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               ),
             ],
           ),
-          backgroundColor: Color(0xFF1E293B),
+          backgroundColor: Color(0xFF141414),
           duration: Duration(seconds: 4),
         ),
       );
@@ -635,13 +778,13 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           final assignedRoom = sync.operatorRoomId;
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            backgroundColor: const Color(0xFF141414),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             title: Row(
               children: [
                 Icon(
                   isLoggedIn ? Icons.verified_user : Icons.lock_person,
-                  color: isLoggedIn ? Colors.greenAccent : Colors.orangeAccent,
+                  color: isLoggedIn ? AppColors.success : AppColors.primary,
                 ),
                 const SizedBox(width: 10),
                 Text(
@@ -661,8 +804,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                           Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
-                              borderRadius: BorderRadius.circular(12),
+                              color: const Color(0xFF000000),
+                              borderRadius: BorderRadius.circular(6),
                               border: Border.all(color: Colors.white12),
                             ),
                             child: Column(
@@ -686,13 +829,13 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: role == 'admin' ? Colors.cyan.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2),
+                                        color: role == 'admin' ? AppColors.cyan.withValues(alpha: 0.2) : AppColors.warning.withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
                                         role.toUpperCase(),
                                         style: TextStyle(
-                                          color: role == 'admin' ? Colors.cyanAccent : Colors.orangeAccent,
+                                          color: role == 'admin' ? AppColors.cyan : AppColors.primary,
                                           fontSize: 11,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -723,10 +866,10 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.redAccent.withValues(alpha: 0.2),
-                                foregroundColor: Colors.redAccent,
-                                side: const BorderSide(color: Colors.redAccent),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                backgroundColor: AppColors.danger.withValues(alpha: 0.2),
+                                foregroundColor: AppColors.danger,
+                                side: const BorderSide(color: AppColors.danger),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                               ),
                               icon: const Icon(Icons.logout, size: 18),
                               label: const Text('Wyloguj się'),
@@ -738,7 +881,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text('Wylogowano pomyślnie.'),
-                                      backgroundColor: Color(0xFF1E293B),
+                                      backgroundColor: Color(0xFF141414),
                                     ),
                                   );
                                 }
@@ -761,11 +904,11 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: const Color(0xFF0F172A),
+                              fillColor: const Color(0xFF000000),
                               hintText: 'Login (np. operator_104 lub admin)',
                               hintStyle: const TextStyle(color: Colors.white30),
                               prefixIcon: const Icon(Icons.person, color: Colors.white54, size: 20),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             ),
                           ),
@@ -776,11 +919,11 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: const Color(0xFF0F172A),
+                              fillColor: const Color(0xFF000000),
                               hintText: 'Hasło',
                               hintStyle: const TextStyle(color: Colors.white30),
                               prefixIcon: const Icon(Icons.lock, color: Colors.white54, size: 20),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             ),
                           ),
@@ -788,7 +931,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             const SizedBox(height: 10),
                             Text(
                               errorMsg,
-                              style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                              style: const TextStyle(color: AppColors.danger, fontSize: 12),
                             ),
                           ],
                           const SizedBox(height: 16),
@@ -802,43 +945,39 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             runSpacing: 6,
                             children: [
                               ActionChip(
-                                avatar: const Icon(Icons.admin_panel_settings, size: 14, color: Colors.cyanAccent),
-                                backgroundColor: const Color(0xFF0F172A),
-                                side: const BorderSide(color: Colors.cyanAccent, width: 0.8),
-                                label: const Text('Admin', style: TextStyle(color: Colors.cyanAccent, fontSize: 11)),
+                                avatar: const Icon(Icons.admin_panel_settings, size: 14, color: AppColors.cyan),
+                                backgroundColor: const Color(0xFF000000),
+                                side: const BorderSide(color: AppColors.cyan, width: 0.8),
+                                label: const Text('Admin', style: TextStyle(color: AppColors.cyan, fontSize: 11)),
                                 onPressed: () {
                                   usernameController.text = 'admin';
-                                  passwordController.text = 'admin123';
                                 },
                               ),
                               ActionChip(
-                                avatar: const Icon(Icons.badge, size: 14, color: Colors.orangeAccent),
-                                backgroundColor: const Color(0xFF0F172A),
-                                side: const BorderSide(color: Colors.orangeAccent, width: 0.8),
-                                label: const Text('Sala 104', style: TextStyle(color: Colors.orangeAccent, fontSize: 11)),
+                                avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
+                                backgroundColor: const Color(0xFF000000),
+                                side: const BorderSide(color: AppColors.primary, width: 0.8),
+                                label: const Text('Sala 104', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: () {
                                   usernameController.text = 'operator_104';
-                                  passwordController.text = 'operator123';
                                 },
                               ),
                               ActionChip(
-                                avatar: const Icon(Icons.badge, size: 14, color: Colors.orangeAccent),
-                                backgroundColor: const Color(0xFF0F172A),
-                                side: const BorderSide(color: Colors.orangeAccent, width: 0.8),
-                                label: const Text('AULA', style: TextStyle(color: Colors.orangeAccent, fontSize: 11)),
+                                avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
+                                backgroundColor: const Color(0xFF000000),
+                                side: const BorderSide(color: AppColors.primary, width: 0.8),
+                                label: const Text('AULA', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: () {
                                   usernameController.text = 'operator_aula';
-                                  passwordController.text = 'operator123';
                                 },
                               ),
                               ActionChip(
-                                avatar: const Icon(Icons.badge, size: 14, color: Colors.orangeAccent),
-                                backgroundColor: const Color(0xFF0F172A),
-                                side: const BorderSide(color: Colors.orangeAccent, width: 0.8),
-                                label: const Text('Garaż', style: TextStyle(color: Colors.orangeAccent, fontSize: 11)),
+                                avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
+                                backgroundColor: const Color(0xFF000000),
+                                side: const BorderSide(color: AppColors.primary, width: 0.8),
+                                label: const Text('Garaż', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: () {
                                   usernameController.text = 'operator_garaz';
-                                  passwordController.text = 'operator123';
                                 },
                               ),
                             ],
@@ -848,10 +987,10 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orangeAccent,
-                                foregroundColor: Colors.black,
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: AppColors.onPrimary,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                               ),
                               onPressed: isLoading
                                   ? null
@@ -890,7 +1029,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                   ? const SizedBox(
                                       width: 18,
                                       height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
                                     )
                                   : const Text('Zaloguj się', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                             ),
@@ -916,46 +1055,37 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+    return GlassBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.orangeAccent.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.meeting_room, color: Colors.orangeAccent, size: 18),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'DOSTĘPNOŚĆ SAL',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
-                    color: Colors.white,
-                    fontSize: 17,
-                  ),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.only(left: 34),
-              child: Text(
-                'Politechnika Rzeszowska • v1.3.1',
-                style: TextStyle(color: Colors.white54, fontSize: 11),
+            const Text(
+              'Dostępność sal',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+                color: AppColors.textPrimary,
+                fontSize: 18,
               ),
+            ),
+            const Text(
+              'Politechnika Rzeszowska, wersja 1.3.1',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
             ),
           ],
         ),
         actions: [
+          _buildMyNickButton(),
+          const SizedBox(width: 4),
           // Auth Role Indicator & Login Button
           ValueListenableBuilder<Map<String, dynamic>?>(
             valueListenable: RoomSyncService.instance.authNotifier,
@@ -965,24 +1095,24 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               final isOperator = RoomSyncService.instance.isOperator;
               final opRoom = RoomSyncService.instance.operatorRoomId;
 
-              Color chipColor = const Color(0xFF0F172A);
+              Color chipColor = const Color(0xFF000000);
               Color textColor = Colors.white70;
               IconData icon = Icons.person_outline;
               String label = 'Gość';
 
               if (isAdmin) {
-                chipColor = Colors.cyan.withValues(alpha: 0.2);
-                textColor = Colors.cyanAccent;
+                chipColor = AppColors.cyan.withValues(alpha: 0.2);
+                textColor = AppColors.cyan;
                 icon = Icons.admin_panel_settings;
                 label = 'Admin';
               } else if (isOperator) {
-                chipColor = Colors.orange.withValues(alpha: 0.2);
-                textColor = Colors.orangeAccent;
+                chipColor = AppColors.warning.withValues(alpha: 0.2);
+                textColor = AppColors.warning;
                 icon = Icons.badge_outlined;
                 label = 'Op. $opRoom';
               } else if (isLoggedIn) {
                 chipColor = Colors.blue.withValues(alpha: 0.2);
-                textColor = Colors.lightBlueAccent;
+                textColor = AppColors.primary;
                 icon = Icons.account_circle_outlined;
                 label = 'Konto';
               }
@@ -990,13 +1120,13 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(8),
                   onTap: _showAuthDialog,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: chipColor,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: textColor.withValues(alpha: 0.5)),
                     ),
                     child: Row(
@@ -1021,7 +1151,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           ),
           IconButton(
             tooltip: 'Tryb TV (Wszystkie piętra na jednym ekranie)',
-            icon: const Icon(Icons.tv_rounded, color: Colors.cyanAccent),
+            icon: const Icon(Icons.tv_rounded, color: AppColors.cyan),
             onPressed: _openTvDashboard,
           ),
           ValueListenableBuilder<SyncConnectionState>(
@@ -1031,16 +1161,16 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               String tooltip;
               switch (state) {
                 case SyncConnectionState.connected:
-                  dotColor = Colors.greenAccent;
+                  dotColor = AppColors.success;
                   tooltip = 'Synchronizacja aktywna (Online)';
                   break;
                 case SyncConnectionState.connecting:
-                  dotColor = Colors.orangeAccent;
+                  dotColor = AppColors.warning;
                   tooltip = 'Łączenie z serwerem...';
                   break;
                 case SyncConnectionState.offline:
                 case SyncConnectionState.error:
-                  dotColor = Colors.redAccent;
+                  dotColor = AppColors.danger;
                   tooltip = 'Tryb lokalny (Offline)';
                   break;
               }
@@ -1080,11 +1210,11 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
+                  backgroundColor: AppColors.success,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                 ),
                 icon: const Icon(Icons.download, size: 16),
                 label: const Text(
@@ -1096,8 +1226,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white70),
-            color: const Color(0xFF334155),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: const Color(0xFF2A2A2A),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
             onSelected: (val) {
               if (val == 'tv_dashboard') {
                 _openTvDashboard();
@@ -1122,7 +1252,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 value: 'tv_dashboard',
                 child: Row(
                   children: [
-                    Icon(Icons.tv_rounded, color: Colors.cyanAccent, size: 18),
+                    Icon(Icons.tv_rounded, color: AppColors.cyan, size: 18),
                     SizedBox(width: 10),
                     Text('Tryb TV / Kiosk (Wszystkie piętra)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
@@ -1132,7 +1262,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 value: 'esp_devices',
                 child: Row(
                   children: [
-                    Icon(Icons.memory, color: Colors.cyanAccent, size: 18),
+                    Icon(Icons.memory, color: AppColors.cyan, size: 18),
                     SizedBox(width: 10),
                     Text('Sterowniki ESP (ESP8266 & ESP32)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
@@ -1142,7 +1272,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 value: 'check_updates',
                 child: Row(
                   children: [
-                    Icon(Icons.system_update_rounded, color: Colors.orangeAccent, size: 18),
+                    Icon(Icons.system_update_rounded, color: AppColors.warning, size: 18),
                     SizedBox(width: 10),
                     Text('Sprawdź aktualizacje', style: TextStyle(color: Colors.white)),
                   ],
@@ -1153,7 +1283,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   value: 'download',
                   child: Row(
                     children: [
-                      Icon(Icons.android, color: Colors.greenAccent, size: 18),
+                      Icon(Icons.android, color: AppColors.success, size: 18),
                       SizedBox(width: 10),
                       Text('Pobierz aplikację na Androida (.apk)', style: TextStyle(color: Colors.white)),
                     ],
@@ -1163,7 +1293,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 value: 'diagnostics',
                 child: Row(
                   children: [
-                    Icon(Icons.analytics_outlined, color: Colors.blueAccent, size: 18),
+                    Icon(Icons.analytics_outlined, color: AppColors.textSecondary, size: 18),
                     SizedBox(width: 10),
                     Text('Diagnostyka serwisowa', style: TextStyle(color: Colors.white)),
                   ],
@@ -1174,7 +1304,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 value: 'free_all',
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 18),
+                    Icon(Icons.check_circle_outline, color: AppColors.success, size: 18),
                     SizedBox(width: 10),
                     Text('Zwolnij wszystkie na tym piętrze', style: TextStyle(color: Colors.white)),
                   ],
@@ -1184,7 +1314,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 value: 'occupy_all',
                 child: Row(
                   children: [
-                    Icon(Icons.cancel_outlined, color: Colors.redAccent, size: 18),
+                    Icon(Icons.cancel_outlined, color: AppColors.danger, size: 18),
                     SizedBox(width: 10),
                     Text('Zajmij wszystkie na tym piętrze', style: TextStyle(color: Colors.white)),
                   ],
@@ -1195,7 +1325,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 value: 'reset',
                 child: Row(
                   children: [
-                    Icon(Icons.restore, color: Colors.orangeAccent, size: 18),
+                    Icon(Icons.restore, color: AppColors.warning, size: 18),
                     SizedBox(width: 10),
                     Text('Przywróć domyślne sale PRz', style: TextStyle(color: Colors.white)),
                   ],
@@ -1220,16 +1350,16 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.orange.withValues(alpha: 0.35),
-                        Colors.amber.withValues(alpha: 0.2),
+                        AppColors.warning.withValues(alpha: 0.35),
+                        AppColors.warning.withValues(alpha: 0.2),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.orangeAccent, width: 1.5),
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(color: AppColors.warning, width: 1.5),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.sensors, color: Colors.orangeAccent, size: 20),
+                      const Icon(Icons.sensors, color: AppColors.warning, size: 20),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -1238,7 +1368,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward_ios, color: Colors.orangeAccent, size: 14),
+                      const Icon(Icons.arrow_forward_ios, color: AppColors.warning, size: 14),
                     ],
                   ),
                 ),
@@ -1250,7 +1380,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             // View Content
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.orangeAccent))
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                   : _currentViewIndex == 0
                       ? _buildMapView()
                       : _buildListView(),
@@ -1260,13 +1390,14 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _navigateToAddRoom,
-        backgroundColor: Colors.orangeAccent,
-        foregroundColor: Colors.black87,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text(
-          'DODAJ SALĘ',
-          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          'Dodaj salę',
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
+      ),
       ),
     );
   }
@@ -1274,7 +1405,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
   Widget _buildTopControls() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      color: const Color(0xFF1E293B),
+      color: Colors.transparent,
       child: Column(
         children: [
           // Switch between Map and List View
@@ -1298,16 +1429,19 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.resolveWith((states) {
                       if (states.contains(WidgetState.selected)) {
-                        return Colors.orangeAccent.withValues(alpha: 0.25);
+                        return AppColors.primary.withValues(alpha: 0.22);
                       }
-                      return Colors.black26;
+                      return AppColors.glass;
                     }),
                     foregroundColor: WidgetStateProperty.resolveWith((states) {
                       if (states.contains(WidgetState.selected)) {
-                        return Colors.orangeAccent;
+                        return AppColors.primary;
                       }
-                      return Colors.white70;
+                      return AppColors.textSecondary;
                     }),
+                    side: const WidgetStatePropertyAll(
+                      BorderSide(color: AppColors.glassStroke),
+                    ),
                   ),
                   onSelectionChanged: (set) {
                     setState(() {
@@ -1358,17 +1492,18 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         children: [
           IconButton(
             tooltip: 'Przywróć domyślny układ sal',
-            icon: const Icon(Icons.refresh_rounded, color: Colors.orangeAccent, size: 20),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.primary, size: 20),
             onPressed: () => _confirmResetPositions(_selectedFloor == 'Wszystkie' ? 'Piętro' : _selectedFloor),
           ),
           ElevatedButton.icon(
             icon: const Icon(Icons.check, size: 16),
             label: const Text('Zakończ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orangeAccent,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.radiusPill)),
             ),
             onPressed: () {
               setState(() => _isEditMode = false);
@@ -1379,35 +1514,86 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     }
 
     return OutlinedButton.icon(
-      icon: const Icon(Icons.edit_location_alt_rounded, size: 16, color: Colors.orangeAccent),
+      icon: const Icon(Icons.edit_location_alt_rounded, size: 16, color: AppColors.primary),
       label: const Text(
         'Układ sal na planie',
-        style: TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
+        style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
       ),
       style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: Colors.orangeAccent, width: 1),
-        backgroundColor: const Color(0xFF0F172A),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        side: const BorderSide(color: AppColors.glassStroke, width: 1),
+        backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.radiusPill)),
       ),
-      onPressed: () {
-        setState(() => _isEditMode = true);
+      onPressed: () async {
+        final sync = RoomSyncService.instance;
+        if (sync.isLoggedIn && sync.isAdmin) {
+          setState(() => _isEditMode = true);
+          return;
+        }
+        // Układ sal jest wspólny dla wszystkich, więc zmienia go administrator
+        final login = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: const Text(
+              'Zmiana układu sal',
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600),
+            ),
+            content: const Text(
+              'Układ sal widzą wszyscy, dlatego przestawiać sale może administrator. '
+              'Zaloguj się jako admin, a tryb przestawiania włączy się od razu.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Anuluj', style: TextStyle(color: AppColors.textSecondary)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  elevation: 0,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Zaloguj się'),
+              ),
+            ],
+          ),
+        );
+        if (login != true || !mounted) return;
+        await _showAuthDialog();
+        if (mounted && sync.isLoggedIn && sync.isAdmin) {
+          setState(() => _isEditMode = true);
+        }
       },
+    );
+  }
+
+  void _showLayoutSaveError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Nie zapisano zmiany sali. Sprawdź połączenie z serwerem i czy jesteś zalogowany jako admin.'),
+        backgroundColor: AppColors.danger,
+      ),
     );
   }
 
   Widget _buildTvModeButton() {
     return ElevatedButton.icon(
-      icon: const Icon(Icons.tv_rounded, size: 16, color: Colors.cyanAccent),
+      icon: const Icon(Icons.tv_rounded, size: 16, color: AppColors.cyan),
       label: const Text(
         'Tryb TV',
-        style: TextStyle(color: Colors.cyanAccent, fontSize: 12, fontWeight: FontWeight.bold),
+        style: TextStyle(color: AppColors.cyan, fontSize: 12, fontWeight: FontWeight.bold),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF0F172A),
-        side: const BorderSide(color: Colors.cyanAccent, width: 1),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: AppColors.cyan.withValues(alpha: 0.12),
+        elevation: 0,
+        side: const BorderSide(color: AppColors.glassStroke, width: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.radiusPill)),
       ),
       onPressed: _openTvDashboard,
     );
@@ -1421,16 +1607,17 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       child: ChoiceChip(
         label: Text(floorName),
         selected: isSelected,
-        selectedColor: Colors.orangeAccent,
-        backgroundColor: const Color(0xFF0F172A),
+        showCheckmark: false,
+        selectedColor: AppColors.primary,
+        backgroundColor: AppColors.glass,
         labelStyle: TextStyle(
-          color: isSelected ? Colors.black87 : Colors.white70,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
           fontSize: 12,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: isSelected ? Colors.orangeAccent : Colors.white12),
+          borderRadius: BorderRadius.circular(AppColors.radiusPill),
+          side: BorderSide(color: isSelected ? AppColors.primary : AppColors.glassStroke),
         ),
         onSelected: (selected) {
           if (selected) {
@@ -1443,47 +1630,84 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     );
   }
 
+  /// Polska odmiana liczebnika: 1 sala, 2–4 sale, 5+ sal (z wyjątkiem 12–14).
+  String _plural(int n, String one, String few, String many) {
+    if (n == 1) return one;
+    final m10 = n % 10;
+    final m100 = n % 100;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+    return many;
+  }
+
   Widget _buildStatsBanner() {
     final total = _rooms.length;
     final free = _freeCount;
     final occupied = _occupiedCount;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: const Color(0xFF162032),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+      child: Glass(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        child: Column(
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.greenAccent),
-              ),
-              const SizedBox(width: 6),
               Text(
-                'Wolne: $free',
-                style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                '$free',
+                style: const TextStyle(
+                  color: AppColors.success,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                ),
               ),
-              const SizedBox(width: 14),
-              Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.redAccent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${_plural(free, 'wolna sala', 'wolne sale', 'wolnych sal')} z $total',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                ),
               ),
-              const SizedBox(width: 6),
               Text(
-                'Zajęte: $occupied',
-                style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                '$occupied ${_plural(occupied, 'zajęta', 'zajęte', 'zajętych')}',
+                style: const TextStyle(
+                  color: AppColors.danger,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
-          Text(
-            'Łącznie: $total sal',
-            style: const TextStyle(color: Colors.white54, fontSize: 11),
+          const SizedBox(height: 10),
+          // Pasek obłożenia: zielone = wolne, czerwone = zajęte
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppColors.radiusPill),
+            child: SizedBox(
+              height: 6,
+              child: Row(
+                children: [
+                  if (free > 0)
+                    Expanded(
+                      flex: free,
+                      child: Container(color: AppColors.success),
+                    ),
+                  if (occupied > 0)
+                    Expanded(
+                      flex: occupied,
+                      child: Container(color: AppColors.danger),
+                    ),
+                  if (total == 0)
+                    Expanded(child: Container(color: AppColors.glassHi)),
+                ],
+              ),
+            ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -1502,16 +1726,15 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+                  color: AppColors.success.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(AppColors.radiusPill),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle, size: 12, color: Colors.greenAccent),
+                    Icon(Icons.check_circle, size: 12, color: AppColors.success),
                     SizedBox(width: 4),
-                    Text('Dostępna (Wolna)', style: TextStyle(color: Colors.greenAccent, fontSize: 11)),
+                    Text('Dostępna (Wolna)', style: TextStyle(color: AppColors.success, fontSize: 11)),
                   ],
                 ),
               ),
@@ -1519,16 +1742,15 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                  color: AppColors.danger.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(AppColors.radiusPill),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.cancel, size: 12, color: Colors.redAccent),
+                    Icon(Icons.cancel, size: 12, color: AppColors.danger),
                     SizedBox(width: 4),
-                    Text('Niedostępna (Zajęta)', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
+                    Text('Niedostępna (Zajęta)', style: TextStyle(color: AppColors.danger, fontSize: 11)),
                   ],
                 ),
               ),
@@ -1559,11 +1781,11 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: _buildFloorCard('Parter', 'POZIOM 0 (PARTER)', Colors.cyanAccent),
+                  child: _buildFloorCard('Parter', 'POZIOM 0 (PARTER)', AppColors.cyan),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: _buildFloorCard('Piętro', 'POZIOM +1 (I PIĘTRO)', Colors.orangeAccent, controlsBottomOffset: 80),
+                  child: _buildFloorCard('Piętro', 'POZIOM +1 (I PIĘTRO)', AppColors.primary, controlsBottomOffset: 80),
                 ),
               ],
             ),
@@ -1574,9 +1796,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 88),
             child: Column(
               children: [
-                _buildFloorCard('Parter', 'POZIOM 0 (PARTER)', Colors.cyanAccent, fixedHeight: 560),
+                _buildFloorCard('Parter', 'POZIOM 0 (PARTER)', AppColors.cyan, fixedHeight: 560),
                 const SizedBox(height: 16),
-                _buildFloorCard('Piętro', 'POZIOM +1 (I PIĘTRO)', Colors.orangeAccent, fixedHeight: 560, controlsBottomOffset: 80),
+                _buildFloorCard('Piętro', 'POZIOM +1 (I PIĘTRO)', AppColors.primary, fixedHeight: 560, controlsBottomOffset: 80),
               ],
             ),
           );
@@ -1594,9 +1816,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            border: Border(bottom: BorderSide(color: accentColor.withValues(alpha: 0.3))),
+            color: AppColors.glassHi,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
           ),
           child: Row(
             children: [
@@ -1609,7 +1830,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               const Spacer(),
               Text(
                 'Wolne: $free / ${floorRooms.length}',
-                style: TextStyle(color: free > 0 ? Colors.greenAccent : Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(color: free > 0 ? AppColors.success : AppColors.danger, fontSize: 12, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1635,9 +1856,14 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             },
             onRoomQuickToggle: (room) => _toggleAvailability(room),
             onRoomPositionChanged: (room, newX, newY) async {
-              if (room.id != null) {
-                await RoomDatabaseHelper.instance.updateRoomPosition(room.id!, newX, newY);
-              }
+              final saved = await RoomDatabaseHelper.instance.updateRoomPosition(room, newX, newY);
+              if (!saved) _showLayoutSaveError();
+              return saved;
+            },
+            onRoomLayoutChanged: (room, scale, angle) async {
+              final saved = await RoomDatabaseHelper.instance.updateRoomLayout(room, scale, angle);
+              if (!saved) _showLayoutSaveError();
+              return saved;
             },
             onResetPositions: (fl) async {
               await RoomDatabaseHelper.instance.resetRoomPositions(floor: fl);
@@ -1652,20 +1878,22 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       return Container(
         height: fixedHeight,
         decoration: BoxDecoration(
-          color: const Color(0xFF131D2E),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white12),
+          color: AppColors.glass,
+          borderRadius: BorderRadius.circular(AppColors.radiusCard),
+          border: Border.all(color: AppColors.glassStroke),
         ),
+        clipBehavior: Clip.antiAlias,
         child: cardContent,
       );
     }
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF131D2E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
+        color: AppColors.glass,
+        borderRadius: BorderRadius.circular(AppColors.radiusCard),
+        border: Border.all(color: AppColors.glassStroke),
       ),
+      clipBehavior: Clip.antiAlias,
       child: cardContent,
     );
   }
@@ -1691,9 +1919,14 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       },
       onRoomQuickToggle: (room) => _toggleAvailability(room),
       onRoomPositionChanged: (room, newX, newY) async {
-        if (room.id != null) {
-          await RoomDatabaseHelper.instance.updateRoomPosition(room.id!, newX, newY);
-        }
+        final saved = await RoomDatabaseHelper.instance.updateRoomPosition(room, newX, newY);
+        if (!saved) _showLayoutSaveError();
+        return saved;
+      },
+      onRoomLayoutChanged: (room, scale, angle) async {
+        final saved = await RoomDatabaseHelper.instance.updateRoomLayout(room, scale, angle);
+        if (!saved) _showLayoutSaveError();
+        return saved;
       },
       onResetPositions: (fl) async {
         await RoomDatabaseHelper.instance.resetRoomPositions(floor: fl);
@@ -1706,7 +1939,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Przywróć domyślny układ', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz przywrócić pierwotne położenie wszystkich sal na kondygnacji "$floor"?',
@@ -1719,8 +1952,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
-            child: const Text('Przywróć', style: TextStyle(color: Colors.black)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Przywróć', style: TextStyle(color: AppColors.onPrimary)),
           ),
         ],
       ),
@@ -1733,7 +1966,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Przywrócono domyślne położenie sal dla "$floor"'),
-            backgroundColor: Colors.orangeAccent,
+            backgroundColor: AppColors.primary,
           ),
         );
       }
@@ -1748,9 +1981,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white12),
+              color: AppColors.glass,
+              borderRadius: BorderRadius.circular(AppColors.radiusControl),
+              border: Border.all(color: AppColors.glassStroke),
             ),
             child: TextField(
               controller: _searchController,
@@ -1759,7 +1992,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               decoration: InputDecoration(
                 hintText: 'Szukaj po numerze, nazwie lub temacie...',
                 hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: Colors.orangeAccent),
+                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, color: Colors.white60),
@@ -1791,16 +2024,16 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 onTap: () {
                   setState(() => _isReorderMode = !_isReorderMode);
                 },
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppColors.radiusPill),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _isReorderMode
-                        ? Colors.orangeAccent.withValues(alpha: 0.2)
-                        : const Color(0xFF1E293B),
-                    borderRadius: BorderRadius.circular(10),
+                        ? AppColors.primary.withValues(alpha: 0.2)
+                        : AppColors.glass,
+                    borderRadius: BorderRadius.circular(AppColors.radiusPill),
                     border: Border.all(
-                      color: _isReorderMode ? Colors.orangeAccent : Colors.white12,
+                      color: _isReorderMode ? AppColors.primary : AppColors.glassStroke,
                     ),
                   ),
                   child: Row(
@@ -1809,13 +2042,13 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                       Icon(
                         _isReorderMode ? Icons.check : Icons.swap_vert_rounded,
                         size: 16,
-                        color: _isReorderMode ? Colors.orangeAccent : Colors.white70,
+                        color: _isReorderMode ? AppColors.primary : Colors.white70,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         _isReorderMode ? 'Zapisz' : 'Kolejność',
                         style: TextStyle(
-                          color: _isReorderMode ? Colors.orangeAccent : Colors.white70,
+                          color: _isReorderMode ? AppColors.primary : Colors.white70,
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1877,23 +2110,24 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
   Widget _buildStatusFilterChip(String label) {
     final isSelected = _statusFilter == label;
-    Color activeColor = Colors.orangeAccent;
-    if (label == 'Wolne') activeColor = Colors.greenAccent;
-    if (label == 'Zajęte') activeColor = Colors.redAccent;
+    Color activeColor = AppColors.primary;
+    if (label == 'Wolne') activeColor = AppColors.success;
+    if (label == 'Zajęte') activeColor = AppColors.danger;
 
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      selectedColor: activeColor.withValues(alpha: 0.25),
-      backgroundColor: const Color(0xFF1E293B),
+      selectedColor: activeColor.withValues(alpha: 0.16),
+      backgroundColor: AppColors.glass,
       labelStyle: TextStyle(
-        color: isSelected ? activeColor : Colors.white70,
+        color: isSelected ? activeColor : AppColors.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         fontSize: 11,
       ),
+      showCheckmark: false,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: isSelected ? activeColor : Colors.white12),
+        borderRadius: BorderRadius.circular(AppColors.radiusPill),
+        side: BorderSide(color: isSelected ? activeColor : AppColors.glassStroke),
       ),
       onSelected: (_) {
         setState(() => _statusFilter = label);
@@ -1905,22 +2139,12 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
   Widget _buildRoomCard(Room room, {bool isReordering = false}) {
     final isAvailable = room.isAvailable;
-    final statusColor = isAvailable ? Colors.greenAccent : Colors.redAccent;
+    final statusColor = isAvailable ? AppColors.success : AppColors.danger;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isReordering
-              ? Colors.orangeAccent.withValues(alpha: 0.5)
-              : statusColor.withValues(alpha: 0.3),
-          width: isReordering ? 1.5 : 1.2,
-        ),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
-        ],
+      decoration: AppColors.glassDecoration(
+        borderColor: isReordering ? AppColors.primary : null,
       ),
       child: InkWell(
         onTap: isReordering ? null : () => _toggleAvailability(room),
@@ -1938,34 +2162,41 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   },
                 );
               },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppColors.radiusCard),
         child: Padding(
-          padding: const EdgeInsets.all(14.0),
+          padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
           child: Row(
             children: [
-              // Room Number Badge
+              // Pasek statusu (zielony = wolna, czerwony = zajęta)
               Container(
-                width: 58,
-                height: 52,
+                width: 8,
+                height: 8,
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: statusColor, width: 1.5),
+                  color: statusColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: statusColor.withValues(alpha: 0.6), blurRadius: 8),
+                  ],
                 ),
-                alignment: Alignment.center,
+              ),
+              const SizedBox(width: 10),
+
+              // Numer sali jak na tabliczce
+              SizedBox(
+                width: 50,
                 child: Text(
                   room.number,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
 
-              const SizedBox(width: 14),
+              const SizedBox(width: 8),
 
               // Room Info
               Expanded(
@@ -1980,32 +2211,53 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      runSpacing: 2,
                       children: [
+                        if (room.occupantName != null) ...[
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.person_rounded, size: 13, color: AppColors.textPrimary),
+                              const SizedBox(width: 3),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 140),
+                                child: Text(
+                                  room.occupantName!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 10),
+                        ],
                         Text(
                           room.floor,
-                          style: const TextStyle(color: Colors.white54, fontSize: 12),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                         ),
-                        const SizedBox(width: 6),
-                        const Text('•', style: TextStyle(color: Colors.white30, fontSize: 12)),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 10),
                         Text(
                           room.category,
-                          style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 12),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                         ),
                         if (room.defaultAlertLimitSeconds != null && room.defaultAlertLimitSeconds! > 0) ...[
-                          const SizedBox(width: 6),
-                          const Text('•', style: TextStyle(color: Colors.white30, fontSize: 12)),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 10),
                           InkWell(
                             onTap: () {
                               showRoomDetailSheet(
@@ -2025,12 +2277,12 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.timer_outlined, size: 12, color: Colors.amberAccent),
+                                  const Icon(Icons.timer_outlined, size: 12, color: AppColors.warning),
                                   const SizedBox(width: 3),
                                   Text(
                                     '${room.defaultAlertLimitSeconds! ~/ 60}m',
                                     style: const TextStyle(
-                                      color: Colors.amberAccent,
+                                      color: AppColors.warning,
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -2041,22 +2293,20 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                           ),
                         ],
                         if (!room.isAvailable && room.durationFormatted.isNotEmpty) ...[
-                          const SizedBox(width: 6),
-                          const Text('•', style: TextStyle(color: Colors.white30, fontSize: 12)),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 10),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 room.isAlertDue ? Icons.warning_amber_rounded : Icons.access_time_rounded,
                                 size: 12,
-                                color: room.isAlertDue ? Colors.amberAccent : Colors.redAccent,
+                                color: room.isAlertDue ? AppColors.warning : AppColors.danger,
                               ),
                               const SizedBox(width: 3),
                               Text(
                                 room.durationFormatted,
                                 style: TextStyle(
-                                  color: room.isAlertDue ? Colors.amberAccent : Colors.redAccent,
+                                  color: room.isAlertDue ? AppColors.warning : AppColors.danger,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'monospace',
@@ -2087,48 +2337,36 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.orangeAccent.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Icon(
                     Icons.drag_indicator_rounded,
-                    color: Colors.orangeAccent,
+                    color: AppColors.primary,
                     size: 24,
                   ),
                 )
               else
                 InkWell(
                   onTap: () => _toggleAvailability(room),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(AppColors.radiusPill),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    width: 64,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: isAvailable
-                          ? Colors.green.withValues(alpha: 0.2)
-                          : Colors.red.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: statusColor, width: 1.5),
+                      color: statusColor.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(AppColors.radiusPill),
+                      border: Border.all(color: statusColor.withValues(alpha: 0.45)),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isAvailable ? Icons.check_circle : Icons.cancel,
-                          color: statusColor,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isAvailable ? 'WOLNA' : 'ZAJĘTA',
-                          style: TextStyle(
-                            color: statusColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      isAvailable ? 'Wolna' : 'Zajęta',
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ),

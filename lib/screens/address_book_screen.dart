@@ -6,6 +6,7 @@ import '../services/contacts_import_service.dart';
 import '../services/settings_service.dart';
 import '../widgets/contact_avatar.dart';
 import 'add_edit_contact_screen.dart';
+import '../theme/app_theme.dart';
 
 class AddressBookScreen extends StatefulWidget {
   const AddressBookScreen({super.key});
@@ -60,11 +61,11 @@ class AddressBookScreenState extends State<AddressBookScreen> {
   Color _getCategoryColor(String category) {
     switch (category) {
       case 'Praca':
-        return Colors.orangeAccent;
+        return AppColors.warning;
       case 'Rodzina':
-        return Colors.greenAccent;
+        return AppColors.primary;
       case 'Prywatny':
-        return Colors.lightBlueAccent;
+        return AppColors.primary;
       case 'Inne':
       default:
         return Colors.purpleAccent;
@@ -104,7 +105,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF141414),
         title: const Text('Usuń kontakt', style: TextStyle(color: Colors.white)),
         content: Text(
           'Czy na pewno chcesz usunąć "${contact.fullName}" z bazy SQLite?',
@@ -117,7 +118,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             child: const Text('Usuń', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -130,7 +131,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Usunięto kontakt: ${contact.fullName}'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.danger,
           ),
         );
       }
@@ -146,14 +147,14 @@ class AddressBookScreenState extends State<AddressBookScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
-            borderRadius: BorderRadius.circular(16),
+            color: const Color(0xFF141414),
+            borderRadius: BorderRadius.circular(6),
             border: Border.all(color: Colors.white12),
           ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: Colors.greenAccent),
+              CircularProgressIndicator(color: AppColors.primary),
               SizedBox(width: 20),
               Text(
                 'Wczytywanie kontaktów z telefonu...',
@@ -177,11 +178,11 @@ class AddressBookScreenState extends State<AddressBookScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: const Color(0xFF141414),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           title: const Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.amberAccent),
+              Icon(Icons.warning_amber_rounded, color: AppColors.warning),
               SizedBox(width: 10),
               Text('Brak kontaktów', style: TextStyle(color: Colors.white, fontSize: 18)),
             ],
@@ -194,7 +195,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
             ElevatedButton(
               onPressed: () => Navigator.of(ctx).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent,
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.black87,
               ),
               child: const Text('ROZUMIEM'),
@@ -240,9 +241,9 @@ class AddressBookScreenState extends State<AddressBookScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: const Color(0xFF141414),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
       ),
       builder: (ctx) {
         return Padding(
@@ -312,7 +313,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
                             color: catColor.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: catColor.withValues(alpha: 0.5)),
                           ),
                           child: Text(
@@ -360,8 +361,8 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                       Navigator.of(ctx).pop();
                       _deleteContact(contact);
                     },
-                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                    label: const Text('Usuń', style: TextStyle(color: Colors.redAccent)),
+                    icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+                    label: const Text('Usuń', style: TextStyle(color: AppColors.danger)),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
@@ -372,7 +373,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                     icon: const Icon(Icons.edit_outlined),
                     label: const Text('Edytuj'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.greenAccent,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.black87,
                     ),
                   ),
@@ -391,7 +392,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.greenAccent, size: 20),
+          Icon(icon, color: AppColors.primary, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -417,13 +418,13 @@ class AddressBookScreenState extends State<AddressBookScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF000000),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF141414),
         elevation: 0,
         title: const Row(
           children: [
-            Icon(Icons.contacts, color: Colors.greenAccent, size: 22),
+            Icon(Icons.contacts, color: AppColors.primary, size: 22),
             SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -441,7 +442,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.download_for_offline_outlined, color: Colors.greenAccent),
+            icon: const Icon(Icons.download_for_offline_outlined, color: AppColors.primary),
             tooltip: 'Importuj kontakty z telefonu',
             onPressed: _startImportContacts,
           ),
@@ -449,19 +450,19 @@ class AddressBookScreenState extends State<AddressBookScreen> {
             margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.greenAccent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+              color: AppColors.primary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.storage, color: Colors.greenAccent, size: 12),
+                Icon(Icons.storage, color: AppColors.primary, size: 12),
                 SizedBox(width: 4),
                 Text(
                   'SQLite',
                   style: TextStyle(
-                    color: Colors.greenAccent,
+                    color: AppColors.primary,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -479,8 +480,8 @@ class AddressBookScreenState extends State<AddressBookScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(16),
+                  color: const Color(0xFF141414),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
@@ -490,7 +491,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                   decoration: InputDecoration(
                     hintText: 'Szukaj po nazwisku, telefonie, mieście...',
                     hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-                    prefixIcon: const Icon(Icons.search, color: Colors.greenAccent),
+                    prefixIcon: const Icon(Icons.search, color: AppColors.primary),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear, color: Colors.white70),
@@ -517,7 +518,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                 itemBuilder: (context, index) {
                   final cat = _categories[index];
                   final isSelected = _selectedCategory == cat;
-                  final color = cat == 'Wszystkie' ? Colors.greenAccent : _getCategoryColor(cat);
+                  final color = cat == 'Wszystkie' ? AppColors.primary : _getCategoryColor(cat);
 
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
@@ -525,14 +526,14 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                       label: Text(cat),
                       selected: isSelected,
                       selectedColor: color.withValues(alpha: 0.25),
-                      backgroundColor: const Color(0xFF1E293B),
+                      backgroundColor: const Color(0xFF141414),
                       labelStyle: TextStyle(
                         color: isSelected ? color : Colors.white70,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         fontSize: 12,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
                           color: isSelected ? color : Colors.white12,
                         ),
@@ -564,7 +565,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                         ? 'Wszystkie kategorie'
                         : 'Filtr: $_selectedCategory',
                     style: TextStyle(
-                      color: Colors.greenAccent.withValues(alpha: 0.8),
+                      color: AppColors.primary.withValues(alpha: 0.8),
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),
@@ -577,14 +578,14 @@ class AddressBookScreenState extends State<AddressBookScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: Colors.greenAccent),
+                      child: CircularProgressIndicator(color: AppColors.primary),
                     )
                   : _contacts.isEmpty
                       ? _buildEmptyState()
                       : RefreshIndicator(
                           onRefresh: _loadContacts,
-                          color: Colors.greenAccent,
-                          backgroundColor: const Color(0xFF1E293B),
+                          color: AppColors.primary,
+                          backgroundColor: const Color(0xFF141414),
                           child: ListView.builder(
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
                             itemCount: _contacts.length,
@@ -600,7 +601,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _navigateToAddContact,
-        backgroundColor: Colors.greenAccent,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.black87,
         icon: const Icon(Icons.person_add),
         label: const Text(
@@ -654,20 +655,20 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                     icon: const Icon(Icons.add),
                     label: const Text('DODAJ KONTAKT'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.greenAccent,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.black87,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                   ),
                   OutlinedButton.icon(
                     onPressed: _startImportContacts,
-                    icon: const Icon(Icons.download_rounded, color: Colors.greenAccent),
+                    icon: const Icon(Icons.download_rounded, color: AppColors.primary),
                     label: const Text(
                       'IMPORTUJ Z TELEFONU',
-                      style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.greenAccent),
+                      side: const BorderSide(color: AppColors.primary),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                   ),
@@ -685,8 +686,8 @@ class AddressBookScreenState extends State<AddressBookScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFF141414),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [
           BoxShadow(
@@ -698,7 +699,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
       ),
       child: InkWell(
         onTap: () => _showContactDetails(contact),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(6),
         child: Padding(
           padding: const EdgeInsets.all(14.0),
           child: Row(
@@ -734,7 +735,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: catColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(4),
                             border: Border.all(color: catColor.withValues(alpha: 0.4)),
                           ),
                           child: Text(
@@ -795,8 +796,8 @@ class AddressBookScreenState extends State<AddressBookScreen> {
               // Action buttons (Edit & Delete popup)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, color: Colors.white54),
-                color: const Color(0xFF334155),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                color: const Color(0xFF2A2A2A),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 onSelected: (val) {
                   if (val == 'edit') {
                     _navigateToEditContact(contact);
@@ -809,7 +810,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(Icons.edit, size: 18, color: Colors.greenAccent),
+                        Icon(Icons.edit, size: 18, color: AppColors.primary),
                         SizedBox(width: 10),
                         Text('Edytuj', style: TextStyle(color: Colors.white)),
                       ],
@@ -819,9 +820,9 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete, size: 18, color: Colors.redAccent),
+                        Icon(Icons.delete, size: 18, color: AppColors.danger),
                         SizedBox(width: 10),
-                        Text('Usuń', style: TextStyle(color: Colors.redAccent)),
+                        Text('Usuń', style: TextStyle(color: AppColors.danger)),
                       ],
                     ),
                   ),
@@ -902,8 +903,8 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
-        color: Color(0xFF1E293B),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: Color(0xFF141414),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
       ),
       child: SafeArea(
         top: false,
@@ -927,7 +928,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Row(
                 children: [
-                  const Icon(Icons.import_contacts_rounded, color: Colors.greenAccent, size: 28),
+                  const Icon(Icons.import_contacts_rounded, color: AppColors.primary, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -979,11 +980,11 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
                         icon: Icon(
                           allSelected ? Icons.deselect : Icons.select_all,
                           size: 16,
-                          color: Colors.greenAccent,
+                          color: AppColors.primary,
                         ),
                         label: Text(
                           allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie',
-                          style: const TextStyle(color: Colors.greenAccent, fontSize: 12),
+                          style: const TextStyle(color: AppColors.primary, fontSize: 12),
                         ),
                       ),
                     ],
@@ -999,17 +1000,17 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
                           child: ChoiceChip(
                             label: Text(cat),
                             selected: isSel,
-                            selectedColor: Colors.greenAccent.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0F172A),
+                            selectedColor: AppColors.primary.withValues(alpha: 0.25),
+                            backgroundColor: const Color(0xFF000000),
                             labelStyle: TextStyle(
-                              color: isSel ? Colors.greenAccent : Colors.white70,
+                              color: isSel ? AppColors.primary : Colors.white70,
                               fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
                               fontSize: 12,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(6),
                               side: BorderSide(
-                                color: isSel ? Colors.greenAccent : Colors.white12,
+                                color: isSel ? AppColors.primary : Colors.white12,
                               ),
                             ),
                             onSelected: (_) {
@@ -1031,8 +1032,8 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFF000000),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
@@ -1042,7 +1043,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
                   decoration: InputDecoration(
                     hintText: 'Szukaj kontaktu do importu...',
                     hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13),
-                    prefixIcon: const Icon(Icons.search, color: Colors.greenAccent, size: 20),
+                    prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 20),
                     suffixIcon: _filterController.text.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear, color: Colors.white60, size: 18),
@@ -1085,16 +1086,16 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
 
                         return CheckboxListTile(
                           value: isSelected,
-                          activeColor: Colors.greenAccent,
+                          activeColor: AppColors.primary,
                           checkColor: Colors.black,
                           dense: true,
                           secondary: CircleAvatar(
                             radius: 18,
-                            backgroundColor: Colors.greenAccent.withValues(alpha: 0.2),
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.2),
                             child: Text(
                               name.isNotEmpty ? name[0].toUpperCase() : '?',
                               style: const TextStyle(
-                                color: Colors.greenAccent,
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
@@ -1134,7 +1135,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
-                color: Color(0xFF1E293B),
+                color: Color(0xFF141414),
                 border: Border(top: BorderSide(color: Colors.white12)),
               ),
               child: Row(
@@ -1146,7 +1147,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
                         foregroundColor: Colors.white70,
                         side: const BorderSide(color: Colors.white24),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                       ),
                       child: const Text('ANULUJ'),
                     ),
@@ -1168,11 +1169,11 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.greenAccent,
+                        backgroundColor: AppColors.primary,
                         foregroundColor: Colors.black87,
                         disabledBackgroundColor: Colors.white12,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                       ),
                       icon: _isImporting
                           ? const SizedBox(

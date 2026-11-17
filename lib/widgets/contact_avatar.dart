@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/contact_model.dart';
+import '../theme/app_theme.dart';
 
 const List<String> kPresetAvatars = [
   '👨', '👩', '🧑', '👴', '👵', '👶',
@@ -109,9 +110,9 @@ class ContactAvatar extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: Colors.greenAccent,
+                  color: AppColors.primary,
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF0F172A), width: 2),
+                  border: Border.all(color: const Color(0xFF000000), width: 2),
                 ),
                 child: const Icon(
                   Icons.camera_alt,
@@ -154,9 +155,9 @@ Future<String?> showAvatarPickerSheet({
   return showModalBottomSheet<String?>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF1E293B),
+    backgroundColor: const Color(0xFF141414),
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
     ),
     builder: (ctx) {
       return Padding(
@@ -183,7 +184,7 @@ Future<String?> showAvatarPickerSheet({
             const SizedBox(height: 16),
             const Row(
               children: [
-                Icon(Icons.face_retouching_natural, color: Colors.greenAccent),
+                Icon(Icons.face_retouching_natural, color: AppColors.primary),
                 SizedBox(width: 10),
                 Text(
                   'Wybierz awatar kontaktu',
@@ -203,15 +204,15 @@ Future<String?> showAvatarPickerSheet({
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F172A),
+                      backgroundColor: const Color(0xFF000000),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(6),
                         side: const BorderSide(color: Colors.white12),
                       ),
                     ),
-                    icon: const Icon(Icons.photo_library_outlined, color: Colors.greenAccent),
+                    icon: const Icon(Icons.photo_library_outlined, color: AppColors.primary),
                     label: const Text('Galeria', style: TextStyle(fontSize: 13)),
                     onPressed: () async {
                       final picker = ImagePicker();
@@ -239,15 +240,15 @@ Future<String?> showAvatarPickerSheet({
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F172A),
+                      backgroundColor: const Color(0xFF000000),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(6),
                         side: const BorderSide(color: Colors.white12),
                       ),
                     ),
-                    icon: const Icon(Icons.camera_alt_outlined, color: Colors.lightBlueAccent),
+                    icon: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
                     label: const Text('Aparat', style: TextStyle(fontSize: 13)),
                     onPressed: () async {
                       final picker = ImagePicker();
@@ -291,8 +292,8 @@ Future<String?> showAvatarPickerSheet({
               height: 170,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(16),
+                color: const Color(0xFF000000),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: Colors.white12),
               ),
               child: GridView.builder(
@@ -308,15 +309,15 @@ Future<String?> showAvatarPickerSheet({
 
                   return InkWell(
                     onTap: () => Navigator.of(ctx).pop('preset:$emoji'),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(6),
                     child: Container(
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.greenAccent.withValues(alpha: 0.25)
+                            ? AppColors.primary.withValues(alpha: 0.25)
                             : Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: isSelected ? Colors.greenAccent : Colors.transparent,
+                          color: isSelected ? AppColors.primary : Colors.transparent,
                           width: 1.5,
                         ),
                       ),
@@ -338,10 +339,10 @@ Future<String?> showAvatarPickerSheet({
               Center(
                 child: TextButton.icon(
                   onPressed: () => Navigator.of(ctx).pop(''), // empty string means remove avatar
-                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                  icon: const Icon(Icons.delete_outline, color: AppColors.danger, size: 18),
                   label: const Text(
                     'Usuń awatar (użyj inicjałów)',
-                    style: TextStyle(color: Colors.redAccent, fontSize: 13),
+                    style: TextStyle(color: AppColors.danger, fontSize: 13),
                   ),
                 ),
               ),

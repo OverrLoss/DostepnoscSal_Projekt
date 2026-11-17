@@ -6,6 +6,9 @@ class RoomSession {
   final bool alertDue;
   final String? alertTriggeredAt;
 
+  /// Nick / nazwa osoby, która zajęła salę (może być pusta).
+  final String? occupantName;
+
   RoomSession({
     required this.id,
     required this.startedAt,
@@ -13,6 +16,7 @@ class RoomSession {
     required this.alertLimitSeconds,
     this.alertDue = false,
     this.alertTriggeredAt,
+    this.occupantName,
   });
 
   factory RoomSession.fromMap(Map<String, dynamic> map) {
@@ -23,6 +27,9 @@ class RoomSession {
       alertLimitSeconds: (map['alert_limit_seconds'] is num) ? (map['alert_limit_seconds'] as num).toInt() : 900,
       alertDue: map['alert_due'] == true,
       alertTriggeredAt: map['alert_triggered_at']?.toString(),
+      occupantName: (map['occupant_name']?.toString().trim().isNotEmpty ?? false)
+          ? map['occupant_name'].toString().trim()
+          : null,
     );
   }
 
@@ -34,6 +41,7 @@ class RoomSession {
       'alert_limit_seconds': alertLimitSeconds,
       'alert_due': alertDue,
       if (alertTriggeredAt != null) 'alert_triggered_at': alertTriggeredAt,
+      if (occupantName != null) 'occupant_name': occupantName,
     };
   }
 }
@@ -55,6 +63,10 @@ class Room {
   final double? posY;
   final int sortOrder;
 
+  /// Rozmiar sali na planie (1.0 = domyślny) i obrót w stopniach.
+  final double? layoutScale;
+  final double? layoutAngle;
+
   final RoomSession? activeSession;
   final int? defaultAlertLimitSeconds;
   final String? operatorId;
@@ -75,6 +87,8 @@ class Room {
     this.posX,
     this.posY,
     this.sortOrder = 0,
+    this.layoutScale,
+    this.layoutAngle,
     this.activeSession,
     this.defaultAlertLimitSeconds,
     this.operatorId,
@@ -87,6 +101,9 @@ class Room {
   String get statusText => (status == 'free' || isAvailable) ? 'Dostępna (Wolna)' : 'Niedostępna (Zajęta)';
 
   bool get isAlertDue => activeSession?.alertDue ?? false;
+
+  /// Kto obecnie zajmuje salę (tylko gdy sala jest zajęta i nick jest znany).
+  String? get occupantName => isAvailable ? null : activeSession?.occupantName;
 
   int get currentDurationSeconds {
     if (activeSession == null) return 0;
@@ -128,6 +145,8 @@ class Room {
       'posX': posX,
       'posY': posY,
       'sortOrder': sortOrder,
+      if (layoutScale != null) 'layout_scale': layoutScale,
+      if (layoutAngle != null) 'layout_angle': layoutAngle,
       if (defaultAlertLimitSeconds != null) 'default_alert_limit_seconds': defaultAlertLimitSeconds,
       if (operatorId != null) 'operator_id': operatorId,
       if (deviceId != null) 'device_id': deviceId,
@@ -150,6 +169,8 @@ class Room {
       'posX': posX,
       'posY': posY,
       'sortOrder': sortOrder,
+      if (layoutScale != null) 'layout_scale': layoutScale,
+      if (layoutAngle != null) 'layout_angle': layoutAngle,
       if (activeSession != null) 'active_session': activeSession!.toMap(),
       if (defaultAlertLimitSeconds != null) 'default_alert_limit_seconds': defaultAlertLimitSeconds,
       if (operatorId != null) 'operator_id': operatorId,
@@ -209,6 +230,8 @@ class Room {
       posX: posX,
       posY: posY,
       sortOrder: sortOrder,
+      layoutScale: (map['layout_scale'] as num?)?.toDouble(),
+      layoutAngle: (map['layout_angle'] as num?)?.toDouble(),
       activeSession: session,
       defaultAlertLimitSeconds: map['default_alert_limit_seconds'] as int?,
       operatorId: map['operator_id'] as String?,
@@ -232,6 +255,8 @@ class Room {
     double? posY,
     int? sortOrder,
     bool resetPosition = false,
+    double? layoutScale,
+    double? layoutAngle,
     RoomSession? activeSession,
     int? defaultAlertLimitSeconds,
     String? operatorId,
@@ -253,6 +278,8 @@ class Room {
       posX: resetPosition ? null : (posX ?? this.posX),
       posY: resetPosition ? null : (posY ?? this.posY),
       sortOrder: sortOrder ?? this.sortOrder,
+      layoutScale: resetPosition ? null : (layoutScale ?? this.layoutScale),
+      layoutAngle: resetPosition ? null : (layoutAngle ?? this.layoutAngle),
       activeSession: activeSession ?? this.activeSession,
       defaultAlertLimitSeconds: defaultAlertLimitSeconds ?? this.defaultAlertLimitSeconds,
       operatorId: operatorId ?? this.operatorId,

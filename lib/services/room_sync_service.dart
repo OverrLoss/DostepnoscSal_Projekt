@@ -53,6 +53,7 @@ class RoomSyncService {
   // --- WebSocket live updates ---
   WebSocketChannel? _wsChannel;
   Timer? _wsReconnectTimer;
+  int _wsFailures = 0;
   bool _wsEnabled = false;
   final StreamController<Map<String, dynamic>> _roomUpdateController =
       StreamController<Map<String, dynamic>>.broadcast();
@@ -443,14 +444,18 @@ class RoomSyncService {
 
   // --- ROOM STATUS MUTATION ---
 
-  Future<bool> changeRoomStatus(String roomId, String targetStatus) async {
+  Future<bool> changeRoomStatus(String roomId, String targetStatus, {String? occupantName}) async {
     try {
       final uri = _buildUri('/api/v1/rooms/$roomId/status');
       final res = await http
           .patch(
             uri,
             headers: _headers(),
-            body: json.encode({'status': targetStatus}),
+            body: json.encode({
+              'status': targetStatus,
+              if (targetStatus == 'occupied' && occupantName != null && occupantName.trim().isNotEmpty)
+                'occupant_name': occupantName.trim(),
+            }),
           )
           .timeout(const Duration(seconds: 5));
 
@@ -468,9 +473,26 @@ class RoomSyncService {
     }
   }
 
-  Future<bool> toggleRemoteAvailability(String roomNumber, bool currentAvailable) async {
+  /// Zmienia nazwę osoby przy zajętej sali (po zmianie własnej nazwy).
+  Future<bool> changeRoomOccupant(String roomId, String? occupantName) async {
+    try {
+      final uri = _buildUri('/api/v1/rooms/$roomId/occupant');
+      final res = await http
+          .patch(
+            uri,
+            headers: _headers(),
+            body: json.encode({'occupant_name': occupantName}),
+          )
+          .timeout(const Duration(seconds: 5));
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> toggleRemoteAvailability(String roomNumber, bool currentAvailable, {String? occupantName}) async {
     final nextStatus = currentAvailable ? 'occupied' : 'free';
-    return await changeRoomStatus(roomNumber, nextStatus);
+    return await changeRoomStatus(roomNumber, nextStatus, occupantName: occupantName);
   }
 
   Future<bool> setRoomAlertLimit(String roomId, int limitSeconds) async {
@@ -514,6 +536,30 @@ class RoomSyncService {
       }
     } catch (e) {
       debugPrint('[SyncService] updateRoomPosition error: $e');
+    }
+    return null;
+  }
+
+  Future<Room?> updateRoomLayout(String roomId, double scale, double angle) async {
+    if (!isLoggedIn) return null;
+    try {
+      final uri = _buildUri('/api/v1/admin/rooms/$roomId/layout');
+      final res = await http
+          .post(
+            uri,
+            headers: _headers(),
+            body: json.encode({'scale': scale, 'angle': angle}),
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (res.statusCode == 200) {
+        final data = json.decode(utf8.decode(res.bodyBytes));
+        if (data['room'] != null) {
+          return Room.fromMap(Map<String, dynamic>.from(data['room'] as Map));
+        }
+      }
+    } catch (e) {
+      debugPrint('[SyncService] updateRoomLayout error: $e');
     }
     return null;
   }
@@ -739,12 +785,17 @@ class RoomSyncService {
       final wsBase = base
           .replaceFirst('https://', 'wss://')
           .replaceFirst('http://', 'ws://');
-      final wsUri = Uri.parse('$wsBase/api/v1/ws');
+      var wsUri = Uri.parse('$wsBase/api/v1/ws');
+      // Dart nie zna domyślnych portów dla ws/wss (zwraca 0) — ustawiamy je jawnie.
+      if (!wsUri.hasPort) {
+        wsUri = wsUri.replace(port: wsUri.scheme == 'wss' ? 443 : 80);
+      }
       debugPrint('[WS] Connecting to $wsUri');
 
       _wsChannel = WebSocketChannel.connect(wsUri);
       _wsChannel!.stream.listen(
         (raw) {
+          _wsFailures = 0;
           try {
             final msg = json.decode(raw as String) as Map<String, dynamic>;
             final type = msg['type']?.toString() ?? '';
@@ -761,25 +812,31 @@ class RoomSyncService {
           } catch (_) {}
         },
         onDone: () {
-          debugPrint('[WS] Connection closed — reconnecting in 3s');
+          debugPrint('[WS] Connection closed — reconnecting');
           _scheduleWsReconnect();
         },
         onError: (e) {
-          debugPrint('[WS] Error: $e — reconnecting in 3s');
+          debugPrint('[WS] Error: $e — reconnecting');
           _scheduleWsReconnect();
         },
         cancelOnError: true,
       );
     } catch (e) {
-      debugPrint('[WS] Connect failed: $e — reconnecting in 5s');
-      _scheduleWsReconnect(delay: const Duration(seconds: 5));
+      debugPrint('[WS] Connect failed: $e — reconnecting');
+      _scheduleWsReconnect();
     }
   }
 
-  void _scheduleWsReconnect({Duration delay = const Duration(seconds: 3)}) {
+  /// Ponowne łączenie z narastającą przerwą (3 s, 6 s, 12 s … maks. 60 s),
+  /// żeby przy wyłączonym serwerze nie zasypywać go próbami co 3 sekundy.
+  void _scheduleWsReconnect() {
     if (!_wsEnabled) return;
     _wsChannel = null;
     _wsReconnectTimer?.cancel();
-    _wsReconnectTimer = Timer(delay, _connectWebSocket);
+    final shift = _wsFailures > 5 ? 5 : _wsFailures;
+    var seconds = 3 * (1 << shift);
+    if (seconds > 60) seconds = 60;
+    _wsFailures++;
+    _wsReconnectTimer = Timer(Duration(seconds: seconds), _connectWebSocket);
   }
 }

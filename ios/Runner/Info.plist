@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Pw180088</string>
+	<string>Dostępność sal</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -47,6 +47,29 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Aplikacja łączy się z serwerem sal w sieci lokalnej uczelni.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Dostęp do kontaktów pozwala zaimportować osoby do książki adresowej aplikacji.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Dostęp do zdjęć pozwala ustawić zdjęcie kontaktu.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Aparat pozwala zrobić zdjęcie kontaktu.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Lokalizacja służy do pokazania pogody w Twojej okolicy.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>sms</string>
+		<string>mailto</string>
+		<string>https</string>
+		<string>http</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

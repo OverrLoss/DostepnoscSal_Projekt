@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/room_main_screen.dart';
 import 'services/room_sync_service.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,17 +17,7 @@ class RoomAvailabilityApp extends StatelessWidget {
     return MaterialApp(
       title: 'Dostępność Sal - Politechnika Rzeszowska',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(useMaterial3: true).copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.orangeAccent,
-          brightness: Brightness.dark,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E293B),
-          elevation: 0,
-        ),
-      ),
+      theme: AppTheme.dark,
       home: const RoomMainScreen(),
     );
   }
