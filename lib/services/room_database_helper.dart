@@ -387,33 +387,39 @@ class RoomDatabaseHelper {
     );
   }
 
-  Future<void> updateRoomPosition(int id, double posX, double posY) async {
-    final room = await getRoomById(id);
-    final roomNumber = room?.number ?? id.toString();
+  /// Zapisuje nowe położenie sali na planie. Szuka sali po numerze (lokalne
+  /// i serwerowe id się różnią — wcześniej zapis mógł trafić w inną salę).
+  /// Zwraca true, gdy serwer przyjął zmianę.
+  Future<bool> updateRoomPosition(Room room, double posX, double posY) async {
+    final roomNumber = room.number;
+    final updated = await RoomSyncService.instance.updateRoomPosition(roomNumber, posX, posY);
 
     if (kIsWeb) {
-      final updated = await RoomSyncService.instance.updateRoomPosition(roomNumber, posX, posY);
       if (updated != null && _webRoomsCache != null) {
-        final idx = _webRoomsCache!.indexWhere((r) => r.id == id || r.number == roomNumber);
+        final idx = _webRoomsCache!.indexWhere((r) => r.number == roomNumber);
         if (idx != -1) {
           _webRoomsCache![idx] = updated;
         }
       }
-      return;
+      return updated != null;
     }
 
-    final db = await database;
-    await db.update(
-      tableName,
-      {
-        'posX': posX,
-        'posY': posY,
-        'updatedAt': DateTime.now().toIso8601String(),
-      },
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    RoomSyncService.instance.updateRoomPosition(roomNumber, posX, posY).ignore();
+    if (updated != null) {
+      try {
+        final db = await database;
+        await db.update(
+          tableName,
+          {
+            'posX': posX,
+            'posY': posY,
+            'updatedAt': DateTime.now().toIso8601String(),
+          },
+          where: 'number = ?',
+          whereArgs: [roomNumber],
+        );
+      } catch (_) {}
+    }
+    return updated != null;
   }
 
   Future<void> resetRoomPositions({String? floor}) async {

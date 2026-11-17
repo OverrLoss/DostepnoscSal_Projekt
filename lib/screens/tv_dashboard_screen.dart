@@ -418,11 +418,8 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                 enableViewer: true,
                 onRoomTap: (room) => _toggleAvailability(room),
                 onRoomQuickToggle: (room) => _toggleAvailability(room),
-                onRoomPositionChanged: (room, newX, newY) async {
-                  if (room.id != null) {
-                    await RoomDatabaseHelper.instance.updateRoomPosition(room.id!, newX, newY);
-                  }
-                },
+                onRoomPositionChanged: (room, newX, newY) =>
+                    RoomDatabaseHelper.instance.updateRoomPosition(room, newX, newY),
                 onResetPositions: (floor) async {
                   await RoomDatabaseHelper.instance.resetRoomPositions(floor: floor);
                   await _loadRooms(silent: true);

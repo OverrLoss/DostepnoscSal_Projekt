@@ -7,7 +7,8 @@ class InteractiveFloorMap extends StatefulWidget {
   final List<Room> rooms;
   final Function(Room room) onRoomTap;
   final Function(Room room) onRoomQuickToggle;
-  final Function(Room room, double newX, double newY) onRoomPositionChanged;
+  /// Zwraca true, gdy nowe położenie zostało zapisane (inaczej sala wraca na miejsce).
+  final Future<bool> Function(Room room, double newX, double newY) onRoomPositionChanged;
   final Function(String floor) onResetPositions;
   final bool? isEditMode;
   final VoidCallback? onToggleEditMode;
@@ -37,8 +38,11 @@ class InteractiveFloorMap extends StatefulWidget {
 class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   bool _internalEditMode = false;
   bool get _isEditMode => widget.isEditMode ?? _internalEditMode;
-  final Map<int, Offset> _draggedPositions = {};
-  int? _activeDraggingRoomId;
+  // Klucz = numer sali (AULA, HOL i Garaż nie mają liczbowego id)
+  final Map<String, Offset> _draggedPositions = {};
+  String? _activeDraggingKey;
+
+  String _roomKey(Room room) => room.number.trim().toUpperCase();
   final TransformationController _transformController = TransformationController();
   double _activeFitScale = 1.0;
 
@@ -100,8 +104,9 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   }
 
   Offset _getRoomOffset(Room room, Offset defaultOffset) {
-    if (room.id != null && _draggedPositions.containsKey(room.id)) {
-      return _draggedPositions[room.id!]!;
+    final key = _roomKey(room);
+    if (_draggedPositions.containsKey(key)) {
+      return _draggedPositions[key]!;
     }
     if (room.posX != null && room.posY != null) {
       return Offset(room.posX!, room.posY!);
@@ -110,33 +115,40 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   }
 
   void _onPanStart(Room room, Offset currentPos) {
-    if (room.id == null) return;
+    final key = _roomKey(room);
     setState(() {
-      _activeDraggingRoomId = room.id;
-      _draggedPositions[room.id!] = currentPos;
+      _activeDraggingKey = key;
+      _draggedPositions[key] = currentPos;
     });
   }
 
   void _onPanUpdate(Room room, DragUpdateDetails details, double width, double height) {
-    if (room.id == null) return;
-    final current = _draggedPositions[room.id!] ?? Offset(room.posX ?? 0, room.posY ?? 0);
-    final adjScale = _activeFitScale <= 0 ? 1.0 : _activeFitScale;
+    final key = _roomKey(room);
+    final current = _draggedPositions[key] ?? Offset(room.posX ?? 0, room.posY ?? 0);
+    // Uwzględnij dopasowanie planu do okna ORAZ przybliżenie (zoom),
+    // żeby sala szła dokładnie za kursorem / palcem.
+    final fit = _activeFitScale <= 0 ? 1.0 : _activeFitScale;
+    final zoom = _transformController.value.getMaxScaleOnAxis();
+    final adjScale = fit * (zoom <= 0 ? 1.0 : zoom);
     final nextX = (current.dx + details.delta.dx / adjScale).clamp(10.0, _canvasWidth - width - 10.0);
     final nextY = (current.dy + details.delta.dy / adjScale).clamp(35.0, _canvasHeight - height - 10.0);
 
     setState(() {
-      _draggedPositions[room.id!] = Offset(nextX, nextY);
+      _draggedPositions[key] = Offset(nextX, nextY);
     });
   }
 
-  void _onPanEnd(Room room, double width, double height) {
-    if (room.id == null) return;
-    final finalPos = _draggedPositions[room.id!];
+  Future<void> _onPanEnd(Room room, double width, double height) async {
+    final key = _roomKey(room);
+    final finalPos = _draggedPositions[key];
     setState(() {
-      _activeDraggingRoomId = null;
+      _activeDraggingKey = null;
     });
-    if (finalPos != null) {
-      widget.onRoomPositionChanged(room, finalPos.dx, finalPos.dy);
+    if (finalPos == null) return;
+    final saved = await widget.onRoomPositionChanged(room, finalPos.dx, finalPos.dy);
+    if (!saved && mounted) {
+      // Nie zapisano — sala wraca na swoje zapisane miejsce
+      setState(() => _draggedPositions.remove(key));
     }
   }
 
@@ -303,7 +315,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                           Icon(Icons.open_with, color: AppColors.primary, size: 14),
                           SizedBox(width: 8),
                           Text(
-                            'Tryb przestawiania aktywny – przeciągaj sale po planie',
+                            'Przeciągnij salę, aby ją przesunąć. Zmiany zapisują się od razu.',
                             style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -849,8 +861,8 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final defaultPos = Offset(defaultLeft, defaultTop);
     final pos = _getRoomOffset(room, defaultPos);
     final isCustomPosition = (room.posX != null && room.posY != null) ||
-        (room.id != null && _draggedPositions.containsKey(room.id));
-    final isDragging = room.id != null && _activeDraggingRoomId == room.id;
+        _draggedPositions.containsKey(_roomKey(room));
+    final isDragging = _activeDraggingKey == _roomKey(room);
 
     // Angle applies only if not custom moved or angle specified
     final angle = isCustomPosition ? null : defaultAngle;

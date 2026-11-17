@@ -1525,9 +1525,59 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.radiusPill)),
       ),
-      onPressed: () {
-        setState(() => _isEditMode = true);
+      onPressed: () async {
+        final sync = RoomSyncService.instance;
+        if (sync.isLoggedIn && sync.isAdmin) {
+          setState(() => _isEditMode = true);
+          return;
+        }
+        // Układ sal jest wspólny dla wszystkich, więc zmienia go administrator
+        final login = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: const Text(
+              'Zmiana układu sal',
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600),
+            ),
+            content: const Text(
+              'Układ sal widzą wszyscy, dlatego przestawiać sale może administrator. '
+              'Zaloguj się jako admin, a tryb przestawiania włączy się od razu.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Anuluj', style: TextStyle(color: AppColors.textSecondary)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  elevation: 0,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Zaloguj się'),
+              ),
+            ],
+          ),
+        );
+        if (login != true || !mounted) return;
+        await _showAuthDialog();
+        if (mounted && sync.isLoggedIn && sync.isAdmin) {
+          setState(() => _isEditMode = true);
+        }
       },
+    );
+  }
+
+  void _showLayoutSaveError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Nie zapisano położenia sali. Sprawdź połączenie z serwerem i czy jesteś zalogowany jako admin.'),
+        backgroundColor: AppColors.danger,
+      ),
     );
   }
 
@@ -1806,9 +1856,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             },
             onRoomQuickToggle: (room) => _toggleAvailability(room),
             onRoomPositionChanged: (room, newX, newY) async {
-              if (room.id != null) {
-                await RoomDatabaseHelper.instance.updateRoomPosition(room.id!, newX, newY);
-              }
+              final saved = await RoomDatabaseHelper.instance.updateRoomPosition(room, newX, newY);
+              if (!saved) _showLayoutSaveError();
+              return saved;
             },
             onResetPositions: (fl) async {
               await RoomDatabaseHelper.instance.resetRoomPositions(floor: fl);
@@ -1864,9 +1914,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       },
       onRoomQuickToggle: (room) => _toggleAvailability(room),
       onRoomPositionChanged: (room, newX, newY) async {
-        if (room.id != null) {
-          await RoomDatabaseHelper.instance.updateRoomPosition(room.id!, newX, newY);
-        }
+        final saved = await RoomDatabaseHelper.instance.updateRoomPosition(room, newX, newY);
+        if (!saved) _showLayoutSaveError();
+        return saved;
       },
       onResetPositions: (fl) async {
         await RoomDatabaseHelper.instance.resetRoomPositions(floor: fl);
