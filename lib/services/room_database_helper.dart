@@ -30,13 +30,15 @@ class RoomDatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN posX REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN posY REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN sortOrder INTEGER DEFAULT 0'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN default_alert_limit_seconds INTEGER'); } catch (_) {}
+        try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_scale REAL'); } catch (_) {}
+        try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_angle REAL'); } catch (_) {}
       },
     );
 
@@ -63,6 +65,8 @@ class RoomDatabaseHelper {
         posX REAL,
         posY REAL,
         sortOrder INTEGER DEFAULT 0,
+        layout_scale REAL,
+        layout_angle REAL,
         default_alert_limit_seconds INTEGER,
         updatedAt TEXT
       )
@@ -422,6 +426,39 @@ class RoomDatabaseHelper {
     return updated != null;
   }
 
+  /// Zapisuje rozmiar (skalę) i obrót sali na planie. Zwraca true po zapisie na serwerze.
+  Future<bool> updateRoomLayout(Room room, double scale, double angle) async {
+    final roomNumber = room.number;
+    final updated = await RoomSyncService.instance.updateRoomLayout(roomNumber, scale, angle);
+
+    if (kIsWeb) {
+      if (updated != null && _webRoomsCache != null) {
+        final idx = _webRoomsCache!.indexWhere((r) => r.number == roomNumber);
+        if (idx != -1) {
+          _webRoomsCache![idx] = updated;
+        }
+      }
+      return updated != null;
+    }
+
+    if (updated != null) {
+      try {
+        final db = await database;
+        await db.update(
+          tableName,
+          {
+            'layout_scale': scale,
+            'layout_angle': angle,
+            'updatedAt': DateTime.now().toIso8601String(),
+          },
+          where: 'number = ?',
+          whereArgs: [roomNumber],
+        );
+      } catch (_) {}
+    }
+    return updated != null;
+  }
+
   Future<void> resetRoomPositions({String? floor}) async {
     if (kIsWeb) {
       final updated = await RoomSyncService.instance.resetPositions(floor: floor);
@@ -438,6 +475,8 @@ class RoomDatabaseHelper {
         {
           'posX': null,
           'posY': null,
+          'layout_scale': null,
+          'layout_angle': null,
           'updatedAt': DateTime.now().toIso8601String(),
         },
         where: 'floor = ?',
@@ -449,6 +488,8 @@ class RoomDatabaseHelper {
         {
           'posX': null,
           'posY': null,
+          'layout_scale': null,
+          'layout_angle': null,
           'updatedAt': DateTime.now().toIso8601String(),
         },
       );

@@ -63,6 +63,10 @@ class Room {
   final double? posY;
   final int sortOrder;
 
+  /// Rozmiar sali na planie (1.0 = domyślny) i obrót w stopniach.
+  final double? layoutScale;
+  final double? layoutAngle;
+
   final RoomSession? activeSession;
   final int? defaultAlertLimitSeconds;
   final String? operatorId;
@@ -83,6 +87,8 @@ class Room {
     this.posX,
     this.posY,
     this.sortOrder = 0,
+    this.layoutScale,
+    this.layoutAngle,
     this.activeSession,
     this.defaultAlertLimitSeconds,
     this.operatorId,
@@ -139,6 +145,8 @@ class Room {
       'posX': posX,
       'posY': posY,
       'sortOrder': sortOrder,
+      if (layoutScale != null) 'layout_scale': layoutScale,
+      if (layoutAngle != null) 'layout_angle': layoutAngle,
       if (defaultAlertLimitSeconds != null) 'default_alert_limit_seconds': defaultAlertLimitSeconds,
       if (operatorId != null) 'operator_id': operatorId,
       if (deviceId != null) 'device_id': deviceId,
@@ -161,6 +169,8 @@ class Room {
       'posX': posX,
       'posY': posY,
       'sortOrder': sortOrder,
+      if (layoutScale != null) 'layout_scale': layoutScale,
+      if (layoutAngle != null) 'layout_angle': layoutAngle,
       if (activeSession != null) 'active_session': activeSession!.toMap(),
       if (defaultAlertLimitSeconds != null) 'default_alert_limit_seconds': defaultAlertLimitSeconds,
       if (operatorId != null) 'operator_id': operatorId,
@@ -220,6 +230,8 @@ class Room {
       posX: posX,
       posY: posY,
       sortOrder: sortOrder,
+      layoutScale: (map['layout_scale'] as num?)?.toDouble(),
+      layoutAngle: (map['layout_angle'] as num?)?.toDouble(),
       activeSession: session,
       defaultAlertLimitSeconds: map['default_alert_limit_seconds'] as int?,
       operatorId: map['operator_id'] as String?,
@@ -243,6 +255,8 @@ class Room {
     double? posY,
     int? sortOrder,
     bool resetPosition = false,
+    double? layoutScale,
+    double? layoutAngle,
     RoomSession? activeSession,
     int? defaultAlertLimitSeconds,
     String? operatorId,
@@ -264,6 +278,8 @@ class Room {
       posX: resetPosition ? null : (posX ?? this.posX),
       posY: resetPosition ? null : (posY ?? this.posY),
       sortOrder: sortOrder ?? this.sortOrder,
+      layoutScale: resetPosition ? null : (layoutScale ?? this.layoutScale),
+      layoutAngle: resetPosition ? null : (layoutAngle ?? this.layoutAngle),
       activeSession: activeSession ?? this.activeSession,
       defaultAlertLimitSeconds: defaultAlertLimitSeconds ?? this.defaultAlertLimitSeconds,
       operatorId: operatorId ?? this.operatorId,

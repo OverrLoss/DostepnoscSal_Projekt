@@ -1575,7 +1575,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Nie zapisano położenia sali. Sprawdź połączenie z serwerem i czy jesteś zalogowany jako admin.'),
+        content: Text('Nie zapisano zmiany sali. Sprawdź połączenie z serwerem i czy jesteś zalogowany jako admin.'),
         backgroundColor: AppColors.danger,
       ),
     );
@@ -1860,6 +1860,11 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               if (!saved) _showLayoutSaveError();
               return saved;
             },
+            onRoomLayoutChanged: (room, scale, angle) async {
+              final saved = await RoomDatabaseHelper.instance.updateRoomLayout(room, scale, angle);
+              if (!saved) _showLayoutSaveError();
+              return saved;
+            },
             onResetPositions: (fl) async {
               await RoomDatabaseHelper.instance.resetRoomPositions(floor: fl);
               await _loadRooms();
@@ -1915,6 +1920,11 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       onRoomQuickToggle: (room) => _toggleAvailability(room),
       onRoomPositionChanged: (room, newX, newY) async {
         final saved = await RoomDatabaseHelper.instance.updateRoomPosition(room, newX, newY);
+        if (!saved) _showLayoutSaveError();
+        return saved;
+      },
+      onRoomLayoutChanged: (room, scale, angle) async {
+        final saved = await RoomDatabaseHelper.instance.updateRoomLayout(room, scale, angle);
         if (!saved) _showLayoutSaveError();
         return saved;
       },

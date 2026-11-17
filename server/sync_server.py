@@ -283,6 +283,12 @@ def init_db():
         cursor.execute("ALTER TABLE occupancy_sessions ADD COLUMN occupant_name TEXT")
     except sqlite3.OperationalError:
         pass  # kolumna już istnieje
+    # Migracja: rozmiar (skala) i obrót sali na planie
+    for column in ("layout_scale REAL", "layout_angle REAL"):
+        try:
+            cursor.execute(f"ALTER TABLE rooms ADD COLUMN {column}")
+        except sqlite3.OperationalError:
+            pass  # kolumna już istnieje
 
     # 6. Alerts
     cursor.execute("""
@@ -557,6 +563,41 @@ def format_active_session(session_row: Optional[sqlite3.Row]) -> Optional[Dict[s
     }
 
 
+def build_room_representation(r: sqlite3.Row, db: sqlite3.Connection) -> Dict[str, Any]:
+    """Pełne dane sali w tym samym formacie co /api/v1/public/rooms.
+    (Wcześniej ta funkcja była wywoływana, ale nie istniała — zapis położenia
+    sali kończył się błędem 500.)"""
+    keys = r.keys()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM occupancy_sessions WHERE room_id = ? AND ended_at IS NULL", (r["id"],))
+    session = cursor.fetchone()
+    return {
+        "id": r["id"],
+        "number": r["id"],
+        "name": r["name"],
+        "location": (r["location"] if "location" in keys else None) or f"Poziom {r['floor']}",
+        "floor": r["floor"],
+        "status": r["status"],
+        "category": r["category"],
+        "description": r["description"],
+        "capacity": r["capacity"],
+        "customNote": r["customNote"] if "customNote" in keys else None,
+        "posX": r["posX"],
+        "posY": r["posY"],
+        "layout_scale": r["layout_scale"] if "layout_scale" in keys else None,
+        "layout_angle": r["layout_angle"] if "layout_angle" in keys else None,
+        "sortOrder": r["sortOrder"] if "sortOrder" in keys else 0,
+        "default_alert_limit_seconds": r["default_alert_limit_seconds"],
+        "active_session": format_active_session(session),
+        "updated_at": r["updated_at"],
+    }
+
+
+async def broadcast_ws_event(event_type: str, data: Any):
+    """Wysyła zdarzenie do wszystkich klientów WebSocket (też wcześniej nie istniała)."""
+    await ws_manager.broadcast(event_type, data)
+
+
 def _session_occupant(session_row) -> Optional[str]:
     """Nick osoby zajmującej salę (wiersz z bazy albo słownik z zapytania JOIN)."""
     try:
@@ -689,6 +730,8 @@ def get_public_rooms(floor: Optional[str] = None, db: sqlite3.Connection = Depen
             "customNote": r["customNote"],
             "posX": r["posX"],
             "posY": r["posY"],
+            "layout_scale": r["layout_scale"],
+            "layout_angle": r["layout_angle"],
             "default_alert_limit_seconds": r["default_alert_limit_seconds"],
             "active_session": session_data,
             "updated_at": r["updated_at"]
@@ -734,6 +777,8 @@ def get_public_room(room_id: str, db: sqlite3.Connection = Depends(get_db)):
         "customNote": r["customNote"],
         "posX": r["posX"],
         "posY": r["posY"],
+        "layout_scale": r["layout_scale"],
+        "layout_angle": r["layout_angle"],
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": session_data,
         "updated_at": r["updated_at"]
@@ -896,6 +941,8 @@ def get_rooms_detailed(user: sqlite3.Row = Depends(require_current_user), db: sq
             "customNote": r["customNote"],
             "posX": r["posX"],
             "posY": r["posY"],
+            "layout_scale": r["layout_scale"],
+            "layout_angle": r["layout_angle"],
             "active_session": session_data,
             "created_at": r["created_at"],
             "updated_at": r["updated_at"]
@@ -947,6 +994,8 @@ def get_room_detailed(room_id: str, user: sqlite3.Row = Depends(require_current_
         "customNote": r["customNote"],
         "posX": r["posX"],
         "posY": r["posY"],
+        "layout_scale": r["layout_scale"],
+        "layout_angle": r["layout_angle"],
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": session_data,
         "created_at": r["created_at"],
@@ -1320,6 +1369,32 @@ async def set_room_position(room_id: str, req: RoomPositionRequest, admin: sqlit
     await broadcast_ws_event("room.updated", updated)
     return {"status": "success", "room": updated}
 
+class RoomLayoutRequest(BaseModel):
+    scale: float = Field(1.0, ge=0.4, le=3.0)
+    angle: float = Field(0.0, ge=-360, le=360)
+
+@app.post("/api/v1/admin/rooms/{room_id}/layout", tags=["Admin"])
+async def set_room_layout(room_id: str, req: RoomLayoutRequest, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
+    """Rozmiar (skala) i obrót sali na planie budynku."""
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM rooms WHERE id = ?", (room_id,))
+    if not cursor.fetchone():
+        raise DomainException(404, "RESOURCE_NOT_FOUND", "Sala nie istnieje.")
+    scale = round(max(0.4, min(3.0, float(req.scale))), 3)
+    angle = float(req.angle) % 360.0
+    if angle > 180:
+        angle -= 360
+    now = utc_now()
+    cursor.execute(
+        "UPDATE rooms SET layout_scale = ?, layout_angle = ?, updated_at = ? WHERE id = ?",
+        (scale, round(angle, 2), now, room_id),
+    )
+    db.commit()
+    cursor.execute("SELECT * FROM rooms WHERE id = ?", (room_id,))
+    updated = build_room_representation(cursor.fetchone(), db)
+    await broadcast_ws_event("room.updated", updated)
+    return {"status": "success", "room": updated}
+
 class ResetPositionsRequest(BaseModel):
     floor: Optional[str] = None
 
@@ -1328,9 +1403,9 @@ def reset_room_positions(req: ResetPositionsRequest, admin: sqlite3.Row = Depend
     cursor = db.cursor()
     now = utc_now()
     if req.floor and req.floor != "Wszystkie":
-        cursor.execute("UPDATE rooms SET posX = NULL, posY = NULL, updated_at = ? WHERE floor = ?", (now, req.floor))
+        cursor.execute("UPDATE rooms SET posX = NULL, posY = NULL, layout_scale = NULL, layout_angle = NULL, updated_at = ? WHERE floor = ?", (now, req.floor))
     else:
-        cursor.execute("UPDATE rooms SET posX = NULL, posY = NULL, updated_at = ?", (now,))
+        cursor.execute("UPDATE rooms SET posX = NULL, posY = NULL, layout_scale = NULL, layout_angle = NULL, updated_at = ?", (now,))
     db.commit()
     cursor.execute("SELECT * FROM rooms ORDER BY sortOrder ASC, id ASC")
     rooms = [build_room_representation(r, db) for r in cursor.fetchall()]

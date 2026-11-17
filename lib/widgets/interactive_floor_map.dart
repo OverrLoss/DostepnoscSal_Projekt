@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../models/room_model.dart';
 import '../theme/app_theme.dart';
@@ -10,6 +12,10 @@ class InteractiveFloorMap extends StatefulWidget {
   /// Zwraca true, gdy nowe położenie zostało zapisane (inaczej sala wraca na miejsce).
   final Future<bool> Function(Room room, double newX, double newY) onRoomPositionChanged;
   final Function(String floor) onResetPositions;
+
+  /// Zapis rozmiaru (skala, 1.0 = domyślna) i obrotu (stopnie) sali.
+  /// Gdy null — pasek zmiany rozmiaru i obrotu się nie pokazuje.
+  final Future<bool> Function(Room room, double scale, double angle)? onRoomLayoutChanged;
   final bool? isEditMode;
   final VoidCallback? onToggleEditMode;
   final bool showEditToolbar;
@@ -24,6 +30,7 @@ class InteractiveFloorMap extends StatefulWidget {
     required this.onRoomQuickToggle,
     required this.onRoomPositionChanged,
     required this.onResetPositions,
+    this.onRoomLayoutChanged,
     this.isEditMode,
     this.onToggleEditMode,
     this.showEditToolbar = false,
@@ -43,6 +50,111 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   String? _activeDraggingKey;
 
   String _roomKey(Room room) => room.number.trim().toUpperCase();
+
+  // Zaznaczona sala w trybie edycji + niezapisane jeszcze zmiany rozmiaru/obrotu
+  String? _selectedKey;
+  final Map<String, double> _scaleOverrides = {};
+  final Map<String, double> _angleOverrides = {};
+  final Map<String, double> _baseAngleDeg = {};
+
+  static const double _minScale = 0.5;
+  static const double _maxScale = 2.5;
+
+  Room? _selectedRoom() {
+    final key = _selectedKey;
+    if (key == null) return null;
+    for (final r in widget.rooms) {
+      if (_roomKey(r) == key) return r;
+    }
+    return null;
+  }
+
+  double _currentScale(Room room) =>
+      _scaleOverrides[_roomKey(room)] ?? room.layoutScale ?? 1.0;
+
+  double _currentAngleDeg(Room room) {
+    final key = _roomKey(room);
+    return _angleOverrides[key] ?? room.layoutAngle ?? (_baseAngleDeg[key] ?? 0.0);
+  }
+
+  double _normalizeAngle(double a) {
+    var v = a % 360.0;
+    if (v > 180) v -= 360;
+    if (v < -180) v += 360;
+    return v;
+  }
+
+  Future<void> _applyLayout(Room room, {double? scale, double? angle}) async {
+    final save = widget.onRoomLayoutChanged;
+    if (save == null) return;
+    final key = _roomKey(room);
+    final prevScale = _scaleOverrides[key];
+    final prevAngle = _angleOverrides[key];
+    setState(() {
+      if (scale != null) _scaleOverrides[key] = scale.clamp(_minScale, _maxScale);
+      if (angle != null) _angleOverrides[key] = _normalizeAngle(angle);
+    });
+    final saved = await save(room, _currentScale(room), _currentAngleDeg(room));
+    if (!saved && mounted) {
+      // Nie zapisano — przywróć poprzedni wygląd sali
+      setState(() {
+        if (prevScale == null) {
+          _scaleOverrides.remove(key);
+        } else {
+          _scaleOverrides[key] = prevScale;
+        }
+        if (prevAngle == null) {
+          _angleOverrides.remove(key);
+        } else {
+          _angleOverrides[key] = prevAngle;
+        }
+      });
+    }
+  }
+
+  Widget _buildLayoutToolbar(Room room) {
+    final scale = _currentScale(room);
+    final angle = _currentAngleDeg(room);
+    Widget btn(IconData icon, String tip, VoidCallback? onTap) => IconButton(
+          icon: Icon(icon, size: 18, color: onTap == null ? Colors.white24 : Colors.white),
+          tooltip: tip,
+          padding: const EdgeInsets.all(6),
+          constraints: const BoxConstraints(),
+          onPressed: onTap,
+        );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF000000).withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.6)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Sala ${room.number}',
+            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '${(scale * 100).round()}% · ${angle.round()}°',
+            style: const TextStyle(color: Colors.white54, fontSize: 11),
+          ),
+          const SizedBox(width: 6),
+          btn(Icons.rotate_left_rounded, 'Obróć w lewo (15°)', () => _applyLayout(room, angle: angle - 15)),
+          btn(Icons.rotate_right_rounded, 'Obróć w prawo (15°)', () => _applyLayout(room, angle: angle + 15)),
+          btn(Icons.remove_rounded, 'Mniejsza',
+              scale <= _minScale ? null : () => _applyLayout(room, scale: ((scale - 0.1) * 10).round() / 10)),
+          btn(Icons.add_rounded, 'Większa',
+              scale >= _maxScale ? null : () => _applyLayout(room, scale: ((scale + 0.1) * 10).round() / 10)),
+          btn(Icons.restart_alt_rounded, 'Domyślny rozmiar i obrót',
+              () => _applyLayout(room, scale: 1.0, angle: _baseAngleDeg[_roomKey(room)] ?? 0.0)),
+          btn(Icons.close_rounded, 'Odznacz salę', () => setState(() => _selectedKey = null)),
+        ],
+      ),
+    );
+  }
   final TransformationController _transformController = TransformationController();
   double _activeFitScale = 1.0;
 
@@ -479,6 +591,30 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
             boundaryMargin: const EdgeInsets.all(50),
             child: mapContent,
           ),
+          // Pasek obrotu i rozmiaru zaznaczonej sali (tryb edycji)
+          if (_isEditMode && widget.onRoomLayoutChanged != null && _selectedRoom() != null)
+            Positioned(
+              left: 12,
+              bottom: widget.controlsBottomOffset,
+              child: _buildLayoutToolbar(_selectedRoom()!),
+            )
+          else if (_isEditMode && widget.onRoomLayoutChanged != null)
+            Positioned(
+              left: 12,
+              bottom: widget.controlsBottomOffset,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF000000).withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: const Text(
+                  'Kliknij salę, aby ją obrócić lub zmienić rozmiar',
+                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                ),
+              ),
+            ),
           // Floating Zoom & Fit Controls
           Positioned(
             right: 12,
@@ -862,18 +998,28 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final pos = _getRoomOffset(room, defaultPos);
     final isCustomPosition = (room.posX != null && room.posY != null) ||
         _draggedPositions.containsKey(_roomKey(room));
-    final isDragging = _activeDraggingKey == _roomKey(room);
+    final key = _roomKey(room);
+    final isDragging = _activeDraggingKey == key;
+    final isSelected = _isEditMode && _selectedKey == key;
 
-    // Angle applies only if not custom moved or angle specified
-    final angle = isCustomPosition ? null : defaultAngle;
+    // Domyślny kąt z projektu planu (tylko dla sal w domyślnym miejscu)
+    final baseAngleDeg = (isCustomPosition || defaultAngle == null) ? 0.0 : defaultAngle * 180 / math.pi;
+    _baseAngleDeg[key] = baseAngleDeg;
+
+    // Rozmiar i obrót: zmiana w trakcie edycji > zapis z serwera > domyślne
+    final scale = _currentScale(room);
+    final angleDeg = _angleOverrides[key] ?? room.layoutAngle ?? baseAngleDeg;
+    final angle = angleDeg == 0 ? null : angleDeg * math.pi / 180;
+    final w = width * scale;
+    final h = height * scale;
 
     Widget roomWidget = _buildRoomContent(
       room: room,
-      width: width,
-      height: height,
+      width: w,
+      height: h,
       label: titleOverride ?? number,
       isBig: isBig,
-      isDragging: isDragging,
+      isDragging: isDragging || isSelected,
     );
 
     if (angle != null) {
@@ -887,12 +1033,22 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
       left: pos.dx,
       top: pos.dy,
       child: GestureDetector(
-        onPanStart: _isEditMode ? (_) => _onPanStart(room, pos) : null,
-        onPanUpdate: _isEditMode ? (details) => _onPanUpdate(room, details, width, height) : null,
-        onPanEnd: _isEditMode ? (_) => _onPanEnd(room, width, height) : null,
+        onPanStart: _isEditMode
+            ? (_) {
+                setState(() => _selectedKey = key);
+                _onPanStart(room, pos);
+              }
+            : null,
+        onPanUpdate: _isEditMode ? (details) => _onPanUpdate(room, details, w, h) : null,
+        onPanEnd: _isEditMode ? (_) => _onPanEnd(room, w, h) : null,
         child: InkWell(
           onTap: () {
-            if (!_isEditMode) widget.onRoomQuickToggle(room);
+            if (_isEditMode) {
+              // W trybie edycji kliknięcie zaznacza salę (pasek obrotu i rozmiaru)
+              setState(() => _selectedKey = key);
+            } else {
+              widget.onRoomQuickToggle(room);
+            }
           },
           onLongPress: () {
             if (!_isEditMode) widget.onRoomTap(room);
