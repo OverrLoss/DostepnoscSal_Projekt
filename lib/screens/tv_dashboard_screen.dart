@@ -19,6 +19,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
   bool _isLoading = true;
   Timer? _clockTimer;
   Timer? _refreshTimer;
+  StreamSubscription<DateTime>? _clockSubscription;
   DateTime _now = DateTime.now();
 
   @override
@@ -30,6 +31,12 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
         setState(() => _now = DateTime.now());
       }
     });
+    // Serwerowy zegar działa też gdy przeglądarka dławi lokalne timery w tle.
+    _clockSubscription = RoomSyncService.instance.clockTickStream.listen((serverTime) {
+      if (mounted) {
+        setState(() => _now = serverTime);
+      }
+    });
     // Auto-refresh rooms every 3 seconds for live TV display
     _refreshTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       _loadRooms(silent: true);
@@ -39,6 +46,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
   @override
   void dispose() {
     _clockTimer?.cancel();
+    _clockSubscription?.cancel();
     _refreshTimer?.cancel();
     super.dispose();
   }

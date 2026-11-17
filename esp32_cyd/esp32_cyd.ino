@@ -38,6 +38,8 @@
 #include <TFT_eSPI.h>
 #include <XPT2046_Touchscreen.h>
 #include <ArduinoJson.h>
+#include <time.h>
+#include <sys/time.h>
 #include <vector>
 #include <algorithm>
 
@@ -101,6 +103,30 @@ const char* CYD_FIRMWARE_VERSION = "1.3.6";
 bool isDisplayInverted = true;
 unsigned long lastOtaCheck = 0;
 const unsigned long OTA_CHECK_INTERVAL = 300000; // Sprawdzaj co 5 minut w tle (300 s)
+
+// --- ZEGAR: czas z serwera (ISO UTC), NTP jako zapas ---
+static bool applyServerTime(const String& isoUtc) {
+  int y = 0, mo = 0, d = 0, h = 0, mi = 0, s = 0;
+  if (sscanf(isoUtc.c_str(), "%d-%d-%dT%d:%d:%d", &y, &mo, &d, &h, &mi, &s) != 6) return false;
+  if (y < 2000 || mo < 1 || mo > 12 || d < 1 || d > 31) return false;
+  struct tm t = {};
+  t.tm_year = y - 1900; t.tm_mon = mo - 1; t.tm_mday = d;
+  t.tm_hour = h; t.tm_min = mi; t.tm_sec = s;
+  setenv("TZ", "UTC0", 1); tzset();
+  time_t epoch = mktime(&t);
+  setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1); tzset();
+  struct timeval tv = { epoch, 0 };
+  settimeofday(&tv, NULL);
+  return true;
+}
+
+static String currentClockText() {
+  struct tm ti;
+  if (!getLocalTime(&ti)) return "--:--";
+  char buf[6];
+  snprintf(buf, sizeof(buf), "%02d:%02d", ti.tm_hour, ti.tm_min);
+  return String(buf);
+}
 
 // --- DANE KONFIGURACYJNE (NVS + SD) ---
 String wifiSsid = "TWOJA_NAZWA_WIFI";
@@ -186,6 +212,11 @@ void setup() {
   Serial.begin(115200);
   delay(100);
   Serial.println("\n[CYD] Start Zaawansowanego Panelu Dostepnosci Sal...");
+
+  // Zegar: NTP uzupelnia czas, gdy serwer jeszcze nie odpowiedzial
+  setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);
+  tzset();
+  configTime(0, 0, "pool.ntp.org", "time.google.com");
 
   // Podświetlenie i Dioda RGB
   pinMode(TFT_BL_PIN, OUTPUT);
@@ -616,7 +647,8 @@ void drawMainScreen() {
   uint16_t wifiBg = (WiFi.status() == WL_CONNECTED) ? COLOR_FREE_GREEN : COLOR_OCC_RED;
   tft.fillRoundRect(246, 4, 68, 26, 6, wifiBg);
   tft.setTextColor(0x0000, wifiBg);
-  tft.drawCentreString("Wi-Fi", 280, 9, 2);
+  tft.drawCentreString("Wi-Fi", 280, 5, 1);
+  tft.drawCentreString(currentClockText(), 280, 14, 2); // kolor tla = stan Wi-Fi
 
   // KARTA STANU SALI (Y: 40..128, wys: 88px)
   uint16_t cardBg = isAvailable ? COLOR_CARD_FREE : (isAlertDue ? COLOR_CARD_ALERT : COLOR_CARD_OCC);
@@ -975,6 +1007,11 @@ void syncServerState() {
             return;
           }
         }
+      }
+
+      // Zegar zsynchronizowany z czasem serwera (NTP dziala jako zapas)
+      if (doc.containsKey("server_time")) {
+        applyServerTime(doc["server_time"] | "");
       }
 
       // Dynamiczna zmiana przypisania sali z panelu administracyjnego

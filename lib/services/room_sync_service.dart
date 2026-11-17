@@ -57,10 +57,15 @@ class RoomSyncService {
   bool _wsEnabled = false;
   final StreamController<Map<String, dynamic>> _roomUpdateController =
       StreamController<Map<String, dynamic>>.broadcast();
+  final StreamController<DateTime> _clockTickController =
+      StreamController<DateTime>.broadcast();
 
   /// Stream of room.updated events from server WebSocket.
   /// Listeners will be notified immediately when ESP or any client changes room status.
   Stream<Map<String, dynamic>> get roomUpdatedStream => _roomUpdateController.stream;
+
+  /// Server-driven clock ticks — browsers throttle local timers in hidden tabs.
+  Stream<DateTime> get clockTickStream => _clockTickController.stream;
 
   String get serverUrl => _serverUrl;
   String? get detectedLanUrl => _detectedLanUrl;
@@ -803,6 +808,15 @@ class RoomSyncService {
               final data = msg['data'];
               if (data is Map<String, dynamic>) {
                 _roomUpdateController.add(data);
+              }
+            }
+            if (type == 'clock.tick') {
+              final data = msg['data'];
+              if (data is Map<String, dynamic>) {
+                final serverTime = DateTime.tryParse(data['time']?.toString() ?? '');
+                if (serverTime != null) {
+                  _clockTickController.add(serverTime.toLocal());
+                }
               }
             }
             // Respond to server pings

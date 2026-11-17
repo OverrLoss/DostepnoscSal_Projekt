@@ -11,6 +11,7 @@ Program dla modułu **ESP32-2432S028R** (Cheap Yellow Display / CYD) z 2.8-calow
    - Licznik czasu trwania sesji na żywo (`mm:ss min`).
    - Dotykowe kafelki szybkiego wyboru limitu sesji: `[ 15m ]`, `[ 30m ]`, `[ 45m ]`, `[ 60m ]` oraz `[ +10m ]` (przedłużenie aktywnej sesji).
    - Duży dotykowy przycisk na dole ekranu: `[ ZAJMIJ SALĘ ]` / `[ ZWOLNIJ SALĘ ]`.
+   - Zegar `HH:MM` w prawym górnym rogu (czas serwera, NTP jako zapas). Kolor przycisku Wi-Fi nadal oznacza stan połączenia.
 
 2. **Propozycja 3: Przegląd Wolnych Sal w Budynku**:
    - Kliknięcie przycisku `[ WOLNE ]` na pasku górnym przełącza terminal w widok kiosku.

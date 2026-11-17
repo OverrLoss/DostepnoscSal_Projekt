@@ -672,11 +672,19 @@ async def alert_monitor_loop():
         except Exception as e:
             sys.stderr.write(f"[Alert Monitor] Error: {e}\n")
 
-# Start Alert Monitor Background Task
+async def clock_tick_loop():
+    """High-frequency WS ticks keep web clocks alive in throttled background tabs."""
+    while True:
+        await asyncio.sleep(1)
+        if ws_manager.active_connections:
+            await ws_manager.broadcast("clock.tick", {"time": utc_now()})
+
+# Start background tasks
 @app.on_event("startup")
 async def startup_event():
     init_db()
     asyncio.create_task(alert_monitor_loop())
+    asyncio.create_task(clock_tick_loop())
 
 # ==============================================================================
 # 6.1 Publiczny podgląd sal
@@ -1677,6 +1685,7 @@ def get_device_assigned_room_state(
         "room_id": r["id"],
         "room_name": r["name"],
         "status": r["status"],
+        "server_time": utc_now(),
         "active_session": session_data,
         "firmware": {
             "chip": chip,
