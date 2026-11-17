@@ -50,9 +50,9 @@ class AppColors {
   static const Color textFaint = Color(0x59FFFFFF);
 
   // ── Promienie ─────────────────────────────────────────────────────────
-  static const double radiusCard = 22;
-  static const double radiusControl = 14;
-  static const double radiusPill = 100;
+  static const double radiusCard = 8;
+  static const double radiusControl = 6;
+  static const double radiusPill = 6;
 
   /// Dekoracja tafli szkła: delikatny jasny gradient i jasna krawędź.
   static BoxDecoration glassDecoration({
@@ -105,21 +105,21 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
       popupMenuTheme: base.popupMenuTheme.copyWith(
         color: AppColors.surfaceAlt,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
       bottomSheetTheme: base.bottomSheetTheme.copyWith(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
         ),
       ),
       switchTheme: SwitchThemeData(
@@ -144,14 +144,16 @@ class AppTheme {
         foregroundColor: AppColors.onPrimary,
         elevation: 0,
         highlightElevation: 0,
-        shape: StadiumBorder(),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
       ),
       snackBarTheme: base.snackBarTheme.copyWith(
         backgroundColor: AppColors.surfaceAlt,
         contentTextStyle: const TextStyle(color: AppColors.textPrimary),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(6),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(

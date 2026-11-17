@@ -318,7 +318,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
               child: TextField(
@@ -365,12 +365,12 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
                 _isFahrenheit = !_isFahrenheit;
               });
             },
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(6),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
               child: Text(
@@ -411,7 +411,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
         final city = _searchResults[index];
         return Card(
           color: Colors.black.withValues(alpha: 0.4),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           child: ListTile(
             leading: const Icon(Icons.location_city, color: Colors.white70),
             title: Text(
@@ -472,7 +472,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(8),
                       side: BorderSide(
                         color: isSelected ? Colors.redAccent : Colors.white24,
                       ),
@@ -508,7 +508,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
                       color: isSelected ? Colors.white : Colors.white24,
                     ),
@@ -547,7 +547,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.redAccent.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(6),
         boxShadow: const [
           BoxShadow(color: Colors.red, blurRadius: 8, spreadRadius: 1),
         ],
@@ -590,7 +590,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
@@ -730,7 +730,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: aqi.statusColor.withValues(alpha: 0.5), width: 1.5),
       ),
       child: Column(
@@ -765,7 +765,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: aqi.statusColor.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: aqi.statusColor),
                 ),
                 child: Text(
@@ -798,7 +798,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(5),
             ),
             child: Row(
               children: [
@@ -895,7 +895,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
       ),
       child: Row(
@@ -963,7 +963,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                 ),
                 child: Column(
@@ -1022,7 +1022,7 @@ class _WeatherHomeScreenState extends State<WeatherHomeScreen> {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
           ),
           child: Column(

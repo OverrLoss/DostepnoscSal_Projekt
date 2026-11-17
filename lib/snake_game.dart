@@ -341,7 +341,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: const Color(0xFF141414),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(6),
                         border: Border.all(
                           color: wallCollision
                               ? Colors.redAccent.withValues(alpha: 0.5)
@@ -387,7 +387,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFF141414),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
         boxShadow: const [
           BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
         ],
@@ -423,7 +423,7 @@ class _SnakeGamePageState extends State<SnakeGamePage> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: const Color(0xFF2A2A2A),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: DropdownButton<GameDifficulty>(
               value: selectedDifficulty,

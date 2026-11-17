@@ -237,7 +237,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                   color: _isAvailable
                       ? Colors.green.withValues(alpha: 0.15)
                       : Colors.red.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: _isAvailable ? AppColors.success : AppColors.danger,
                     width: 1.5,
@@ -339,7 +339,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(6),
                       side: BorderSide(color: isSelected ? AppColors.primary : Colors.white12),
                     ),
                     onSelected: (selected) {
@@ -368,7 +368,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(6),
                       side: BorderSide(color: isSelected ? AppColors.primary : Colors.white12),
                     ),
                     onSelected: (selected) {
@@ -403,7 +403,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                         fontWeight: _selectedAlertLimitMinutes == m ? FontWeight.bold : FontWeight.normal,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(6),
                         side: BorderSide(
                           color: _selectedAlertLimitMinutes == m ? AppColors.warning : Colors.white12,
                         ),
@@ -428,7 +428,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                           : Colors.white70,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(6),
                       side: BorderSide(
                         color: ![15, 30, 45, 60, 90, 120].contains(_selectedAlertLimitMinutes)
                             ? AppColors.warning
@@ -526,7 +526,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.success,
                     foregroundColor: Colors.black87,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                   ),
                   icon: _isSaving
                       ? const SizedBox(
@@ -573,7 +573,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF141414),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: TextFormField(

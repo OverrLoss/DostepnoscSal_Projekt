@@ -179,7 +179,7 @@ class AppUpdateService {
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: const Color(0xFF141414),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           title: Row(
             children: [
               Container(
@@ -223,7 +223,7 @@ class AppUpdateService {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.black26,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(5),
                   border: Border.all(color: Colors.white12),
                 ),
                 child: Text(
@@ -247,7 +247,7 @@ class AppUpdateService {
               label: const Text('Aktualizuj teraz', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.greenAccent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               ),
             ),
           ],
@@ -271,7 +271,7 @@ class AppUpdateService {
           canPop: false,
           child: AlertDialog(
             backgroundColor: const Color(0xFF141414),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             title: const Row(
               children: [
                 Icon(Icons.downloading_rounded, color: Colors.white),
@@ -287,7 +287,7 @@ class AppUpdateService {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: progress > 0 ? progress : null,
                         minHeight: 12,

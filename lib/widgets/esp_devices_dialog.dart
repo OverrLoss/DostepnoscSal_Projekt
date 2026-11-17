@@ -153,7 +153,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
         builder: (ctx, setDlgState) {
           return AlertDialog(
             backgroundColor: const Color(0xFF141414),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
             title: const Row(
               children: [
                 Icon(Icons.add_circle_outline, color: AppColors.cyan),
@@ -214,7 +214,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFF000000),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     ),
                   ),
@@ -225,7 +225,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFF000000),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(5),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
@@ -268,7 +268,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.cyan,
                   foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                 ),
                 onPressed: () async {
                   final dev = await RoomSyncService.instance.registerDevice(
@@ -297,7 +297,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF141414),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         title: const Row(
           children: [
             Icon(Icons.key, color: AppColors.success),
@@ -323,7 +323,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: const Color(0xFF000000),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(5),
                 border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
               ),
               child: Row(
@@ -381,7 +381,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
 
     return Dialog(
       backgroundColor: const Color(0xFF141414),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: Container(
         width: 620,
         constraints: const BoxConstraints(maxHeight: 720),
@@ -396,7 +396,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.cyan.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                   child: const Icon(Icons.memory, color: AppColors.cyan, size: 22),
                 ),
@@ -498,7 +498,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                   Colors.amber.withValues(alpha: 0.15),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(6),
                               border: Border.all(color: AppColors.warning, width: 1.5),
                             ),
                             child: Column(
@@ -533,7 +533,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF000000),
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Row(
                                       children: [
@@ -608,7 +608,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               color: const Color(0xFF000000),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: Center(
                               child: Column(
@@ -655,7 +655,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF000000),
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(5),
                                 border: Border.all(
                                   color: hasRoom
                                       ? (isAvail ? AppColors.success.withValues(alpha: 0.4) : AppColors.danger.withValues(alpha: 0.4))
@@ -671,7 +671,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                       color: isEsp32
                                           ? AppColors.cyan.withValues(alpha: 0.15)
                                           : AppColors.warning.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Icon(
                                       isEsp32 ? Icons.smart_display : Icons.developer_board,
@@ -806,7 +806,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: const Color(0xFF000000),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: Colors.white10),
                           ),
                           child: Column(

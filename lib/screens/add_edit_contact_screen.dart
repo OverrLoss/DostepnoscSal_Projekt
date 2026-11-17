@@ -302,7 +302,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(8),
                       side: BorderSide(
                         color: isSelected ? catColor : Colors.white24,
                       ),
@@ -421,7 +421,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.black87,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                   ),
                 ),
@@ -466,7 +466,7 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF141414),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: TextFormField(

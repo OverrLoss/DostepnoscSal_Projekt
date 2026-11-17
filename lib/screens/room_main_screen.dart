@@ -491,7 +491,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
           return AlertDialog(
             backgroundColor: const Color(0xFF141414),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
             title: const Row(
               children: [
                 Icon(Icons.cloud_sync, color: AppColors.primary),
@@ -511,7 +511,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFF000000),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(5),
                       border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
                     ),
                     child: Row(
@@ -562,7 +562,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                       fillColor: const Color(0xFF000000),
                       hintText: 'https://sale.pwojtaszek.codes',
                       hintStyle: const TextStyle(color: Colors.white30),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.wifi_find, color: AppColors.cyan, size: 20),
@@ -662,7 +662,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.blueGrey.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(5),
                       border: Border.all(color: AppColors.textSecondary.withValues(alpha: 0.3)),
                     ),
                     child: const Column(
@@ -779,7 +779,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
           return AlertDialog(
             backgroundColor: const Color(0xFF141414),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             title: Row(
               children: [
                 Icon(
@@ -805,7 +805,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: const Color(0xFF000000),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(6),
                               border: Border.all(color: Colors.white12),
                             ),
                             child: Column(
@@ -869,7 +869,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                 backgroundColor: AppColors.danger.withValues(alpha: 0.2),
                                 foregroundColor: AppColors.danger,
                                 side: const BorderSide(color: AppColors.danger),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                               ),
                               icon: const Icon(Icons.logout, size: 18),
                               label: const Text('Wyloguj się'),
@@ -908,7 +908,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                               hintText: 'Login (np. operator_104 lub admin)',
                               hintStyle: const TextStyle(color: Colors.white30),
                               prefixIcon: const Icon(Icons.person, color: Colors.white54, size: 20),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             ),
                           ),
@@ -923,7 +923,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                               hintText: 'Hasło',
                               hintStyle: const TextStyle(color: Colors.white30),
                               prefixIcon: const Icon(Icons.lock, color: Colors.white54, size: 20),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             ),
                           ),
@@ -990,7 +990,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: AppColors.onPrimary,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                               ),
                               onPressed: isLoading
                                   ? null
@@ -1120,13 +1120,13 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(8),
                   onTap: _showAuthDialog,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: chipColor,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: textColor.withValues(alpha: 0.5)),
                     ),
                     child: Row(
@@ -1214,7 +1214,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                 ),
                 icon: const Icon(Icons.download, size: 16),
                 label: const Text(
@@ -1227,7 +1227,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white70),
             color: const Color(0xFF2A2A2A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
             onSelected: (val) {
               if (val == 'tv_dashboard') {
                 _openTvDashboard();
@@ -1354,7 +1354,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                         AppColors.warning.withValues(alpha: 0.2),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                     border: Border.all(color: AppColors.warning, width: 1.5),
                   ),
                   child: Row(
@@ -1767,7 +1767,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: AppColors.glassHi,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
           ),
           child: Row(
             children: [
@@ -2278,7 +2278,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Icon(
                     Icons.drag_indicator_rounded,

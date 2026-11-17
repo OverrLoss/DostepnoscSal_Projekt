@@ -148,7 +148,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           decoration: BoxDecoration(
             color: const Color(0xFF141414),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(6),
             border: Border.all(color: Colors.white12),
           ),
           child: const Row(
@@ -179,7 +179,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: const Color(0xFF141414),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           title: const Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: AppColors.warning),
@@ -243,7 +243,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
       isScrollControlled: true,
       backgroundColor: const Color(0xFF141414),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
       ),
       builder: (ctx) {
         return Padding(
@@ -313,7 +313,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
                             color: catColor.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: catColor.withValues(alpha: 0.5)),
                           ),
                           child: Text(
@@ -451,7 +451,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(5),
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
             ),
             child: const Row(
@@ -481,7 +481,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFF141414),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
@@ -533,7 +533,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                         fontSize: 12,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
                           color: isSelected ? color : Colors.white12,
                         ),
@@ -687,7 +687,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: const Color(0xFF141414),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [
           BoxShadow(
@@ -699,7 +699,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
       ),
       child: InkWell(
         onTap: () => _showContactDetails(contact),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(6),
         child: Padding(
           padding: const EdgeInsets.all(14.0),
           child: Row(
@@ -735,7 +735,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: catColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(4),
                             border: Border.all(color: catColor.withValues(alpha: 0.4)),
                           ),
                           child: Text(
@@ -797,7 +797,7 @@ class AddressBookScreenState extends State<AddressBookScreen> {
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, color: Colors.white54),
                 color: const Color(0xFF2A2A2A),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 onSelected: (val) {
                   if (val == 'edit') {
                     _navigateToEditContact(contact);
@@ -904,7 +904,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
         color: Color(0xFF141414),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
       ),
       child: SafeArea(
         top: false,
@@ -1008,7 +1008,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
                               fontSize: 12,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(6),
                               side: BorderSide(
                                 color: isSel ? AppColors.primary : Colors.white12,
                               ),
@@ -1033,7 +1033,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
               child: Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFF000000),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
@@ -1147,7 +1147,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
                         foregroundColor: Colors.white70,
                         side: const BorderSide(color: Colors.white24),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                       ),
                       child: const Text('ANULUJ'),
                     ),
@@ -1173,7 +1173,7 @@ class _ContactsImportSheetState extends State<_ContactsImportSheet> {
                         foregroundColor: Colors.black87,
                         disabledBackgroundColor: Colors.white12,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                       ),
                       icon: _isImporting
                           ? const SizedBox(

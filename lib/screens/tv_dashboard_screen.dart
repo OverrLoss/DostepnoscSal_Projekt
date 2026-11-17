@@ -138,7 +138,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
                 ),
                 child: const Icon(Icons.school, color: AppColors.primary, size: 28),
@@ -187,7 +187,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: const Color(0xFF141414),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(6),
               border: Border.all(color: Colors.white12),
             ),
             child: Row(
@@ -218,7 +218,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.cyan.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Row(
                     children: [
@@ -353,7 +353,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF111111),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.white12),
         boxShadow: const [
           BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 4)),
@@ -366,7 +366,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               color: const Color(0xFF141414),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
               border: Border(bottom: BorderSide(color: accentColor.withValues(alpha: 0.3))),
             ),
             child: Row(
@@ -391,7 +391,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     color: Colors.black26,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                   child: Text(
                     'Wolne: $free / $total',
@@ -409,7 +409,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
           // Map Display
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
               child: InteractiveFloorMap(
                 floor: floorName,
                 rooms: _rooms,
@@ -452,7 +452,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
           final isAvail = r.isAvailable;
           return Center(
             child: InkWell(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
               onTap: () => _toggleAvailability(r),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -460,7 +460,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   color: isAvail
                       ? AppColors.success.withValues(alpha: 0.12)
                       : AppColors.danger.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(4),
                   border: Border.all(
                     color: isAvail
                         ? AppColors.success.withValues(alpha: 0.4)

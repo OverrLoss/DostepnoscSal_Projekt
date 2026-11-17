@@ -157,7 +157,7 @@ Future<String?> showAvatarPickerSheet({
     isScrollControlled: true,
     backgroundColor: const Color(0xFF141414),
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
     ),
     builder: (ctx) {
       return Padding(
@@ -208,7 +208,7 @@ Future<String?> showAvatarPickerSheet({
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(6),
                         side: const BorderSide(color: Colors.white12),
                       ),
                     ),
@@ -244,7 +244,7 @@ Future<String?> showAvatarPickerSheet({
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(6),
                         side: const BorderSide(color: Colors.white12),
                       ),
                     ),
@@ -293,7 +293,7 @@ Future<String?> showAvatarPickerSheet({
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: const Color(0xFF000000),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: Colors.white12),
               ),
               child: GridView.builder(
@@ -309,13 +309,13 @@ Future<String?> showAvatarPickerSheet({
 
                   return InkWell(
                     onTap: () => Navigator.of(ctx).pop('preset:$emoji'),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(6),
                     child: Container(
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.primary.withValues(alpha: 0.25)
                             : Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(6),
                         border: Border.all(
                           color: isSelected ? AppColors.primary : Colors.transparent,
                           width: 1.5,

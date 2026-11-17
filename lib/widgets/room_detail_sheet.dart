@@ -19,7 +19,7 @@ void showRoomDetailSheet({
     isScrollControlled: true,
     backgroundColor: const Color(0xFF141414),
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
     ),
     builder: (ctx) {
       int currentLimitSec = room.defaultAlertLimitSeconds ?? (room.activeSession?.alertLimitSeconds ?? 900);
@@ -60,7 +60,7 @@ void showRoomDetailSheet({
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
                           color: statusColor.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(6),
                           border: Border.all(color: statusColor, width: 1.5),
                         ),
                         child: Text(
@@ -130,7 +130,7 @@ void showRoomDetailSheet({
                         color: room.isAlertDue
                             ? Colors.red.withValues(alpha: 0.25)
                             : const Color(0xFF000000),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(6),
                         border: Border.all(
                           color: room.isAlertDue ? AppColors.warning : AppColors.danger.withValues(alpha: 0.4),
                           width: room.isAlertDue ? 1.5 : 1,
@@ -221,7 +221,7 @@ void showRoomDetailSheet({
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: const Color(0xFF000000),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: Colors.white12),
                     ),
                     child: Column(
@@ -249,7 +249,7 @@ void showRoomDetailSheet({
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
                                 color: AppColors.warning.withValues(alpha: 0.18),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(4),
                                 border: Border.all(color: AppColors.warning.withValues(alpha: 0.6)),
                               ),
                               child: isSavingLimit
@@ -387,14 +387,14 @@ void showRoomDetailSheet({
                                         }
                                       }
                                     },
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(5),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                                 decoration: BoxDecoration(
                                   color: ![900, 1800, 2700, 3600, 5400, 7200].contains(currentLimitSec)
                                       ? AppColors.warning.withValues(alpha: 0.25)
                                       : Colors.white.withValues(alpha: 0.06),
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(5),
                                   border: Border.all(
                                     color: ![900, 1800, 2700, 3600, 5400, 7200].contains(currentLimitSec)
                                         ? AppColors.warning
@@ -451,7 +451,7 @@ void showRoomDetailSheet({
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isAvailable ? AppColors.danger : AppColors.success,
                         foregroundColor: Colors.black87,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                         elevation: 4,
                       ),
                       icon: Icon(
@@ -553,12 +553,12 @@ Widget _buildLimitChip({
 }) {
   return InkWell(
     onTap: onTap,
-    borderRadius: BorderRadius.circular(10),
+    borderRadius: BorderRadius.circular(5),
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: selected ? AppColors.warning.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(5),
         border: Border.all(
           color: selected ? AppColors.warning : Colors.white12,
           width: selected ? 1.5 : 1,

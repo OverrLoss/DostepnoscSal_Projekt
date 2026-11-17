@@ -67,14 +67,14 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
 
     return AlertDialog(
       backgroundColor: const Color(0xFF141414),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       title: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: Colors.blueAccent.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: const Icon(Icons.analytics, color: Colors.blueAccent, size: 20),
           ),
@@ -149,7 +149,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: AppColors.danger.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(5),
                           border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
                         ),
                         child: const Row(
@@ -207,7 +207,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFF000000),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.white10),
       ),
       child: Column(
