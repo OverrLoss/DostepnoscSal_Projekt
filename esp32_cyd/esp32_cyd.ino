@@ -99,7 +99,7 @@ enum ScreenMode {
 ScreenMode currentScreen = SCREEN_MAIN;
 
 // --- DANE WERSJI I AKTUALIZACJI OTA ---
-const char* CYD_FIRMWARE_VERSION = "1.3.6";
+const char* CYD_FIRMWARE_VERSION = "1.3.7";
 bool isDisplayInverted = true;
 unsigned long lastOtaCheck = 0;
 const unsigned long OTA_CHECK_INTERVAL = 300000; // Sprawdzaj co 5 minut w tle (300 s)

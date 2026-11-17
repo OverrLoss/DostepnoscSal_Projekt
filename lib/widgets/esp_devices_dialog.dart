@@ -839,7 +839,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                 ),
                                 const SizedBox(height: 4),
                                 const Text(
-                                  '• Firmware: v1.3.6 z Auto-OTA i odświeżaniem minutowym (bez migotania ekranu)\n'
+                                  '• Firmware: v1.3.7 z zegarem serwerowym, Auto-OTA i odświeżaniem minutowym (bez migotania ekranu)\n'
                                   '• Wyświetlacz: SPI TFT LCD 320x240 + Dotyk XPT2046 + Dioda RGB (RGB LED)\n'
                                   '• Pamięć: NVS + MicroSD (zapisywane sieci Wi-Fi i konfiguracja sal)\n'
                                   '• Zmiana statusu: 1 dotknięcie dużego przycisku ZAJMIJ / ZWOLNIJ\n'

@@ -60,11 +60,11 @@ Plik w folderze `Dokumenty/Arduino/libraries/TFT_eSPI/User_Setup.h` został już
 - **Upload Speed**: `921600`
 
 ### Jak zaktualizować oprogramowanie na serwerze (dla wszystkich urządzeń CYD):
-1. Dokonaj zmian w kodzie `esp32_cyd.ino` i zwiększ stałą `CYD_FIRMWARE_VERSION` (np. na `"1.3.7"`).
+1. Dokonaj zmian w kodzie `esp32_cyd.ino` i zwiększ stałą `CYD_FIRMWARE_VERSION` (np. na `"1.3.8"`).
 2. Skompiluj binarkę:
    ```powershell
    arduino-cli compile --export-binaries --fqbn "esp32:esp32:esp32:PartitionScheme=min_spiffs" "esp32_cyd\esp32_cyd.ino"
    ```
 3. Skopiuj wygenerowany plik `esp32_cyd\build\esp32.esp32.esp32\esp32_cyd.ino.bin` do `server\cyd_firmware.bin`.
-4. Zmień wersję w `sync_server.py` w obu miejscach: `get_firmware_version()` (`version = "1.3.7"`) oraz `get_device_assigned_room_state()` (`fw_ver = "1.3.7"`). Różnica wersji między tymi miejscami a `.ino` powoduje ciągłe restarty OTA.
+4. Zmień wersję w `sync_server.py` w obu miejscach: `get_firmware_version()` (`version = "1.3.8"`) oraz `get_device_assigned_room_state()` (`fw_ver = "1.3.8"`). Różnica wersji między tymi miejscami a `.ino` powoduje ciągłe restarty OTA.
 5. Wszystkie urządzenia CYD w budynku połączone z Wi-Fi w ciągu 5 minut automatycznie pobiorą nowy firmware i zaktualizują się same bez dotykania kabla!
