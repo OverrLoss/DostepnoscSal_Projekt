@@ -66,6 +66,10 @@ app.*.map.json
 # Cloudflare credentials and local configs
 .cloudflared/
 
+# Arduino build artifacts (contain machine-specific absolute paths)
+esp32_cyd/build/
+esp8266_d1mini/build/
+
 # Python cache
 __pycache__/
 *.py[cod]

@@ -74,8 +74,8 @@ if (Test-Path $localCfExe) {
     Write-Host "      [OK] Wykryto przenosny plik cloudflared.exe w projekcie." -ForegroundColor Green
 } else {
     $systemPaths = @(
-        "C:\Program Files (x86)\cloudflared\cloudflared.exe",
-        "C:\Program Files\cloudflared\cloudflared.exe"
+        (Join-Path ${env:ProgramFiles(x86)} "cloudflared\cloudflared.exe"),
+        (Join-Path $env:ProgramFiles "cloudflared\cloudflared.exe")
     )
     foreach ($p in $systemPaths) {
         if (Test-Path $p) {

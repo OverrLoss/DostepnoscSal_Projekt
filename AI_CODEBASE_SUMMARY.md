@@ -173,6 +173,6 @@ pw180088 / DostepnoscSal_Projekt
 - Aplikacja automatycznie konfiguruje adres synchronizacji, eliminując potrzebę ręcznego wpisywania adresu IP przez użytkownika.
 
 ### 5.4. Tunel Cloudflare i Praca w Tle na Windows
-- Skrypt [run_server_and_tunnel.bat](file:///C:/Users/Victus/Desktop/DostepnoscSal_Projekt/run_server_and_tunnel.bat) uruchamia procesy Pythona oraz Cloudflared jako niezależne procesy Windows (`-WindowStyle Hidden`).
+- Skrypt [run_server_and_tunnel.bat](run_server_and_tunnel.bat) uruchamia procesy Pythona oraz Cloudflared jako niezależne procesy Windows (`-WindowStyle Hidden`).
 - Konsola może zostać zamknięta po 10 sekundach, a serwer i tunel kontynuują pracę w tle.
 - Wybranie opcji `[4]` z menu zatrzymuje tylko procesy związane z serwerem i tunelem, nie naruszając innych usług systemowych.

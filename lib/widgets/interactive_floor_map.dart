@@ -819,139 +819,113 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
 
     // Karta garażu zawsze na środku obrysu garażu. Zapisana pozycja tej sali
     // dotyczy kafelka na planie parteru, więc tu jej nie używamy (wcześniej karta
-    // wychodziła poza obrys i ucinała napisy).
+    // wychodziła poza obrys i ucinała napisy). Nie jest przesuwana w trybie edycji.
     const offset = Offset(50, 140);
-    const isDragging = false;
 
     return [
       Positioned(
         left: offset.dx,
         top: offset.dy,
-        child: GestureDetector(
-          onPanStart: null,
-          onPanUpdate: null,
-          onPanEnd: null,
-          child: InkWell(
-            onTap: () {
-              if (!_isEditMode) widget.onRoomQuickToggle(garazRoom);
-            },
-            onLongPress: () {
-              if (!_isEditMode) widget.onRoomTap(garazRoom);
-            },
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              width: 260,
-              height: 240,
-              decoration: BoxDecoration(
-                color: (garazRoom.isAvailable)
-                    ? AppColors.success.withValues(alpha: 0.12)
-                    : AppColors.danger.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isDragging
-                      ? AppColors.primary
-                      : ((garazRoom.isAvailable) ? AppColors.success : AppColors.danger),
-                  width: isDragging ? 2 : 1,
-                ),
+        child: InkWell(
+          onTap: () {
+            if (!_isEditMode) widget.onRoomQuickToggle(garazRoom);
+          },
+          onLongPress: () {
+            if (!_isEditMode) widget.onRoomTap(garazRoom);
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            width: 260,
+            height: 240,
+            decoration: BoxDecoration(
+              color: (garazRoom.isAvailable)
+                  ? AppColors.success.withValues(alpha: 0.12)
+                  : AppColors.danger.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: (garazRoom.isAvailable) ? AppColors.success : AppColors.danger,
+                width: 1,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (_isEditMode) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(6),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.directions_car_rounded,
+                  size: 44,
+                  color: (garazRoom.isAvailable) ? AppColors.success : AppColors.danger,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Garaż podziemny',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  garazRoom.name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: ((garazRoom.isAvailable)
+                            ? AppColors.success
+                            : (garazRoom.isAlertDue ? AppColors.warning : AppColors.danger))
+                        .withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        (garazRoom.isAvailable)
+                            ? Icons.check_circle
+                            : (garazRoom.isAlertDue ? Icons.warning_amber_rounded : Icons.cancel),
+                        size: 14,
+                        color: Colors.white,
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.open_with, color: Colors.black, size: 14),
-                          SizedBox(width: 4),
-                          Text('Przeciągnij', style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  Icon(
-                    Icons.directions_car_rounded,
-                    size: 44,
-                    color: (garazRoom.isAvailable) ? AppColors.success : AppColors.danger,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Garaż podziemny',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    garazRoom.name,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: ((garazRoom.isAvailable)
-                              ? AppColors.success
-                              : (garazRoom.isAlertDue ? AppColors.warning : AppColors.danger))
-                          .withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          (garazRoom.isAvailable)
-                              ? Icons.check_circle
-                              : (garazRoom.isAlertDue ? Icons.warning_amber_rounded : Icons.cancel),
-                          size: 14,
+                      const SizedBox(width: 6),
+                      Text(
+                        (garazRoom.isAvailable)
+                            ? 'Wolny'
+                            : (garazRoom.isAlertDue
+                                ? 'Przekroczono czas (${garazRoom.durationFormatted})'
+                                : 'Zajęty (${garazRoom.durationFormatted})'),
+                        style: const TextStyle(
                           color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          (garazRoom.isAvailable)
-                              ? 'Wolny'
-                              : (garazRoom.isAlertDue
-                                  ? 'Przekroczono czas (${garazRoom.durationFormatted})'
-                                  : 'Zajęty (${garazRoom.durationFormatted})'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  if (!garazRoom.isAvailable && garazRoom.occupantName != null) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.person_rounded, size: 14, color: Colors.white70),
-                        const SizedBox(width: 4),
-                        Text(
-                          garazRoom.occupantName!,
-                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ],
+                ),
+                if (!garazRoom.isAvailable && garazRoom.occupantName != null) ...[
                   const SizedBox(height: 8),
-                  Text(
-                    _isEditMode ? 'Przeciągaj, aby zmienić pozycję' : 'Dotknij, aby zmienić dostępność',
-                    style: const TextStyle(color: Colors.white38, fontSize: 10),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.person_rounded, size: 14, color: Colors.white70),
+                      const SizedBox(width: 4),
+                      Text(
+                        garazRoom.occupantName!,
+                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                    ],
                   ),
                 ],
-              ),
+                const SizedBox(height: 8),
+                Text(
+                  _isEditMode ? 'Pozycja garażu jest stała' : 'Dotknij, aby zmienić dostępność',
+                  style: const TextStyle(color: Colors.white38, fontSize: 10),
+                ),
+              ],
             ),
           ),
         ),

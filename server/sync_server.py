@@ -54,8 +54,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 8,
-        "versionName": "1.3.3",
+        "versionCode": 11,
+        "versionName": "1.3.6",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -1664,11 +1664,13 @@ def get_device_assigned_room_state(
     cursor.execute(f"UPDATE devices SET {', '.join(update_fields)} WHERE id = ?", update_params)
     db.commit()
 
-    fw_ver = "1.3.6"
-    bin_name = "cyd_firmware.bin" if chip == "esp32" else "esp8266_firmware.bin"
+    is_esp8266 = "8266" in chip or "wemos" in chip
+    fw_ver = "1.3.5" if is_esp8266 else "1.3.6"
+    bin_name = "esp8266_firmware.bin" if is_esp8266 else "cyd_firmware.bin"
     bin_path = os.path.join(BASE_DIR, bin_name)
     has_update = os.path.exists(bin_path)
-    fw_url = f"https://sale.pwojtaszek.codes/api/v1/firmware/download?chip={chip}&v=136"
+    chip_tag = "esp8266" if is_esp8266 else "esp32"
+    fw_url = f"https://sale.pwojtaszek.codes/api/v1/firmware/download?chip={chip_tag}&v={fw_ver.replace('.', '')}"
 
     return {
         "device_id": device["id"],
@@ -1979,13 +1981,11 @@ def _get_firmware_file(chip: str) -> str:
     return os.path.join(BASE_DIR, "cyd_firmware.bin")
 
 @app.get("/api/v1/firmware/version", tags=["Firmware"])
-@app.get("/api/v1/cyd-version", tags=["Firmware"])
-@app.get("/api/v1/esp8266-version", tags=["Firmware"])
 def get_firmware_version(chip: str = "esp32"):
     fw_path = _get_firmware_file(chip)
     fw_size = os.path.getsize(fw_path) if os.path.exists(fw_path) else 0
     norm_chip = "esp8266" if "8266" in chip.lower() else "esp32"
-    version = "1.3.6"
+    version = "1.3.5" if norm_chip == "esp8266" else "1.3.6"
     version_tag = version.replace(".", "")
     return JSONResponse(
         content={
@@ -1994,10 +1994,18 @@ def get_firmware_version(chip: str = "esp32"):
             "has_update": os.path.exists(fw_path),
             "firmware_url": f"https://sale.pwojtaszek.codes/api/v1/firmware/download?chip={norm_chip}&v={version_tag}",
             "firmware_size": fw_size,
-            "release_notes": "Wersja 1.3.6: Automatyczne odswiezanie listy wolnych sal co 5 sekund (bez koniecznosci recznego klikania Odswiez)."
+            "release_notes": f"Wersja {version}: Automatyczne odswiezanie listy wolnych sal co 5 sekund (bez koniecznosci recznego klikania Odswiez)."
         },
         headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
     )
+
+@app.get("/api/v1/cyd-version", tags=["Firmware"])
+def get_cyd_version():
+    return get_firmware_version("esp32")
+
+@app.get("/api/v1/esp8266-version", tags=["Firmware"])
+def get_esp8266_version():
+    return get_firmware_version("esp8266")
 
 @app.get("/api/v1/firmware/download", tags=["Firmware"])
 @app.get("/api/v1/cyd-firmware.bin", tags=["Firmware"])

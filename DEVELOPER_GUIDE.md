@@ -41,7 +41,7 @@ Serwer:
 - Wypisuje w konsoli lokalne adresy IP w sieci Wi-Fi.
 
 > [!TIP]
-> **Na systemie Windows**: Wystarczy dwukrotnie kliknąć plik [run_server_and_tunnel.bat](file:///C:/Users/Victus/Desktop/DostepnoscSal_Projekt/run_server_and_tunnel.bat). Skrypt automatycznie uruchomi serwer i tunel w tle, otworzy przeglądarkę i udostępni interaktywne menu zarządzania.
+> **Na systemie Windows**: Wystarczy dwukrotnie kliknąć plik [run_server_and_tunnel.bat](run_server_and_tunnel.bat). Skrypt automatycznie uruchomi serwer i tunel w tle, otworzy przeglądarkę i udostępni interaktywne menu zarządzania.
 
 ### Krok 3: Uruchomienie Aplikacji Flutter w Trybie Deweloperskim
 Aby uruchomić aplikację w przeglądarce Chrome:
@@ -77,11 +77,11 @@ Aby aplikacja mogła być automatycznie pobierana przez użytkowników w ramach 
 
 ### 3.3. Zwiększanie Wersji (Version Bump)
 Przed publikacją nowej wersji należy:
-1. W [pubspec.yaml](file:///C:/Users/Victus/Desktop/DostepnoscSal_Projekt/pubspec.yaml) zwiększyć wersję, np.:
+1. W [pubspec.yaml](pubspec.yaml) zwiększyć wersję, np.:
    ```yaml
    version: 1.2.1+5  # versionName: 1.2.1, versionCode: 5
    ```
-2. W [server/sync_server.py](file:///C:/Users/Victus/Desktop/DostepnoscSal_Projekt/server/sync_server.py) w metodzie `/api/app-version` zaktualizować `versionCode` oraz `versionName`:
+2. W [server/sync_server.py](server/sync_server.py) w metodzie `/api/app-version` zaktualizować `versionCode` oraz `versionName`:
    ```python
    "versionCode": 5,
    "versionName": "1.2.1",
@@ -124,7 +124,7 @@ Jeśli chcesz uruchomić tunel internetowy Cloudflare na nowym komputerze:
 
 ## 5. Programowanie Mikrokontrolera ESP8266 (Wemos D1 mini)
 
-Kod źródłowy znajduje się w [esp8266_d1mini/esp8266_d1mini.ino](file:///C:/Users/Victus/Desktop/DostepnoscSal_Projekt/esp8266_d1mini/esp8266_d1mini.ino).
+Kod źródłowy znajduje się w [esp8266_d1mini/esp8266_d1mini.ino](esp8266_d1mini/esp8266_d1mini.ino).
 
 ### Schemat Połączeń Sprzętowych:
 - **Dioda ZIELONA (Sala Wolna)**:
@@ -154,7 +154,7 @@ Kod źródłowy znajduje się w [esp8266_d1mini/esp8266_d1mini.ino](file:///C:/U
 ## 6. Ważne Zasady Architektoniczne dla Deweloperów
 
 1. **Wielkość liter w języku polskim**:
-   Polskie znaki diakrytyczne (np. `ż` / `Ż`) w standardowym `toUpperCase()` mogą zachowywać się niejednolicie w starszych silnikach JS. Wyszukiwanie sal w [interactive_floor_map.dart](file:///C:/Users/Victus/Desktop/DostepnoscSal_Projekt/lib/widgets/interactive_floor_map.dart) zawiera bezpieczne dopasowania z obsługą wielkich i małych liter oraz wariantów bez polskich znaków (`GARAZ` / `GARAŻ`).
+   Polskie znaki diakrytyczne (np. `ż` / `Ż`) w standardowym `toUpperCase()` mogą zachowywać się niejednolicie w starszych silnikach JS. Wyszukiwanie sal w [interactive_floor_map.dart](lib/widgets/interactive_floor_map.dart) zawiera bezpieczne dopasowania z obsługą wielkich i małych liter oraz wariantów bez polskich znaków (`GARAZ` / `GARAŻ`).
 2. **Kompilacja wieloplatformowa Web vs Mobile**:
    W kodzie unika się importowania `dart:io` bezpośrednio w plikach współdzielonych z Webem. Zamiast tego zastosowano wzorzec Conditional Exports (np. `network_discovery_io.dart` vs `network_discovery_web.dart`), aby zapobiec błędom kompilacji WebAssembly/JS.
 3. **Płynność skalowania**:

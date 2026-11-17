@@ -35,8 +35,8 @@ ingress:
 function Get-CloudflaredPath {
     $paths = @(
         (Join-Path $LocalCfDir "cloudflared.exe"),
-        "C:\Program Files (x86)\cloudflared\cloudflared.exe",
-        "C:\Program Files\cloudflared\cloudflared.exe"
+        (Join-Path ${env:ProgramFiles(x86)} "cloudflared\cloudflared.exe"),
+        (Join-Path $env:ProgramFiles "cloudflared\cloudflared.exe")
     )
     foreach ($p in $paths) {
         if (Test-Path $p) { return $p }
