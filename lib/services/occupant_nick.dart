@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Zapamiętany nick osoby zajmującej salę (żeby nie wpisywać go za każdym razem).
+/// Twoja nazwa (nick) zapisana na urządzeniu — podpisuje sale, które zajmujesz.
 class OccupantNick {
   OccupantNick._();
 

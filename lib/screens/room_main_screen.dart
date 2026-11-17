@@ -27,6 +27,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   String _selectedFloor = 'Piętro';
+
+  /// Twoja nazwa — podpisuje sale, które zajmujesz. Zmieniana przyciskiem w nagłówku.
+  String _myNick = '';
   int _currentViewIndex = 0; // 0 = Mapa, 1 = Lista
   String _statusFilter = 'Wszystkie'; // 'Wszystkie', 'Wolne', 'Zajęte'
   bool _isReorderMode = false;
@@ -93,6 +96,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     super.initState();
     _loadSavedState();
     _loadRooms();
+    OccupantNick.load().then((nick) {
+      if (mounted) setState(() => _myNick = nick);
+    });
 
     // WebSocket: instant updates when ESP changes room status
     final sync = RoomSyncService.instance;
@@ -160,15 +166,13 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       return;
     }
 
-    // Przy zajmowaniu sali zapisujemy, kto ją zajmuje.
+    // Zajmowana sala dostaje Twoją nazwę (albo nazwę konta, jeśli jej nie ustawiłeś).
     String? occupantName;
     if (room.isAvailable) {
-      if (sync.isLoggedIn && sync.userDisplayName.trim().isNotEmpty) {
+      if (_myNick.isNotEmpty) {
+        occupantName = _myNick;
+      } else if (sync.isLoggedIn && sync.userDisplayName.trim().isNotEmpty) {
         occupantName = sync.userDisplayName.trim();
-      } else {
-        final picked = await _askOccupantName(room);
-        if (picked == null) return; // anulowano
-        occupantName = picked.isEmpty ? null : picked;
       }
     }
 
@@ -220,38 +224,43 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     }
   }
 
-  /// Pyta o nick osoby zajmującej salę. Zwraca null, gdy anulowano,
-  /// pusty tekst, gdy wybrano „Bez podpisu”.
-  Future<String?> _askOccupantName(Room room) async {
-    final saved = await OccupantNick.load();
-    if (!mounted) return null;
-    final controller = TextEditingController(text: saved);
+  /// Ustawianie / zmiana Twojej nazwy. Sale, które zajmujesz pod starą
+  /// nazwą, od razu dostają nową.
+  Future<void> _editMyNick() async {
+    final controller = TextEditingController(text: _myNick);
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(
-          'Kto zajmuje salę ${room.number}?',
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600),
+        title: const Text(
+          'Twoja nazwa',
+          style: TextStyle(color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600),
         ),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 40,
-          textCapitalization: TextCapitalization.words,
-          textInputAction: TextInputAction.done,
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: const InputDecoration(hintText: 'Twój nick lub imię'),
-          onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Będzie widoczna przy salach, które zajmujesz.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              maxLength: 40,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.done,
+              style: const TextStyle(color: AppColors.textPrimary),
+              decoration: const InputDecoration(hintText: 'Nick lub imię'),
+              onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Anuluj', style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(''),
-            child: const Text('Bez podpisu', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -260,15 +269,79 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               elevation: 0,
             ),
             onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Zajmij'),
+            child: const Text('Zapisz'),
           ),
         ],
       ),
     );
-    if (result != null && result.isNotEmpty) {
-      await OccupantNick.save(result);
+    if (result == null || result == _myNick) return;
+
+    final oldNick = _myNick;
+    await OccupantNick.save(result);
+    if (!mounted) return;
+    setState(() => _myNick = result);
+
+    // Sale zajęte pod starą nazwą dostają nową
+    if (oldNick.isNotEmpty) {
+      final mine = _rooms.where((r) => r.occupantName == oldNick).toList();
+      for (final r in mine) {
+        await RoomSyncService.instance.changeRoomOccupant(r.number, result.isEmpty ? null : result);
+      }
+      if (mine.isNotEmpty) await _loadRooms(showLoading: false);
     }
-    return result;
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.isEmpty ? 'Usunięto Twoją nazwę' : 'Twoja nazwa: $result'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Widget _buildMyNickButton() {
+    final hasNick = _myNick.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: InkWell(
+        onTap: _editMyNick,
+        borderRadius: BorderRadius.circular(AppColors.radiusPill),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.glass,
+            borderRadius: BorderRadius.circular(AppColors.radiusPill),
+            border: Border.all(color: AppColors.glassStroke),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                hasNick ? Icons.person_rounded : Icons.person_add_alt_1_rounded,
+                size: 15,
+                color: hasNick ? AppColors.textPrimary : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 5),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 110),
+                child: Text(
+                  hasNick ? _myNick : 'Ustaw nazwę',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: hasNick ? AppColors.textPrimary : AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _setAllFloorAvailability(bool isAvailable) async {
@@ -993,6 +1066,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           children: [
             const Text(
               'Dostępność sal',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.2,
@@ -1002,11 +1077,15 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             ),
             const Text(
               'Politechnika Rzeszowska, wersja 1.3.1',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
             ),
           ],
         ),
         actions: [
+          _buildMyNickButton(),
+          const SizedBox(width: 4),
           // Auth Role Indicator & Login Button
           ValueListenableBuilder<Map<String, dynamic>?>(
             valueListenable: RoomSyncService.instance.authNotifier,

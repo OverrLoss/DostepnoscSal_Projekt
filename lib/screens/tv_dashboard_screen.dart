@@ -5,6 +5,7 @@ import '../services/room_database_helper.dart';
 import '../widgets/interactive_floor_map.dart';
 import '../theme/app_theme.dart';
 import '../services/room_sync_service.dart';
+import '../services/occupant_nick.dart';
 
 class TvDashboardScreen extends StatefulWidget {
   const TvDashboardScreen({super.key});
@@ -64,11 +65,16 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
   Future<void> _toggleAvailability(Room room) async {
     if (room.id == null) return;
     final sync = RoomSyncService.instance;
+    String? occupantName;
+    if (room.isAvailable) {
+      final nick = await OccupantNick.load();
+      occupantName = nick.isNotEmpty ? nick : (sync.isLoggedIn ? sync.userDisplayName : null);
+    }
     await RoomDatabaseHelper.instance.toggleAvailability(
       room.id!,
       room.isAvailable,
       roomNumber: room.number,
-      occupantName: room.isAvailable && sync.isLoggedIn ? sync.userDisplayName : null,
+      occupantName: occupantName,
     );
     await _loadRooms(silent: true);
   }

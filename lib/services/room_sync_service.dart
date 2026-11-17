@@ -473,6 +473,23 @@ class RoomSyncService {
     }
   }
 
+  /// Zmienia nazwę osoby przy zajętej sali (po zmianie własnej nazwy).
+  Future<bool> changeRoomOccupant(String roomId, String? occupantName) async {
+    try {
+      final uri = _buildUri('/api/v1/rooms/$roomId/occupant');
+      final res = await http
+          .patch(
+            uri,
+            headers: _headers(),
+            body: json.encode({'occupant_name': occupantName}),
+          )
+          .timeout(const Duration(seconds: 5));
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> toggleRemoteAvailability(String roomNumber, bool currentAvailable, {String? occupantName}) async {
     final nextStatus = currentAvailable ? 'occupied' : 'free';
     return await changeRoomStatus(roomNumber, nextStatus, occupantName: occupantName);

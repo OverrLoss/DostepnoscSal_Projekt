@@ -942,6 +942,39 @@ def get_room_detailed(room_id: str, user: sqlite3.Row = Depends(require_current_
         "updated_at": r["updated_at"]
     }
 
+class OccupantChangeRequest(BaseModel):
+    occupant_name: Optional[str] = Field(None, max_length=40)
+
+@app.patch("/api/v1/rooms/{room_id}/occupant", tags=["Rooms"])
+async def change_room_occupant(
+    room_id: str,
+    req: OccupantChangeRequest,
+    user: Optional[sqlite3.Row] = Depends(get_current_user_optional),
+    db: sqlite3.Connection = Depends(get_db)
+):
+    """Zmienia nazwę osoby przy aktywnej sesji (np. gdy ktoś zmienił swoją nazwę)."""
+    if user and user["role"] == "operator" and user["room_id"] != room_id:
+        raise DomainException(403, "FORBIDDEN", "Operator może zarządzać wyłącznie swoją przypisaną salą.")
+
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM occupancy_sessions WHERE room_id = ? AND ended_at IS NULL", (room_id,))
+    session = cursor.fetchone()
+    if not session:
+        raise DomainException(409, "ROOM_NOT_OCCUPIED", "Sala nie jest zajęta.")
+
+    occupant = " ".join((req.occupant_name or "").split())[:40] or None
+    cursor.execute("UPDATE occupancy_sessions SET occupant_name = ? WHERE id = ?", (occupant, session["id"]))
+    db.commit()
+
+    cursor.execute("SELECT * FROM occupancy_sessions WHERE id = ?", (session["id"],))
+    formatted_session = format_active_session(cursor.fetchone())
+    await ws_manager.broadcast("room.updated", {
+        "room_id": room_id,
+        "status": "occupied",
+        "active_session": formatted_session
+    })
+    return {"data": {"room_id": room_id, "active_session": formatted_session}}
+
 @app.patch("/api/v1/rooms/{room_id}/status", tags=["Rooms"])
 @app.post("/api/v1/rooms/{room_id}/status", tags=["Rooms"])
 async def change_room_status(
