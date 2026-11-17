@@ -337,10 +337,21 @@ def init_db():
             """, (
                 r_id, r["name"], f"Poziom {r['floor']}", r["floor"],
                 None, r["category"], r["description"], r["capacity"],
-                r.get("posX"), r.get("posY"), idx, now, now
+                None, None, idx, now, now  # pozycje domyślne z projektu planu w aplikacji
             ))
         conn.commit()
         print(f"[DB] Seeded {len(INITIAL_ROOMS)} initial rooms.")
+
+    # Migracja: dawne startowe współrzędne z INITIAL_ROOMS nie pasowały do planu
+    # budynku (np. sala 9 na górze, HOL na wejściu). Sale, których nikt nie
+    # przesunął ręcznie, wracają na swoje domyślne miejsca (posX/posY = NULL).
+    for r in INITIAL_ROOMS:
+        if r.get("posX") is not None:
+            cursor.execute(
+                "UPDATE rooms SET posX = NULL, posY = NULL WHERE id = ? AND posX = ? AND posY = ?",
+                (r["number"], r["posX"], r["posY"]),
+            )
+    conn.commit()
 
     # Seed Default Administrator if no users
     cursor.execute("SELECT COUNT(*) FROM users")

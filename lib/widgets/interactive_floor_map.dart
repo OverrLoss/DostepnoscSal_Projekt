@@ -669,17 +669,20 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final garazRoom = _findRoom('Garaż') ?? _findRoom('GARAŻ');
     if (garazRoom == null) return [];
 
-    final offset = _getRoomOffset(garazRoom, const Offset(50, 140));
-    final isDragging = _activeDraggingRoomId == garazRoom.id;
+    // Karta garażu zawsze na środku obrysu garażu. Zapisana pozycja tej sali
+    // dotyczy kafelka na planie parteru, więc tu jej nie używamy (wcześniej karta
+    // wychodziła poza obrys i ucinała napisy).
+    const offset = Offset(50, 140);
+    const isDragging = false;
 
     return [
       Positioned(
         left: offset.dx,
         top: offset.dy,
         child: GestureDetector(
-          onPanStart: _isEditMode ? (_) => _onPanStart(garazRoom, offset) : null,
-          onPanUpdate: _isEditMode ? (details) => _onPanUpdate(garazRoom, details, 260, 240) : null,
-          onPanEnd: _isEditMode ? (_) => _onPanEnd(garazRoom, 260, 240) : null,
+          onPanStart: null,
+          onPanUpdate: null,
+          onPanEnd: null,
           child: InkWell(
             onTap: () {
               if (!_isEditMode) widget.onRoomQuickToggle(garazRoom);
