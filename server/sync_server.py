@@ -54,8 +54,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 12,
-        "versionName": "1.3.7",
+        "versionCode": 13,
+        "versionName": "1.3.8",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
