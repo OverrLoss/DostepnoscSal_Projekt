@@ -34,4 +34,24 @@ void main() {
     expect(toggled.statusText, 'Niedostępna (Zajęta)');
     expect(toggled.toMap()['isAvailable'], 0);
   });
+
+  test('Przerwa jest niedostępna, ale nie ma timera', () {
+    final room = Room(number: '112', name: 'Druk 3D', floor: 'Piętro', isBreak: true);
+    expect(room.isBreak, true);
+    expect(room.isAvailable, false);
+    expect(room.status, 'occupied');
+    expect(room.statusText, 'Niedostępna (Przerwa)');
+    expect(room.durationFormatted, '');
+
+    expect(room.toMap()['is_break'], 1);
+    final restored = Room.fromMap(room.toMap());
+    expect(restored.isBreak, true);
+    expect(restored.isAvailable, false);
+    expect(restored.statusText, 'Niedostępna (Przerwa)');
+
+    final ended = room.copyWith(isBreak: false, isAvailable: true);
+    expect(ended.isBreak, false);
+    expect(ended.isAvailable, true);
+    expect(ended.statusText, 'Dostępna (Wolna)');
+  });
 }

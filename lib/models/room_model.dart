@@ -53,6 +53,8 @@ class Room {
   final String floor;
   final bool isAvailable;
   final String status; // 'free' or 'occupied'
+  /// Przerwa: sala niedostępna (status occupied), ale bez sesji i bez timera.
+  final bool isBreak;
   final String category;
   final String description;
   final int capacity;
@@ -80,8 +82,9 @@ class Room {
     required this.number,
     required this.name,
     required this.floor,
-    this.isAvailable = true,
+    bool isAvailable = true,
     String? status,
+    this.isBreak = false,
     this.category = 'Laboratorium',
     this.description = '',
     this.capacity = 30,
@@ -97,12 +100,15 @@ class Room {
     this.defaultAlertLimitSeconds,
     this.operatorId,
     this.deviceId,
-  })  : status = status ?? (isAvailable ? 'free' : 'occupied'),
+  })  : isAvailable = isBreak ? false : isAvailable,
+        status = status ?? (isBreak ? 'occupied' : (isAvailable ? 'free' : 'occupied')),
         updatedAt = updatedAt ?? DateTime.now().toIso8601String();
 
   String get displayName => number == name ? number : '$number - $name';
 
-  String get statusText => (status == 'free' || isAvailable) ? 'Dostępna (Wolna)' : 'Niedostępna (Zajęta)';
+  String get statusText => isBreak
+      ? 'Niedostępna (Przerwa)'
+      : (status == 'free' || isAvailable) ? 'Dostępna (Wolna)' : 'Niedostępna (Zajęta)';
 
   bool get isAlertDue => activeSession?.alertDue ?? false;
 
@@ -122,6 +128,7 @@ class Room {
   }
 
   String get durationFormatted {
+    if (isBreak) return ''; // przerwa nie ma licznika czasu
     final s = currentDurationSeconds;
     if (s <= 0) return '';
     final m = s ~/ 60;
@@ -141,6 +148,7 @@ class Room {
       'name': name,
       'floor': floor,
       'isAvailable': isAvailable ? 1 : 0,
+      'is_break': isBreak ? 1 : 0,
       'category': category,
       'description': description,
       'capacity': capacity,
@@ -166,6 +174,7 @@ class Room {
       'floor': floor,
       'isAvailable': isAvailable,
       'status': isAvailable ? 'free' : 'occupied',
+      'is_break': isBreak,
       'category': category,
       'description': description,
       'capacity': capacity,
@@ -187,13 +196,15 @@ class Room {
   factory Room.fromMap(Map<String, dynamic> map) {
     final statusStr = map['status'] as String?;
     final rawAvail = map['isAvailable'];
-    final bool isAvailable = statusStr != null
+    final rawBreak = map['is_break'];
+    final bool isBreak = rawBreak == true || rawBreak == 1 || rawBreak == '1';
+    final bool isAvailable = !isBreak && (statusStr != null
         ? (statusStr == 'free')
         : (rawAvail is bool
             ? rawAvail
             : (rawAvail is int
                 ? rawAvail == 1
-                : (rawAvail == '1' || rawAvail == 'true')));
+                : (rawAvail == '1' || rawAvail == 'true'))));
 
     final rawPosX = map['posX'];
     final double? posX = rawPosX != null ? (rawPosX as num).toDouble() : null;
@@ -225,7 +236,8 @@ class Room {
       name: map['name'] as String? ?? '',
       floor: map['floor'] as String? ?? 'Piętro',
       isAvailable: isAvailable,
-      status: statusStr ?? (isAvailable ? 'free' : 'occupied'),
+      status: isBreak ? 'occupied' : (statusStr ?? (isAvailable ? 'free' : 'occupied')),
+      isBreak: isBreak,
       category: map['category'] as String? ?? 'Laboratorium',
       description: map['description'] as String? ?? '',
       capacity: (map['capacity'] is int)
@@ -253,6 +265,7 @@ class Room {
     String? floor,
     bool? isAvailable,
     String? status,
+    bool? isBreak,
     String? category,
     String? description,
     int? capacity,
@@ -271,7 +284,10 @@ class Room {
     String? operatorId,
     String? deviceId,
   }) {
-    final nextAvailable = isAvailable ?? (status != null ? (status == 'free') : this.isAvailable);
+    final nextBreak = isBreak ?? this.isBreak;
+    final nextAvailable = nextBreak
+        ? false
+        : (isAvailable ?? (status != null ? (status == 'free') : this.isAvailable));
     return Room(
       id: id ?? this.id,
       number: number ?? this.number,
@@ -279,6 +295,7 @@ class Room {
       floor: floor ?? this.floor,
       isAvailable: nextAvailable,
       status: status ?? (nextAvailable ? 'free' : 'occupied'),
+      isBreak: nextBreak,
       category: category ?? this.category,
       description: description ?? this.description,
       capacity: capacity ?? this.capacity,

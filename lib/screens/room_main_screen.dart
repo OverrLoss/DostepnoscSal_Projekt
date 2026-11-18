@@ -152,6 +152,37 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     }
   }
 
+  Future<void> _toggleBreak(Room room) async {
+    final sync = RoomSyncService.instance;
+    if (sync.isLoggedIn && sync.isOperator && sync.operatorRoomId != room.number) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Brak uprawnień: Jesteś operatorem sali ${sync.operatorRoomId}. Nie możesz modyfikować sali ${room.number}.'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+      return;
+    }
+    final success = await RoomDatabaseHelper.instance.setBreakStatus(
+      room.id ?? 0,
+      room.number,
+      !room.isBreak,
+    );
+    await _loadRooms(showLoading: false);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? (room.isBreak ? 'Przerwa zakończona.' : 'Sala ${room.number} w przerwie (bez timera).')
+              : 'Nie udało się zmienić przerwy sali ${room.number}.'),
+          backgroundColor: success ? AppColors.success : AppColors.danger,
+        ),
+      );
+    }
+  }
+
   Future<void> _toggleAvailability(Room room) async {
     final sync = RoomSyncService.instance;
     if (sync.isLoggedIn && sync.isOperator && sync.operatorRoomId != room.number) {
@@ -1847,6 +1878,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 context: context,
                 room: room,
                 onToggleAvailability: _toggleAvailability,
+                onToggleBreak: _toggleBreak,
                 onEdit: () => _navigateToEditRoom(room),
                 onDelete: () => _deleteRoom(room),
                 onLimitChanged: (updatedRoom, newLimit) async {
@@ -1910,6 +1942,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           context: context,
           room: room,
           onToggleAvailability: _toggleAvailability,
+          onToggleBreak: _toggleBreak,
           onEdit: () => _navigateToEditRoom(room),
           onDelete: () => _deleteRoom(room),
           onLimitChanged: (updatedRoom, newLimit) async {
@@ -2139,7 +2172,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
   Widget _buildRoomCard(Room room, {bool isReordering = false}) {
     final isAvailable = room.isAvailable;
-    final statusColor = isAvailable ? AppColors.success : AppColors.danger;
+    final statusColor = room.isBreak ? AppColors.warning : (isAvailable ? AppColors.success : AppColors.danger);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -2155,6 +2188,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   context: context,
                   room: room,
                   onToggleAvailability: _toggleAvailability,
+                onToggleBreak: _toggleBreak,
                   onEdit: () => _navigateToEditRoom(room),
                   onDelete: () => _deleteRoom(room),
                   onLimitChanged: (updatedRoom, newLimit) async {
@@ -2264,6 +2298,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                 context: context,
                                 room: room,
                                 onToggleAvailability: _toggleAvailability,
+                onToggleBreak: _toggleBreak,
                                 onEdit: () => _navigateToEditRoom(room),
                                 onDelete: () => _deleteRoom(room),
                                 onLimitChanged: (updatedRoom, newLimit) async {
@@ -2361,7 +2396,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                       border: Border.all(color: statusColor.withValues(alpha: 0.45)),
                     ),
                     child: Text(
-                      isAvailable ? 'Wolna' : 'Zajęta',
+                      room.isBreak ? 'Przerwa' : (isAvailable ? 'Wolna' : 'Zajęta'),
                       style: TextStyle(
                         color: statusColor,
                         fontWeight: FontWeight.w600,

@@ -284,7 +284,7 @@ def init_db():
     except sqlite3.OperationalError:
         pass  # kolumna już istnieje
     # Migracja: rozmiar (skala) i obrót sali na planie
-    for column in ("layout_scale REAL", "layout_angle REAL", "svg_id TEXT"):
+    for column in ("layout_scale REAL", "layout_angle REAL", "svg_id TEXT", "is_break INTEGER NOT NULL DEFAULT 0"):
         try:
             cursor.execute(f"ALTER TABLE rooms ADD COLUMN {column}")
         except sqlite3.OperationalError:
@@ -587,6 +587,7 @@ def build_room_representation(r: sqlite3.Row, db: sqlite3.Connection) -> Dict[st
         "layout_scale": r["layout_scale"] if "layout_scale" in keys else None,
         "layout_angle": r["layout_angle"] if "layout_angle" in keys else None,
         "svg_id": r["svg_id"] if "svg_id" in keys else None,
+        "is_break": bool(r["is_break"]) if "is_break" in keys else False,
         "sortOrder": r["sortOrder"] if "sortOrder" in keys else 0,
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": format_active_session(session),
@@ -742,6 +743,7 @@ def get_public_rooms(floor: Optional[str] = None, db: sqlite3.Connection = Depen
             "layout_scale": r["layout_scale"],
             "layout_angle": r["layout_angle"],
             "svg_id": r["svg_id"],
+            "is_break": bool(r["is_break"]),
             "default_alert_limit_seconds": r["default_alert_limit_seconds"],
             "active_session": session_data,
             "updated_at": r["updated_at"]
@@ -790,6 +792,7 @@ def get_public_room(room_id: str, db: sqlite3.Connection = Depends(get_db)):
         "layout_scale": r["layout_scale"],
         "layout_angle": r["layout_angle"],
         "svg_id": r["svg_id"],
+        "is_break": bool(r["is_break"]),
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": session_data,
         "updated_at": r["updated_at"]
@@ -899,6 +902,7 @@ def get_me(user: sqlite3.Row = Depends(require_current_user)):
 # ==============================================================================
 class StatusChangeRequest(BaseModel):
     status: str = Field(..., pattern="^(free|occupied)$")
+    is_break: bool = False
     occupant_name: Optional[str] = Field(None, max_length=40)
 
 @app.get("/api/v1/rooms", tags=["Rooms"])
@@ -955,6 +959,7 @@ def get_rooms_detailed(user: sqlite3.Row = Depends(require_current_user), db: sq
             "layout_scale": r["layout_scale"],
             "layout_angle": r["layout_angle"],
             "svg_id": r["svg_id"],
+            "is_break": bool(r["is_break"]),
             "active_session": session_data,
             "created_at": r["created_at"],
             "updated_at": r["updated_at"]
@@ -1009,6 +1014,7 @@ def get_room_detailed(room_id: str, user: sqlite3.Row = Depends(require_current_
         "layout_scale": r["layout_scale"],
         "layout_angle": r["layout_angle"],
         "svg_id": r["svg_id"],
+        "is_break": bool(r["is_break"]),
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": session_data,
         "created_at": r["created_at"],
@@ -1067,6 +1073,8 @@ async def change_room_status(
 
     target_status = req.status
     current_status = room["status"]
+    target_break = req.is_break
+    current_break = bool(room["is_break"]) if "is_break" in room.keys() else False
     now_iso = utc_now()
     now_dt = parse_iso(now_iso)
     changed = False
@@ -1078,7 +1086,13 @@ async def change_room_status(
     actor_id = user["id"] if user else "guest:web"
     actor_str = f"user:{user['id']}" if user else "guest:web"
 
-    if current_status == "free" and target_status == "occupied":
+    starting_session = (
+        target_status == "occupied"
+        and not target_break
+        and (current_status == "free" or (current_status == "occupied" and current_break))
+    )
+
+    if starting_session:
         # Determine effective alert limit
         effective_limit = room["default_alert_limit_seconds"]
         if not effective_limit:
@@ -1101,7 +1115,7 @@ async def change_room_status(
             VALUES (?, ?, ?, NULL, ?, ?, NULL, ?, NULL, ?)
         """, (session_id, room_id, now_iso, effective_limit, due_iso, actor_str, occupant))
 
-        cursor.execute("UPDATE rooms SET status = 'occupied', updated_at = ? WHERE id = ?", (now_iso, room_id))
+        cursor.execute("UPDATE rooms SET status = 'occupied', is_break = 0, updated_at = ? WHERE id = ?", (now_iso, room_id))
         db.commit()
         changed = True
 
@@ -1109,11 +1123,21 @@ async def change_room_status(
         active_session = cursor.fetchone()
         log_audit(db, actor_type, actor_id, "session_started", "room", room_id, {"session_id": session_id, "limit": effective_limit, "occupant": occupant})
 
-    elif current_status == "occupied" and target_status == "free":
+    elif target_status == "occupied" and target_break and (current_status != "occupied" or not current_break):
+        # Przerwa = sala niedostępna, ale bez sesji, więc bez timera i alertu.
         if active_session:
             cursor.execute("UPDATE occupancy_sessions SET ended_at = ?, ended_by = ? WHERE id = ?", (now_iso, actor_str, active_session["id"]))
-        
-        cursor.execute("UPDATE rooms SET status = 'free', updated_at = ? WHERE id = ?", (now_iso, room_id))
+        cursor.execute("UPDATE rooms SET status = 'occupied', is_break = 1, updated_at = ? WHERE id = ?", (now_iso, room_id))
+        db.commit()
+        changed = True
+        active_session = None
+        log_audit(db, actor_type, actor_id, "break_started", "room", room_id)
+
+    elif target_status == "free" and (current_status == "occupied" or current_break):
+        if active_session:
+            cursor.execute("UPDATE occupancy_sessions SET ended_at = ?, ended_by = ? WHERE id = ?", (now_iso, actor_str, active_session["id"]))
+
+        cursor.execute("UPDATE rooms SET status = 'free', is_break = 0, updated_at = ? WHERE id = ?", (now_iso, room_id))
         db.commit()
         changed = True
         log_audit(db, actor_type, actor_id, "session_ended", "room", room_id, {"session_id": active_session["id"] if active_session else None})
@@ -1125,6 +1149,7 @@ async def change_room_status(
         await ws_manager.broadcast("room.updated", {
             "room_id": room_id,
             "status": target_status,
+            "is_break": target_break,
             "active_session": formatted_session
         })
 
@@ -1132,6 +1157,7 @@ async def change_room_status(
         "data": {
             "room_id": room_id,
             "status": target_status,
+            "is_break": target_break,
             "changed": changed,
             "active_session": formatted_session
         },
@@ -1720,6 +1746,8 @@ async def set_device_room_status(
 
     target_status = req.status
     current_status = room["status"]
+    target_break = req.is_break
+    current_break = bool(room["is_break"]) if "is_break" in room.keys() else False
     now_iso = utc_now()
     now_dt = parse_iso(now_iso)
     changed = False
@@ -1729,7 +1757,13 @@ async def set_device_room_status(
 
     actor_str = f"device:{device['id']}"
 
-    if current_status == "free" and target_status == "occupied":
+    starting_session = (
+        target_status == "occupied"
+        and not target_break
+        and (current_status == "free" or (current_status == "occupied" and current_break))
+    )
+
+    if starting_session:
         effective_limit = room["default_alert_limit_seconds"]
         if not effective_limit:
             cursor.execute("SELECT value FROM system_settings WHERE key = 'default_alert_limit_seconds'")
@@ -1745,17 +1779,25 @@ async def set_device_room_status(
             VALUES (?, ?, ?, NULL, ?, ?, NULL, ?, NULL)
         """, (session_id, room_id, now_iso, effective_limit, due_iso, actor_str))
 
-        cursor.execute("UPDATE rooms SET status = 'occupied', updated_at = ? WHERE id = ?", (now_iso, room_id))
+        cursor.execute("UPDATE rooms SET status = 'occupied', is_break = 0, updated_at = ? WHERE id = ?", (now_iso, room_id))
         changed = True
 
         cursor.execute("SELECT * FROM occupancy_sessions WHERE id = ?", (session_id,))
         active_session = cursor.fetchone()
         log_audit(db, "device", device["id"], "session_started", "room", room_id, {"session_id": session_id})
 
-    elif current_status == "occupied" and target_status == "free":
+    elif target_status == "occupied" and target_break and (current_status != "occupied" or not current_break):
         if active_session:
             cursor.execute("UPDATE occupancy_sessions SET ended_at = ?, ended_by = ? WHERE id = ?", (now_iso, actor_str, active_session["id"]))
-        cursor.execute("UPDATE rooms SET status = 'free', updated_at = ? WHERE id = ?", (now_iso, room_id))
+        cursor.execute("UPDATE rooms SET status = 'occupied', is_break = 1, updated_at = ? WHERE id = ?", (now_iso, room_id))
+        changed = True
+        active_session = None
+        log_audit(db, "device", device["id"], "break_started", "room", room_id)
+
+    elif target_status == "free" and (current_status == "occupied" or current_break):
+        if active_session:
+            cursor.execute("UPDATE occupancy_sessions SET ended_at = ?, ended_by = ? WHERE id = ?", (now_iso, actor_str, active_session["id"]))
+        cursor.execute("UPDATE rooms SET status = 'free', is_break = 0, updated_at = ? WHERE id = ?", (now_iso, room_id))
         changed = True
         log_audit(db, "device", device["id"], "session_ended", "room", room_id, {"session_id": active_session["id"] if active_session else None})
         active_session = None
@@ -1768,12 +1810,14 @@ async def set_device_room_status(
         await ws_manager.broadcast("room.updated", {
             "room_id": room_id,
             "status": target_status,
+            "is_break": target_break,
             "active_session": formatted_session
         })
 
     return {
         "room_id": room_id,
         "status": target_status,
+        "is_break": target_break,
         "changed": changed,
         "active_session": formatted_session
     }

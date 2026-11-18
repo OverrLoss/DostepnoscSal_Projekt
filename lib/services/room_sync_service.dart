@@ -449,7 +449,7 @@ class RoomSyncService {
 
   // --- ROOM STATUS MUTATION ---
 
-  Future<bool> changeRoomStatus(String roomId, String targetStatus, {String? occupantName}) async {
+  Future<bool> changeRoomStatus(String roomId, String targetStatus, {String? occupantName, bool isBreak = false}) async {
     try {
       final uri = _buildUri('/api/v1/rooms/$roomId/status');
       final res = await http
@@ -458,6 +458,7 @@ class RoomSyncService {
             headers: _headers(),
             body: json.encode({
               'status': targetStatus,
+              'is_break': isBreak,
               if (targetStatus == 'occupied' && occupantName != null && occupantName.trim().isNotEmpty)
                 'occupant_name': occupantName.trim(),
             }),

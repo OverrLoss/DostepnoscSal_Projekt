@@ -7,12 +7,13 @@ void showRoomDetailSheet({
   required BuildContext context,
   required Room room,
   required Future<void> Function(Room room) onToggleAvailability,
+  required Future<void> Function(Room room) onToggleBreak,
   required VoidCallback onEdit,
   required VoidCallback onDelete,
   Future<void> Function(Room updatedRoom, int newLimitSeconds)? onLimitChanged,
 }) {
   final isAvailable = room.isAvailable;
-  final statusColor = isAvailable ? AppColors.success : AppColors.danger;
+  final statusColor = room.isBreak ? AppColors.warning : (isAvailable ? AppColors.success : AppColors.danger);
 
   showModalBottomSheet(
     context: context,
@@ -465,6 +466,30 @@ void showRoomDetailSheet({
                           fontSize: 14,
                           letterSpacing: 0.5,
                         ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Przerwa: niedostępna, ale bez licznika czasu.
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        Navigator.of(ctx).pop();
+                        await onToggleBreak(room);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.warning),
+                        foregroundColor: AppColors.warning,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                      ),
+                      icon: Icon(room.isBreak ? Icons.play_arrow_rounded : Icons.coffee_outlined, size: 18),
+                      label: Text(
+                        room.isBreak ? 'ZAKOŃCZ PRZERWĘ' : 'OZNACZ JAKO PRZERWĘ (BEZ TIMERA)',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                     ),
                   ),

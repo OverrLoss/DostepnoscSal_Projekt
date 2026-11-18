@@ -697,7 +697,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     if (room == null) return const SizedBox.shrink();
     final path = floor1Path(d);
     final c = label ?? path.getBounds().center;
-    final color = room.isAlertDue
+    final color = room.isBreak || room.isAlertDue
         ? AppColors.warning
         : (room.isAvailable ? AppColors.success : AppColors.danger);
     final duration = room.isAvailable ? '' : room.durationFormatted;
@@ -844,6 +844,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   List<Widget> _buildGarazRooms() {
     final garazRoom = _findRoom('Garaż') ?? _findRoom('GARAŻ');
     if (garazRoom == null) return [];
+    final garazColor = garazRoom.isBreak ? AppColors.warning : (garazRoom.isAvailable ? AppColors.success : AppColors.danger);
 
     // Karta garażu zawsze na środku obrysu garażu. Zapisana pozycja tej sali
     // dotyczy kafelka na planie parteru, więc tu jej nie używamy (wcześniej karta
@@ -866,12 +867,10 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
             width: 260,
             height: 240,
             decoration: BoxDecoration(
-              color: (garazRoom.isAvailable)
-                  ? AppColors.success.withValues(alpha: 0.12)
-                  : AppColors.danger.withValues(alpha: 0.14),
+              color: garazColor.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: (garazRoom.isAvailable) ? AppColors.success : AppColors.danger,
+                color: garazColor,
                 width: 1,
               ),
             ),
@@ -881,7 +880,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                 Icon(
                   Icons.directions_car_rounded,
                   size: 44,
-                  color: (garazRoom.isAvailable) ? AppColors.success : AppColors.danger,
+                  color: garazColor,
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -902,10 +901,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
-                    color: ((garazRoom.isAvailable)
-                            ? AppColors.success
-                            : (garazRoom.isAlertDue ? AppColors.warning : AppColors.danger))
-                        .withValues(alpha: 0.2),
+                    color: garazColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -914,7 +910,9 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       Icon(
                         (garazRoom.isAvailable)
                             ? Icons.check_circle
-                            : (garazRoom.isAlertDue ? Icons.warning_amber_rounded : Icons.cancel),
+                            : (garazRoom.isBreak || garazRoom.isAlertDue
+                                ? Icons.warning_amber_rounded
+                                : Icons.cancel),
                         size: 14,
                         color: Colors.white,
                       ),
@@ -922,9 +920,11 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                       Text(
                         (garazRoom.isAvailable)
                             ? 'Wolny'
-                            : (garazRoom.isAlertDue
-                                ? 'Przekroczono czas (${garazRoom.durationFormatted})'
-                                : 'Zajęty (${garazRoom.durationFormatted})'),
+                            : (garazRoom.isBreak
+                                ? 'Przerwa'
+                                : (garazRoom.isAlertDue
+                                    ? 'Przekroczono czas (${garazRoom.durationFormatted})'
+                                    : 'Zajęty (${garazRoom.durationFormatted})')),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
@@ -1071,7 +1071,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     required bool isDragging,
   }) {
     final isAvailable = room.isAvailable;
-    final isAlert = room.isAlertDue;
+    final isAlert = room.isAlertDue || room.isBreak;
     final color = isDragging
         ? AppColors.primary
         : (isAlert
@@ -1080,7 +1080,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final bgColor = isDragging
         ? AppColors.primary.withValues(alpha: 0.2)
         : (isAlert
-            ? AppColors.danger.withValues(alpha: 0.3)
+            ? AppColors.warning.withValues(alpha: 0.22)
             : (isAvailable
                 ? AppColors.success.withValues(alpha: 0.14)
                 : AppColors.danger.withValues(alpha: 0.16)));

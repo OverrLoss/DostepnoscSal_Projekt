@@ -40,6 +40,7 @@ class RoomDatabaseHelper {
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_scale REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_angle REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN svg_id TEXT'); } catch (_) {}
+        try { await db.execute('ALTER TABLE $tableName ADD COLUMN is_break INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
       },
     );
 
@@ -47,6 +48,7 @@ class RoomDatabaseHelper {
     try { await db.execute('ALTER TABLE $tableName ADD COLUMN posY REAL'); } catch (_) {}
     try { await db.execute('ALTER TABLE $tableName ADD COLUMN sortOrder INTEGER DEFAULT 0'); } catch (_) {}
     try { await db.execute('ALTER TABLE $tableName ADD COLUMN default_alert_limit_seconds INTEGER'); } catch (_) {}
+    try { await db.execute('ALTER TABLE $tableName ADD COLUMN is_break INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
 
     return db;
   }
@@ -59,6 +61,7 @@ class RoomDatabaseHelper {
         name TEXT NOT NULL,
         floor TEXT NOT NULL,
         isAvailable INTEGER NOT NULL,
+        is_break INTEGER NOT NULL DEFAULT 0,
         category TEXT,
         description TEXT,
         capacity INTEGER,
@@ -334,6 +337,44 @@ class RoomDatabaseHelper {
       },
       where: 'id = ?',
       whereArgs: [id],
+    );
+    return success;
+  }
+
+  /// Przerwa: sala pozostaje niedostępna (status occupied), ale bez sesji,
+  /// więc bez timera i alertu.
+  Future<bool> setBreakStatus(int id, String roomNumber, bool isBreak) async {
+    final success = await RoomSyncService.instance.changeRoomStatus(
+      roomNumber,
+      isBreak ? 'occupied' : 'free',
+      isBreak: isBreak,
+    );
+
+    if (kIsWeb) {
+      if (_webRoomsCache != null) {
+        final idx = _webRoomsCache!.indexWhere((r) => r.id == id || r.number == roomNumber);
+        if (idx != -1) {
+          _webRoomsCache![idx] = _webRoomsCache![idx].copyWith(
+            isAvailable: !isBreak,
+            status: isBreak ? 'occupied' : 'free',
+            isBreak: isBreak,
+            activeSession: isBreak ? null : _webRoomsCache![idx].activeSession,
+          );
+        }
+      }
+      return success;
+    }
+
+    final db = await database;
+    await db.update(
+      tableName,
+      {
+        'isAvailable': isBreak ? 0 : 1,
+        'is_break': isBreak ? 1 : 0,
+        'updatedAt': DateTime.now().toIso8601String(),
+      },
+      where: 'number = ?',
+      whereArgs: [roomNumber],
     );
     return success;
   }
