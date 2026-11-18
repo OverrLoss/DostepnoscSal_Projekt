@@ -3,6 +3,29 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/room_model.dart';
 import '../theme/app_theme.dart';
+import 'floor0_plan.dart';
+import 'floor1_plan.dart';
+
+/// Pokoje z SVG zajęte na stałe przez układ w kodzie (_buildPietroRooms/_buildParterRooms).
+const _fixedSvgIds = {
+  'Piętro': {
+    'room-1-38', 'room-1-20', 'room-1-24', 'room-1-41', 'room-1-42', 'room-1-43', 'room-1-44',
+    'room-1-45', 'room-1-46', 'room-1-49', 'room-1-50', 'room-1-51', 'room-1-05', 'room-1-19',
+    'room-1-12', 'room-1-13', 'room-1-14', 'room-1-17',
+  },
+  'Parter': {'room-0-09', 'room-0-12', 'room-0-14', 'room-0-15', 'room-0-48', 'room-0-49', 'room-0-50', 'room-0-53', 'room-0-03', 'room-0-42', 'room-0-56'},
+};
+
+Map<String, String> svgPolygonsFor(String floor) =>
+    floor == 'Piętro' ? floor1Rooms : (floor == 'Parter' ? floor0Rooms : const {});
+
+/// ID pokoi z SVG, do których można przylepić nową salę na danym piętrze
+/// (bez tych zajętych na stałe i bez [taken], czyli ID użytych przez inne sale).
+List<String> freeSvgPolygons(String floor, Iterable<String> taken) {
+  final fixed = _fixedSvgIds[floor] ?? const <String>{};
+  final used = taken.toSet();
+  return svgPolygonsFor(floor).keys.where((id) => !fixed.contains(id) && !used.contains(id)).toList();
+}
 
 class InteractiveFloorMap extends StatefulWidget {
   final String floor;
@@ -211,6 +234,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
       if (r.floor != widget.floor && !(widget.floor == 'Parter' && (r.floor == 'Garaż podziemny' || r.number.trim().toUpperCase() == 'GARAŻ'))) {
         return false;
       }
+      if (r.svgId != null && svgPolygonsFor(widget.floor).containsKey(r.svgId)) return false;
       return !knownNumbers.contains(r.number.trim().toUpperCase());
     }).toList();
   }
@@ -522,6 +546,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                             if (widget.floor == 'Garaż podziemny') ..._buildGarazRooms(),
 
                             // Extra custom user rooms placed on the floor plan
+                            ..._svgBoundRooms(),
                             ..._buildExtraRoomsOnMap(extraRooms),
                           ],
                         ),
@@ -663,153 +688,156 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     );
   }
 
-  List<Widget> _buildPietroRooms() {
-    return [
-      // 104 on Left Wing
-      _buildPositionedRoomBlock(
-        number: '104',
-        defaultLeft: 45,
-        defaultTop: 200,
-        width: 80,
-        height: 48,
-        titleOverride: '104',
-        defaultAngle: -0.72,
-      ),
+  /// Sala wypełniająca cały wielokąt pokoju z SVG (tap = zmiana stanu, przytrzymanie = szczegóły).
+  Widget _polyRoom(String number, String id, {Offset? label, double font = 9}) =>
+      _polyRoomPath(number, floor1Rooms[id]!, label: label, font: font);
 
-      // Central Junction: AULA
-      _buildPositionedRoomBlock(
-        number: 'AULA',
-        defaultLeft: 125,
-        defaultTop: 430,
-        width: 95,
-        height: 55,
-        titleOverride: 'AULA',
-        isBig: true,
-      ),
-
-      // Vertical Wing Rooms
-      _buildPositionedRoomBlock(number: '112', defaultLeft: 195, defaultTop: 388, width: 75, height: 32),
-      _buildPositionedRoomBlock(number: '113', defaultLeft: 195, defaultTop: 350, width: 75, height: 32),
-
-      // WC Indicator
-      Positioned(
-        left: 160,
-        top: 318,
-        child: Container(
-          width: 32,
-          height: 24,
-          decoration: BoxDecoration(
-            color: Colors.white10,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.white24),
-          ),
-          alignment: Alignment.center,
-          child: const Text('WC', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
-        ),
-      ),
-
-      _buildPositionedRoomBlock(number: '115', defaultLeft: 195, defaultTop: 280, width: 75, height: 32),
-      _buildPositionedRoomBlock(number: '116', defaultLeft: 195, defaultTop: 242, width: 75, height: 32),
-      _buildPositionedRoomBlock(number: '117', defaultLeft: 195, defaultTop: 204, width: 75, height: 32),
-      _buildPositionedRoomBlock(number: '118', defaultLeft: 195, defaultTop: 166, width: 75, height: 32),
-      _buildPositionedRoomBlock(number: '120', defaultLeft: 195, defaultTop: 128, width: 75, height: 32),
-      _buildPositionedRoomBlock(number: '122', defaultLeft: 195, defaultTop: 88, width: 75, height: 34),
-    ];
-  }
-
-  List<Widget> _buildParterRooms() {
-    return [
-      // Wejście along left wing
-      Positioned(
-        left: 55,
-        top: 260,
-        child: Transform.rotate(
-          angle: -0.72,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('WEJŚCIE', style: TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold)),
-                SizedBox(width: 4),
-                Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 14),
-              ],
-            ),
-          ),
-        ),
-      ),
-
-      // Central Junction: HOL
-      _buildPositionedRoomBlock(
-        number: 'HOL',
-        defaultLeft: 125,
-        defaultTop: 430,
-        width: 95,
-        height: 55,
-        titleOverride: 'HOL',
-        isBig: true,
-      ),
-
-      // Vertical Wing Entrance
-      Positioned(
-        left: 280,
-        top: 360,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
+  Widget _polyRoomPath(String number, String d, {Offset? label, double font = 9}) {
+    final room = _findRoom(number);
+    if (room == null) return const SizedBox.shrink();
+    final path = floor1Path(d);
+    final c = label ?? path.getBounds().center;
+    final color = room.isAlertDue
+        ? AppColors.warning
+        : (room.isAvailable ? AppColors.success : AppColors.danger);
+    final duration = room.isAvailable ? '' : room.durationFormatted;
+    return Positioned.fill(
+      child: ClipPath(
+        clipper: _PathClipper(path),
+        child: GestureDetector(
+          onTap: () {
+            if (!_isEditMode) widget.onRoomQuickToggle(room);
+          },
+          onLongPress: () {
+            if (!_isEditMode) widget.onRoomTap(room);
+          },
+          child: Stack(
             children: [
-              Icon(Icons.arrow_back_rounded, color: AppColors.primary, size: 12),
-              SizedBox(width: 4),
-              Text('wejście', style: TextStyle(color: AppColors.primary, fontSize: 9, fontWeight: FontWeight.bold)),
+              Positioned.fill(child: ColoredBox(color: color.withValues(alpha: 0.2))),
+              Positioned(
+                left: c.dx - 30,
+                top: c.dy - font,
+                width: 60,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(number,
+                        style: TextStyle(color: Colors.white, fontSize: font, fontWeight: FontWeight.w800)),
+                    if (duration.isNotEmpty)
+                      Text(duration, style: const TextStyle(color: Colors.white70, fontSize: 7)),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
 
-      // Vertical Wing Rooms
-      _buildPositionedRoomBlock(number: '9', defaultLeft: 195, defaultTop: 355, width: 75, height: 38),
+  /// Pomieszczenie bez stanu (schody, WC): lekkie tło i ikona na środku wielokąta z SVG.
+  Widget _specialRoom(String id, IconData icon, String tip) =>
+      _specialRoomPath(floor1Rooms[id]!, icon, tip);
 
-      // WC Indicator
-      Positioned(
-        left: 160,
-        top: 310,
-        child: Container(
-          width: 32,
-          height: 24,
-          decoration: BoxDecoration(
-            color: Colors.white10,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.white24),
-          ),
-          alignment: Alignment.center,
-          child: const Text('WC', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+  Widget _specialRoomPath(String d, IconData icon, String tip) {
+    final path = floor1Path(d);
+    final c = path.getBounds().center;
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipPath(
+                clipper: _PathClipper(path),
+                child: ColoredBox(color: Colors.white.withValues(alpha: 0.07)),
+              ),
+            ),
+            Positioned(
+              left: c.dx - 8,
+              top: c.dy - 8,
+              child: Tooltip(message: tip, child: Icon(icon, size: 16, color: Colors.white60)),
+            ),
+          ],
         ),
       ),
+    );
+  }
 
-      _buildPositionedRoomBlock(number: '12', defaultLeft: 195, defaultTop: 250, width: 75, height: 38),
-      _buildPositionedRoomBlock(number: '14', defaultLeft: 195, defaultTop: 195, width: 75, height: 42),
-
-      // Garaż (Pojazdy zabytkowe) placed in the central area of Parter
-      _buildPositionedRoomBlock(
-        number: 'Garaż',
-        defaultLeft: 65,
-        defaultTop: 325,
-        width: 90,
-        height: 60,
-        titleOverride: 'GARAŻ\n(Pojazdy)',
-        isBig: true,
+  /// Oznaczenie wejścia do budynku (współrzędne w układzie SVG).
+  Widget _entranceMarker(double cx, double cy) {
+    final c = floor1ToCanvas(cx, cy);
+    return Positioned(
+      left: c.dx - 9,
+      top: c.dy - 9,
+      child: const Tooltip(
+        message: 'Wejście',
+        child: Icon(Icons.login_rounded, size: 18, color: AppColors.primary),
       ),
+    );
+  }
+
+  /// Sale przylepione do pokoi z SVG przez pole svgId (opcja przy dodawaniu/edycji sali).
+  List<Widget> _svgBoundRooms() {
+    final polys = svgPolygonsFor(widget.floor);
+    return [
+      for (final r in widget.rooms)
+        if (r.floor == widget.floor && r.svgId != null && polys.containsKey(r.svgId))
+          _polyRoomPath(r.number, polys[r.svgId]!),
+    ];
+  }
+
+  // Przypisanie numerów do pokoi z SVG jest orientacyjne (poza AULĄ i oznaczonymi jako schody/WC).
+  List<Widget> _buildPietroRooms() {
+    const wing = [
+      ['104', 'room-1-41'], // orientacyjnie
+      ['112', 'room-1-42'],
+      ['113', 'room-1-43'],
+      ['115', 'room-1-44'],
+      ['116', 'room-1-45'],
+      ['117', 'room-1-46'],
+      ['118', 'room-1-49'], // potwierdzone
+      ['120', 'room-1-50'], // potwierdzone
+      ['122', 'room-1-51'], // orientacyjnie
+    ];
+
+    return [
+      _polyRoom('AULA', 'room-1-38', label: floor1ToCanvas(95, 590), font: 12),
+      // Kolejne aule dzielą stan z AULĄ z cypla (w bazie jest jedna sala AULA).
+      _polyRoom('AULA', 'room-1-20', font: 12),
+      _polyRoom('AULA', 'room-1-24', font: 12),
+      for (final r in wing) _polyRoom(r[0], r[1]),
+      _specialRoom('room-1-05', Icons.stairs_rounded, 'Schody'),
+      _specialRoom('room-1-19', Icons.stairs_rounded, 'Schody'),
+      _specialRoom('room-1-12', Icons.man_rounded, 'WC męski'),
+      _specialRoom('room-1-17', Icons.elevator_rounded, 'Winda'),
+      _specialRoom('room-1-14', Icons.woman_rounded, 'WC damski'),
+      _specialRoom('room-1-13', Icons.accessible_rounded, 'WC dla niepełnosprawnych'),
+    ];
+  }
+
+  // Przypisanie sal do pokoi z SVG parteru jest orientacyjne (SVG nie ma numerów).
+  // Schody = pokoje zakreskowane w SVG ("biegi"), tak jak potwierdzone na Piętrze.
+  List<Widget> _buildParterRooms() {
+    Widget poly(String number, String d) => _polyRoomPath(number, floor0Rooms[d] ?? floor1Rooms[d]!);
+    return [
+      poly('9', 'room-0-09'),
+      poly('12', 'room-0-12'),
+      poly('14', 'room-0-14'),
+      // HOL = cypel (kształt jak AULA na Piętrze; osobnego pokoju w SVG parteru nie ma)
+      _polyRoomPath('HOL', floor1Rooms['room-1-38']!, label: floor1ToCanvas(95, 590), font: 12),
+      _specialRoomPath(floor0Rooms['room-0-15']!, Icons.checkroom_rounded, 'Szatnia'),
+      // Wejścia: jedno między schodami (0-56) a 0-57, dwa na kopule holu (łuk cypla)
+      _entranceMarker(176, 426),
+      _entranceMarker(0.6, 577.0),
+      _entranceMarker(195.6, 657.8),
+      // Toalety i winda nad/pod tymi z Piętra (te same kształty: 0-48=1-12, 0-49=1-13, 0-50=1-14, 0-53=1-17)
+      _specialRoomPath(floor0Rooms['room-0-48']!, Icons.man_rounded, 'WC męski'),
+      _specialRoomPath(floor0Rooms['room-0-49']!, Icons.accessible_rounded, 'WC dla niepełnosprawnych'),
+      _specialRoomPath(floor0Rooms['room-0-50']!, Icons.woman_rounded, 'WC damski'),
+      _specialRoomPath(floor0Rooms['room-0-53']!, Icons.elevator_rounded, 'Winda'),
+      _specialRoomPath(floor0Rooms['room-0-03']!, Icons.stairs_rounded, 'Schody'),
+      _specialRoomPath(floor0Rooms['room-0-42']!, Icons.stairs_rounded, 'Schody'),
+      _specialRoomPath(floor0Rooms['room-0-56']!, Icons.stairs_rounded, 'Schody'),
     ];
   }
 
@@ -1256,45 +1284,30 @@ class _BuildingOutlinePainter extends CustomPainter {
       }
     }
 
-    final corridorPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.06)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 36
-      ..strokeCap = StrokeCap.butt
-      ..strokeJoin = StrokeJoin.miter;
-
     final wallPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.32)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5
       ..strokeJoin = StrokeJoin.miter;
 
-    if (floor == 'Piętro' || floor == 'Parter') {
-      final corridorPath = Path();
-      // Start of left diagonal wing
-      corridorPath.moveTo(40, 160);
-      // Down to central junction
-      corridorPath.lineTo(172, 455);
-      // Up through vertical wing
-      corridorPath.lineTo(172, 70);
-
-      canvas.drawPath(corridorPath, corridorPaint);
-
-      // Outer building walls
-      final outerWall = Path();
-      // Top of diagonal wing
-      outerWall.moveTo(25, 145);
-      outerWall.lineTo(55, 120);
-      outerWall.lineTo(195, 415);
-      outerWall.lineTo(195, 60);
-      outerWall.lineTo(275, 60);
-      outerWall.lineTo(275, 480);
-      outerWall.lineTo(170, 500);
-      outerWall.lineTo(110, 480);
-      outerWall.lineTo(15, 180);
-      outerWall.close();
-
-      canvas.drawPath(outerWall, wallPaint);
+    if (floor == 'Piętro') {
+      final roomPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.22)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8;
+      for (final d in floor1Rooms.values) {
+        canvas.drawPath(floor1Path(d), roomPaint);
+      }
+      canvas.drawPath(floor1Path(floor1Outline), wallPaint);
+    } else if (floor == 'Parter') {
+      final roomPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.22)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8;
+      for (final d in floor0Rooms.values) {
+        canvas.drawPath(floor1Path(d), roomPaint);
+      }
+      canvas.drawPath(floor1Path(floor0Outline), wallPaint);
     } else {
       // Underground garage grid outline
       canvas.drawRect(Rect.fromLTWH(30, 110, 300, 300), wallPaint);
@@ -1314,4 +1327,15 @@ class _BuildingOutlinePainter extends CustomPainter {
   bool shouldRepaint(covariant _BuildingOutlinePainter oldDelegate) {
     return oldDelegate.floor != floor;
   }
+}
+
+class _PathClipper extends CustomClipper<Path> {
+  final Path path;
+  _PathClipper(this.path);
+
+  @override
+  Path getClip(Size size) => path;
+
+  @override
+  bool shouldReclip(covariant _PathClipper old) => false;
 }

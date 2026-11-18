@@ -67,6 +67,9 @@ class Room {
   final double? layoutScale;
   final double? layoutAngle;
 
+  /// ID pokoju z SVG (np. room-1-41), do którego sala jest przylepiona na planie.
+  final String? svgId;
+
   final RoomSession? activeSession;
   final int? defaultAlertLimitSeconds;
   final String? operatorId;
@@ -89,6 +92,7 @@ class Room {
     this.sortOrder = 0,
     this.layoutScale,
     this.layoutAngle,
+    this.svgId,
     this.activeSession,
     this.defaultAlertLimitSeconds,
     this.operatorId,
@@ -147,6 +151,7 @@ class Room {
       'sortOrder': sortOrder,
       if (layoutScale != null) 'layout_scale': layoutScale,
       if (layoutAngle != null) 'layout_angle': layoutAngle,
+      'svg_id': svgId,
       if (defaultAlertLimitSeconds != null) 'default_alert_limit_seconds': defaultAlertLimitSeconds,
       if (operatorId != null) 'operator_id': operatorId,
       if (deviceId != null) 'device_id': deviceId,
@@ -171,6 +176,7 @@ class Room {
       'sortOrder': sortOrder,
       if (layoutScale != null) 'layout_scale': layoutScale,
       if (layoutAngle != null) 'layout_angle': layoutAngle,
+      'svg_id': svgId,
       if (activeSession != null) 'active_session': activeSession!.toMap(),
       if (defaultAlertLimitSeconds != null) 'default_alert_limit_seconds': defaultAlertLimitSeconds,
       if (operatorId != null) 'operator_id': operatorId,
@@ -232,6 +238,7 @@ class Room {
       sortOrder: sortOrder,
       layoutScale: (map['layout_scale'] as num?)?.toDouble(),
       layoutAngle: (map['layout_angle'] as num?)?.toDouble(),
+      svgId: ((map['svg_id'] as String?) ?? '').isEmpty ? null : map['svg_id'] as String,
       activeSession: session,
       defaultAlertLimitSeconds: map['default_alert_limit_seconds'] as int?,
       operatorId: map['operator_id'] as String?,
@@ -257,6 +264,8 @@ class Room {
     bool resetPosition = false,
     double? layoutScale,
     double? layoutAngle,
+    String? svgId,
+    bool clearSvgId = false,
     RoomSession? activeSession,
     int? defaultAlertLimitSeconds,
     String? operatorId,
@@ -280,6 +289,7 @@ class Room {
       sortOrder: sortOrder ?? this.sortOrder,
       layoutScale: resetPosition ? null : (layoutScale ?? this.layoutScale),
       layoutAngle: resetPosition ? null : (layoutAngle ?? this.layoutAngle),
+      svgId: clearSvgId ? null : (svgId ?? this.svgId),
       activeSession: activeSession ?? this.activeSession,
       defaultAlertLimitSeconds: defaultAlertLimitSeconds ?? this.defaultAlertLimitSeconds,
       operatorId: operatorId ?? this.operatorId,

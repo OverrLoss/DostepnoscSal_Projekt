@@ -284,7 +284,7 @@ def init_db():
     except sqlite3.OperationalError:
         pass  # kolumna już istnieje
     # Migracja: rozmiar (skala) i obrót sali na planie
-    for column in ("layout_scale REAL", "layout_angle REAL"):
+    for column in ("layout_scale REAL", "layout_angle REAL", "svg_id TEXT"):
         try:
             cursor.execute(f"ALTER TABLE rooms ADD COLUMN {column}")
         except sqlite3.OperationalError:
@@ -586,6 +586,7 @@ def build_room_representation(r: sqlite3.Row, db: sqlite3.Connection) -> Dict[st
         "posY": r["posY"],
         "layout_scale": r["layout_scale"] if "layout_scale" in keys else None,
         "layout_angle": r["layout_angle"] if "layout_angle" in keys else None,
+        "svg_id": r["svg_id"] if "svg_id" in keys else None,
         "sortOrder": r["sortOrder"] if "sortOrder" in keys else 0,
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": format_active_session(session),
@@ -740,6 +741,7 @@ def get_public_rooms(floor: Optional[str] = None, db: sqlite3.Connection = Depen
             "posY": r["posY"],
             "layout_scale": r["layout_scale"],
             "layout_angle": r["layout_angle"],
+            "svg_id": r["svg_id"],
             "default_alert_limit_seconds": r["default_alert_limit_seconds"],
             "active_session": session_data,
             "updated_at": r["updated_at"]
@@ -787,6 +789,7 @@ def get_public_room(room_id: str, db: sqlite3.Connection = Depends(get_db)):
         "posY": r["posY"],
         "layout_scale": r["layout_scale"],
         "layout_angle": r["layout_angle"],
+        "svg_id": r["svg_id"],
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": session_data,
         "updated_at": r["updated_at"]
@@ -951,6 +954,7 @@ def get_rooms_detailed(user: sqlite3.Row = Depends(require_current_user), db: sq
             "posY": r["posY"],
             "layout_scale": r["layout_scale"],
             "layout_angle": r["layout_angle"],
+            "svg_id": r["svg_id"],
             "active_session": session_data,
             "created_at": r["created_at"],
             "updated_at": r["updated_at"]
@@ -1004,6 +1008,7 @@ def get_room_detailed(room_id: str, user: sqlite3.Row = Depends(require_current_
         "posY": r["posY"],
         "layout_scale": r["layout_scale"],
         "layout_angle": r["layout_angle"],
+        "svg_id": r["svg_id"],
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": session_data,
         "created_at": r["created_at"],
@@ -1293,6 +1298,7 @@ class CreateRoomRequest(BaseModel):
     capacity: int = 30
     posX: Optional[float] = None
     posY: Optional[float] = None
+    svg_id: Optional[str] = None
     default_alert_limit_seconds: Optional[int] = None
 
 @app.post("/api/v1/admin/rooms", tags=["Admin"])
@@ -1304,9 +1310,9 @@ def create_room(req: CreateRoomRequest, admin: sqlite3.Row = Depends(require_adm
     
     now = utc_now()
     cursor.execute("""
-        INSERT INTO rooms (id, name, location, floor, category, description, capacity, posX, posY, default_alert_limit_seconds, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'free', ?, ?)
-    """, (req.id, req.name, req.location, req.floor, req.category, req.description, req.capacity, req.posX, req.posY, req.default_alert_limit_seconds, now, now))
+        INSERT INTO rooms (id, name, location, floor, category, description, capacity, posX, posY, svg_id, default_alert_limit_seconds, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'free', ?, ?)
+    """, (req.id, req.name, req.location, req.floor, req.category, req.description, req.capacity, req.posX, req.posY, req.svg_id, req.default_alert_limit_seconds, now, now))
     db.commit()
     log_audit(db, "user", admin["id"], "room_created", "room", req.id)
     return {"status": "success", "id": req.id}
@@ -1321,6 +1327,7 @@ class UpdateRoomRequest(BaseModel):
     posX: Optional[float] = None
     posY: Optional[float] = None
     operator_id: Optional[str] = None
+    svg_id: Optional[str] = None
     default_alert_limit_seconds: Optional[int] = None
 
 @app.patch("/api/v1/admin/rooms/{room_id}", tags=["Admin"])

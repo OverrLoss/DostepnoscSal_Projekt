@@ -39,6 +39,7 @@ class RoomDatabaseHelper {
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN default_alert_limit_seconds INTEGER'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_scale REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_angle REAL'); } catch (_) {}
+        try { await db.execute('ALTER TABLE $tableName ADD COLUMN svg_id TEXT'); } catch (_) {}
       },
     );
 
@@ -67,6 +68,7 @@ class RoomDatabaseHelper {
         sortOrder INTEGER DEFAULT 0,
         layout_scale REAL,
         layout_angle REAL,
+        svg_id TEXT,
         default_alert_limit_seconds INTEGER,
         updatedAt TEXT
       )

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/room_model.dart';
 import '../services/room_database_helper.dart';
 import '../theme/app_theme.dart';
+import '../widgets/interactive_floor_map.dart' show freeSvgPolygons;
 
 class AddEditRoomScreen extends StatefulWidget {
   final Room? room;
@@ -27,6 +28,8 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
   late bool _isAvailable;
   late int _selectedAlertLimitMinutes;
   bool _isSaving = false;
+  String? _selectedSvgId;
+  Set<String> _takenSvgIds = {};
 
   final List<String> _floors = ['Piętro', 'Parter', 'Garaż podziemny'];
   final List<String> _categories = [
@@ -59,6 +62,14 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
     }
 
     _isAvailable = r?.isAvailable ?? true;
+    _selectedSvgId = r?.svgId;
+    RoomDatabaseHelper.instance.getRooms().then((all) {
+      if (!mounted) return;
+      setState(() => _takenSvgIds = {
+            for (final x in all)
+              if (x.svgId != null && x.id != r?.id) x.svgId!,
+          });
+    });
 
     final limitSec = r?.defaultAlertLimitSeconds;
     if (limitSec != null && limitSec > 0) {
@@ -102,6 +113,8 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
           capacity: capacity,
           customNote: _notesController.text.trim(),
           defaultAlertLimitSeconds: limitSeconds,
+          svgId: _selectedSvgId,
+          clearSvgId: _selectedSvgId == null,
         );
         await RoomDatabaseHelper.instance.updateRoom(updated);
         await RoomDatabaseHelper.instance.updateRoomAlertLimit(number, limitSeconds);
@@ -125,6 +138,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
           capacity: capacity,
           customNote: _notesController.text.trim(),
           defaultAlertLimitSeconds: limitSeconds,
+          svgId: _selectedSvgId,
         );
         await RoomDatabaseHelper.instance.insertRoom(newRoom);
         await RoomDatabaseHelper.instance.updateRoomAlertLimit(number, limitSeconds);
@@ -343,13 +357,45 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                       side: BorderSide(color: isSelected ? AppColors.primary : Colors.white12),
                     ),
                     onSelected: (selected) {
-                      if (selected) setState(() => _selectedFloor = fl);
+                      if (selected) {
+                        setState(() {
+                          _selectedFloor = fl;
+                          _selectedSvgId = null;
+                        });
+                      }
                     },
                   );
                 }).toList(),
               ),
 
               const SizedBox(height: 16),
+
+              // Opcja: przylepienie sali do pokoju z rzutu SVG
+              Builder(builder: (context) {
+                final options = {
+                  ...freeSvgPolygons(_selectedFloor, _takenSvgIds),
+                  if (_selectedSvgId != null) _selectedSvgId!,
+                }.toList();
+                if (options.isEmpty) return const SizedBox.shrink();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle('Przylep do pokoju z rzutu (opcjonalnie)'),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String?>(
+                      value: _selectedSvgId,
+                      dropdownColor: const Color(0xFF141414),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(border: OutlineInputBorder()),
+                      items: [
+                        const DropdownMenuItem<String?>(value: null, child: Text('Brak (zwykły blok na planie)')),
+                        for (final id in options) DropdownMenuItem<String?>(value: id, child: Text(id)),
+                      ],
+                      onChanged: (v) => setState(() => _selectedSvgId = v),
+                    ),
+                  ],
+                );
+              }),
 
               // Category Selector
               _buildSectionTitle('Typ sali / Kategoria'),

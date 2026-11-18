@@ -740,7 +740,26 @@ class RoomSyncService {
   }
 
   Future<Room?> updateRemoteRoom(Room room) async {
-    return room;
+    if (!isAdmin) return room;
+    try {
+      final uri = _buildUri('/api/v1/admin/rooms/${room.number}');
+      final res = await http
+          .patch(
+            uri,
+            headers: _headers(),
+            body: json.encode({
+              'name': room.name,
+              'floor': room.floor,
+              'category': room.category,
+              'description': room.description,
+              'capacity': room.capacity,
+              'svg_id': room.svgId ?? '',
+            }),
+          )
+          .timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) return room;
+    } catch (_) {}
+    return null;
   }
 
   Future<bool> setRemoteFloorAvailability(String floor, bool isAvailable) async {
