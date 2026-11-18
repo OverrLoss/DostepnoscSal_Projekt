@@ -443,6 +443,7 @@ def init_db():
 
     # Login operatora Auli bez spacji (szybkie profile testowe).
     cursor.execute("UPDATE users SET username = 'operator_aula111' WHERE username = 'operator_aula 111'")
+    cursor.execute("UPDATE users SET username = 'operator_aula111' WHERE username = 'operator_aula'")
     cursor.execute("UPDATE users SET username = 'operator_garaz' WHERE username = 'operator_garaż'")
     conn.commit()
 
