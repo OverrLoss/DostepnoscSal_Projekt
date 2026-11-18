@@ -501,6 +501,40 @@ class RoomSyncService {
     return await changeRoomStatus(roomNumber, nextStatus, occupantName: occupantName);
   }
 
+  /// Blokady opcji sali (tylko admin). Zwraca zaktualizowaną salę lub null.
+  Future<Room?> setRoomLocks(String roomId, {
+    bool? lockStatus,
+    bool? lockInfo,
+    bool? lockLayout,
+  }) async {
+    try {
+      final uri = _buildUri('/api/v1/admin/rooms/$roomId/locks');
+      final res = await http.patch(
+        uri,
+        headers: _headers(),
+        body: json.encode({
+          'lock_status': lockStatus ?? false,
+          'lock_info': lockInfo ?? false,
+          'lock_layout': lockLayout ?? false,
+        }),
+      ).timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        final data = json.decode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        return Room.fromMap({
+          'number': roomId,
+          'id': roomId,
+          'lock_status': data['lock_status'],
+          'lock_info': data['lock_info'],
+          'lock_layout': data['lock_layout'],
+        });
+      }
+      _lastErrorMessage = 'Błąd zmiany blokad (${res.statusCode})';
+    } catch (e) {
+      _lastErrorMessage = 'Błąd połączenia: $e';
+    }
+    return null;
+  }
+
   Future<bool> setRoomAlertLimit(String roomId, int limitSeconds) async {
     try {
       final uri = _buildUri('/api/v1/rooms/$roomId/alert-limit');

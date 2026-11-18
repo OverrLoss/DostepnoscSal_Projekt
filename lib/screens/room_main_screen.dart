@@ -154,6 +154,14 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
   Future<void> _toggleBreak(Room room) async {
     final sync = RoomSyncService.instance;
+    if (room.lockStatus && !sync.isAdmin) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Zmiana statusu tej sali jest zablokowana.'), backgroundColor: AppColors.danger),
+        );
+      }
+      return;
+    }
     if (sync.isLoggedIn && sync.isOperator && sync.operatorRoomId != room.number) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -185,6 +193,14 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
   Future<void> _toggleAvailability(Room room) async {
     final sync = RoomSyncService.instance;
+    if (room.lockStatus && !sync.isAdmin) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Zmiana statusu tej sali jest zablokowana.'), backgroundColor: AppColors.danger),
+        );
+      }
+      return;
+    }
     if (sync.isLoggedIn && sync.isOperator && sync.operatorRoomId != room.number) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -438,6 +454,12 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
   }
 
   Future<void> _navigateToEditRoom(Room room) async {
+    if (room.lockInfo && !RoomSyncService.instance.isAdmin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Edycja informacji tej sali jest zablokowana.'), backgroundColor: AppColors.danger),
+      );
+      return;
+    }
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (ctx) => AddEditRoomScreen(room: room),
@@ -1879,6 +1901,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 room: room,
                 onToggleAvailability: _toggleAvailability,
                 onToggleBreak: _toggleBreak,
+                onLocksChanged: () => _loadRooms(showLoading: false),
                 onEdit: () => _navigateToEditRoom(room),
                 onDelete: () => _deleteRoom(room),
                 onLimitChanged: (updatedRoom, newLimit) async {
@@ -1943,6 +1966,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           room: room,
           onToggleAvailability: _toggleAvailability,
           onToggleBreak: _toggleBreak,
+          onLocksChanged: () => _loadRooms(showLoading: false),
           onEdit: () => _navigateToEditRoom(room),
           onDelete: () => _deleteRoom(room),
           onLimitChanged: (updatedRoom, newLimit) async {
@@ -2189,6 +2213,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   room: room,
                   onToggleAvailability: _toggleAvailability,
                 onToggleBreak: _toggleBreak,
+                onLocksChanged: () => _loadRooms(showLoading: false),
                   onEdit: () => _navigateToEditRoom(room),
                   onDelete: () => _deleteRoom(room),
                   onLimitChanged: (updatedRoom, newLimit) async {
@@ -2299,6 +2324,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                 room: room,
                                 onToggleAvailability: _toggleAvailability,
                 onToggleBreak: _toggleBreak,
+                onLocksChanged: () => _loadRooms(showLoading: false),
                                 onEdit: () => _navigateToEditRoom(room),
                                 onDelete: () => _deleteRoom(room),
                                 onLimitChanged: (updatedRoom, newLimit) async {

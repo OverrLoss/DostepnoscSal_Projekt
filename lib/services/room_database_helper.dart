@@ -41,6 +41,9 @@ class RoomDatabaseHelper {
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_angle REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN svg_id TEXT'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN is_break INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
+        try { await db.execute('ALTER TABLE $tableName ADD COLUMN lock_status INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
+        try { await db.execute('ALTER TABLE $tableName ADD COLUMN lock_info INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
+        try { await db.execute('ALTER TABLE $tableName ADD COLUMN lock_layout INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
       },
     );
 
@@ -49,6 +52,9 @@ class RoomDatabaseHelper {
     try { await db.execute('ALTER TABLE $tableName ADD COLUMN sortOrder INTEGER DEFAULT 0'); } catch (_) {}
     try { await db.execute('ALTER TABLE $tableName ADD COLUMN default_alert_limit_seconds INTEGER'); } catch (_) {}
     try { await db.execute('ALTER TABLE $tableName ADD COLUMN is_break INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
+    try { await db.execute('ALTER TABLE $tableName ADD COLUMN lock_status INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
+    try { await db.execute('ALTER TABLE $tableName ADD COLUMN lock_info INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
+    try { await db.execute('ALTER TABLE $tableName ADD COLUMN lock_layout INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
 
     return db;
   }
@@ -62,6 +68,9 @@ class RoomDatabaseHelper {
         floor TEXT NOT NULL,
         isAvailable INTEGER NOT NULL,
         is_break INTEGER NOT NULL DEFAULT 0,
+        lock_status INTEGER NOT NULL DEFAULT 0,
+        lock_info INTEGER NOT NULL DEFAULT 0,
+        lock_layout INTEGER NOT NULL DEFAULT 0,
         category TEXT,
         description TEXT,
         capacity INTEGER,
@@ -377,6 +386,39 @@ class RoomDatabaseHelper {
       whereArgs: [roomNumber],
     );
     return success;
+  }
+
+  Future<Room?> setRoomLocks(String roomNumber, {
+    bool? lockStatus,
+    bool? lockInfo,
+    bool? lockLayout,
+  }) async {
+    final updated = await RoomSyncService.instance.setRoomLocks(
+      roomNumber, lockStatus: lockStatus, lockInfo: lockInfo, lockLayout: lockLayout,
+    );
+    if (updated == null) return null;
+
+    if (kIsWeb) {
+      if (_webRoomsCache != null) {
+        final idx = _webRoomsCache!.indexWhere((r) => r.number == roomNumber);
+        if (idx != -1) {
+          _webRoomsCache![idx] = _webRoomsCache![idx].copyWith(
+            lockStatus: updated.lockStatus,
+            lockInfo: updated.lockInfo,
+            lockLayout: updated.lockLayout,
+          );
+        }
+      }
+      return updated;
+    }
+
+    final db = await database;
+    final values = <String, dynamic>{'updatedAt': DateTime.now().toIso8601String()};
+    if (lockStatus != null) values['lock_status'] = lockStatus ? 1 : 0;
+    if (lockInfo != null) values['lock_info'] = lockInfo ? 1 : 0;
+    if (lockLayout != null) values['lock_layout'] = lockLayout ? 1 : 0;
+    await db.update(tableName, values, where: 'number = ?', whereArgs: [roomNumber]);
+    return updated;
   }
 
   Future<int> updateRoomAlertLimit(String roomNumber, int limitSeconds) async {

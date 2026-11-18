@@ -55,6 +55,11 @@ class Room {
   final String status; // 'free' or 'occupied'
   /// Przerwa: sala niedostępna (status occupied), ale bez sesji i bez timera.
   final bool isBreak;
+
+  /// Blokady ustawiane przez admina: chronią status, informacje/timer i układ na mapie.
+  final bool lockStatus;
+  final bool lockInfo;
+  final bool lockLayout;
   final String category;
   final String description;
   final int capacity;
@@ -85,6 +90,9 @@ class Room {
     bool isAvailable = true,
     String? status,
     this.isBreak = false,
+    this.lockStatus = false,
+    this.lockInfo = false,
+    this.lockLayout = false,
     this.category = 'Laboratorium',
     this.description = '',
     this.capacity = 30,
@@ -149,6 +157,9 @@ class Room {
       'floor': floor,
       'isAvailable': isAvailable ? 1 : 0,
       'is_break': isBreak ? 1 : 0,
+      'lock_status': lockStatus ? 1 : 0,
+      'lock_info': lockInfo ? 1 : 0,
+      'lock_layout': lockLayout ? 1 : 0,
       'category': category,
       'description': description,
       'capacity': capacity,
@@ -175,6 +186,9 @@ class Room {
       'isAvailable': isAvailable,
       'status': isAvailable ? 'free' : 'occupied',
       'is_break': isBreak,
+      'lock_status': lockStatus,
+      'lock_info': lockInfo,
+      'lock_layout': lockLayout,
       'category': category,
       'description': description,
       'capacity': capacity,
@@ -198,6 +212,10 @@ class Room {
     final rawAvail = map['isAvailable'];
     final rawBreak = map['is_break'];
     final bool isBreak = rawBreak == true || rawBreak == 1 || rawBreak == '1';
+    bool rawLock(dynamic v) => v == true || v == 1 || v == '1';
+    final bool lockStatus = rawLock(map['lock_status']);
+    final bool lockInfo = rawLock(map['lock_info']);
+    final bool lockLayout = rawLock(map['lock_layout']);
     final bool isAvailable = !isBreak && (statusStr != null
         ? (statusStr == 'free')
         : (rawAvail is bool
@@ -238,6 +256,9 @@ class Room {
       isAvailable: isAvailable,
       status: isBreak ? 'occupied' : (statusStr ?? (isAvailable ? 'free' : 'occupied')),
       isBreak: isBreak,
+      lockStatus: lockStatus,
+      lockInfo: lockInfo,
+      lockLayout: lockLayout,
       category: map['category'] as String? ?? 'Laboratorium',
       description: map['description'] as String? ?? '',
       capacity: (map['capacity'] is int)
@@ -266,6 +287,9 @@ class Room {
     bool? isAvailable,
     String? status,
     bool? isBreak,
+    bool? lockStatus,
+    bool? lockInfo,
+    bool? lockLayout,
     String? category,
     String? description,
     int? capacity,
@@ -296,6 +320,9 @@ class Room {
       isAvailable: nextAvailable,
       status: status ?? (nextAvailable ? 'free' : 'occupied'),
       isBreak: nextBreak,
+      lockStatus: lockStatus ?? this.lockStatus,
+      lockInfo: lockInfo ?? this.lockInfo,
+      lockLayout: lockLayout ?? this.lockLayout,
       category: category ?? this.category,
       description: description ?? this.description,
       capacity: capacity ?? this.capacity,

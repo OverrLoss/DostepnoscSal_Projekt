@@ -16,6 +16,13 @@ const _fixedSvgIds = {
   'Parter': {'room-0-09', 'room-0-12', 'room-0-14', 'room-0-15', 'room-0-48', 'room-0-49', 'room-0-50', 'room-0-53', 'room-0-03', 'room-0-42', 'room-0-56'},
 };
 
+/// Sale rysowane na stałe w [_buildPietroRooms]/[_buildParterRooms] — nie
+/// powielamy ich przez [InteractiveFloorMapState._svgBoundRooms].
+const _hardcodedRoomNumbers = <String, Set<String>>{
+  'Piętro': {'aula 111', 'aula 101_102', 'aula 103_104', '104', '112', '113', '115', '116', '117', '118', '120', '122'},
+  'Parter': {'9', '12', '14', 'HOL'},
+};
+
 Map<String, String> svgPolygonsFor(String floor) =>
     floor == 'Piętro' ? floor1Rooms : (floor == 'Parter' ? floor0Rooms : const {});
 
@@ -227,7 +234,8 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
 
   List<Room> _getExtraRooms() {
     final knownNumbers = [
-      '104', 'AULA', '112', '113', '115', '116', '117', '118', '120', '122',
+      '104', 'AULA', 'aula 111', 'aula 101_102', 'aula 103_104',
+      '112', '113', '115', '116', '117', '118', '120', '122',
       '9', '12', '14', 'HOL', 'GARAŻ', 'GARAZ'
     ];
     return widget.rooms.where((r) {
@@ -781,7 +789,10 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final polys = svgPolygonsFor(widget.floor);
     return [
       for (final r in widget.rooms)
-        if (r.floor == widget.floor && r.svgId != null && polys.containsKey(r.svgId))
+        if (r.floor == widget.floor &&
+            r.svgId != null &&
+            polys.containsKey(r.svgId) &&
+            !(_hardcodedRoomNumbers[widget.floor] ?? const <String>{}).contains(r.number))
           _polyRoomPath(r.number, polys[r.svgId]!),
     ];
   }
@@ -801,10 +812,9 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     ];
 
     return [
-      _polyRoom('AULA', 'room-1-38', label: floor1ToCanvas(95, 590), font: 12),
-      // Kolejne aule dzielą stan z AULĄ z cypla (w bazie jest jedna sala AULA).
-      _polyRoom('AULA', 'room-1-20', font: 12),
-      _polyRoom('AULA', 'room-1-24', font: 12),
+      _polyRoom('aula 111', 'room-1-38', label: floor1ToCanvas(95, 590), font: 10),
+      _polyRoom('aula 101_102', 'room-1-24', font: 8),
+      _polyRoom('aula 103_104', 'room-1-20', font: 8),
       for (final r in wing) _polyRoom(r[0], r[1]),
       _specialRoom('room-1-05', Icons.stairs_rounded, 'Schody'),
       _specialRoom('room-1-19', Icons.stairs_rounded, 'Schody'),

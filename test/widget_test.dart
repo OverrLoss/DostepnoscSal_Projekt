@@ -54,4 +54,19 @@ void main() {
     expect(ended.isAvailable, true);
     expect(ended.statusText, 'Dostępna (Wolna)');
   });
+
+  test('Blokady sali są zapisywane w modelu', () {
+    final room = Room(
+      number: '104', name: 'Gwiezdne Wojny', floor: 'Piętro',
+      lockStatus: true, lockInfo: true, lockLayout: false,
+    );
+    expect(room.toMap()['lock_status'], 1);
+    expect(room.toMap()['lock_info'], 1);
+    expect(room.toMap()['lock_layout'], 0);
+    final restored = Room.fromMap(room.toMap());
+    expect(restored.lockStatus, true);
+    expect(restored.lockInfo, true);
+    expect(restored.lockLayout, false);
+    expect(restored.copyWith(lockStatus: false).lockStatus, false);
+  });
 }

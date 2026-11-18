@@ -16,6 +16,7 @@ import hashlib
 import secrets
 import threading
 import platform
+import re
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 
@@ -116,7 +117,9 @@ def get_db_direct():
 # Database Initialization & Migration
 INITIAL_ROOMS = [
     {"number": "104", "name": "Gwiezdne Wojny", "floor": "Piętro", "category": "EXTRAS", "description": "Pokazy tematyczne Star Wars i robotyki kosmicznej", "capacity": 25, "posX": 70.0, "posY": 60.0},
-    {"number": "AULA", "name": "Aula Wykładowa", "floor": "Piętro", "category": "Wykładowa", "description": "Wykłady i pokazy naukowe", "capacity": 150, "posX": 200.0, "posY": 60.0},
+    {"number": "aula 111", "name": "Aula 111", "floor": "Piętro", "category": "Wykładowa", "description": "Aula główna (I piętro)", "capacity": 150, "posX": 200.0, "posY": 60.0},
+    {"number": "aula 101_102", "name": "Aula 101_102", "floor": "Piętro", "category": "Wykładowa", "description": "Sale 101 i 102 (łączone)", "capacity": 100, "posX": 70.0, "posY": 60.0},
+    {"number": "aula 103_104", "name": "Aula 103_104", "floor": "Piętro", "category": "Wykładowa", "description": "Sale 103 i 104 (łączone)", "capacity": 100, "posX": 135.0, "posY": 60.0},
     {"number": "112", "name": "Druk 3D", "floor": "Piętro", "category": "Laboratorium", "description": "Warsztaty druku 3D", "capacity": 20, "posX": 70.0, "posY": 160.0},
     {"number": "113", "name": "Zabawa światłem", "floor": "Piętro", "category": "Laboratorium", "description": "Optyka i lasery", "capacity": 20, "posX": 200.0, "posY": 160.0},
     {"number": "115", "name": "Projektowanie CAD", "floor": "Piętro", "category": "Laboratorium", "description": "Inżynieria komputerowa", "capacity": 25, "posX": 70.0, "posY": 240.0},
@@ -131,6 +134,36 @@ INITIAL_ROOMS = [
     {"number": "HOL", "name": "Piasek kinetyczny", "floor": "Parter", "category": "EXTRAS", "description": "Strefa wejściowa", "capacity": 80, "posX": 70.0, "posY": 220.0},
     {"number": "Garaż", "name": "Wystawa pojazdów zabytkowych", "floor": "Garaż podziemny", "category": "Wystawa", "description": "Ekspozycja zabytkowych aut", "capacity": 100, "posX": 65.0, "posY": 325.0}
 ]
+
+# Przypisanie sal do wielokątów rzutów SVG. Numery 1xx/0xx potwierdzone
+# w rozkładach zajęć WMT Stalowa Wola; pozostałe zachowane z poprzedniej wersji.
+SVG_ASSIGNED = {
+    "Piętro": {
+        "aula 111": "room-1-38", "aula 101_102": "room-1-24", "aula 103_104": "room-1-20",
+        "104": "room-1-41", "112": "room-1-42", "113": "room-1-43", "115": "room-1-44",
+        "116": "room-1-45", "117": "room-1-46", "118": "room-1-49", "120": "room-1-50",
+        "122": "room-1-51",
+    },
+    "Parter": {"9": "room-0-09", "12": "room-0-12", "14": "room-0-14"},
+}
+SVG_SPECIAL = {
+    "Piętro": {"room-1-05", "room-1-19", "room-1-12", "room-1-17", "room-1-14", "room-1-13",
+               "room-1-01", "room-1-02", "room-1-04", "room-1-39", "room-1-40"},
+    "Parter": {"room-0-15", "room-0-48", "room-0-49", "room-0-50", "room-0-53",
+               "room-0-03", "room-0-42", "room-0-56", "room-0-01", "room-0-02", "room-0-17"},
+}
+
+
+def svg_polygon_ids(floor: str) -> List[str]:
+    """Wczytuje ID wielokątów z plików planu (jedyne źródło geometrii)."""
+    name = "floor1_plan.dart" if floor == "Piętro" else "floor0_plan.dart"
+    path = os.path.join(PROJECT_ROOT, "lib", "widgets", name)
+    try:
+        with open(path, encoding="utf-8") as f:
+            return re.findall(r"'(room-[^']+)':\s*'M", f.read())
+    except Exception:
+        return []
+
 
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -284,7 +317,9 @@ def init_db():
     except sqlite3.OperationalError:
         pass  # kolumna już istnieje
     # Migracja: rozmiar (skala) i obrót sali na planie
-    for column in ("layout_scale REAL", "layout_angle REAL", "svg_id TEXT", "is_break INTEGER NOT NULL DEFAULT 0"):
+    for column in ("layout_scale REAL", "layout_angle REAL", "svg_id TEXT", "is_break INTEGER NOT NULL DEFAULT 0",
+                   "lock_status INTEGER NOT NULL DEFAULT 0", "lock_info INTEGER NOT NULL DEFAULT 0",
+                   "lock_layout INTEGER NOT NULL DEFAULT 0"):
         try:
             cursor.execute(f"ALTER TABLE rooms ADD COLUMN {column}")
         except sqlite3.OperationalError:
@@ -359,6 +394,27 @@ def init_db():
             )
     conn.commit()
 
+    # Migracja: dawna jedna AULA -> trzy odrębne sale (numery z rozkładów WMT).
+    if cursor.execute("SELECT 1 FROM rooms WHERE id = 'AULA'").fetchone():
+        old = cursor.execute("SELECT * FROM rooms WHERE id = 'AULA'").fetchone()
+        now = utc_now()
+        conn.execute("PRAGMA foreign_keys = OFF")
+        cursor.execute("UPDATE rooms SET id = 'aula 111', name = 'Aula 111' WHERE id = 'AULA'")
+        for table in ("users", "devices", "occupancy_sessions", "alerts"):
+            cursor.execute(f"UPDATE {table} SET room_id = 'aula 111' WHERE room_id = 'AULA'")
+        conn.commit()
+        conn.execute("PRAGMA foreign_keys = ON")
+        for num, name, svg in [("aula 101_102", "Aula 101_102", "room-1-24"),
+                               ("aula 103_104", "Aula 103_104", "room-1-20")]:
+            if not cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (num,)).fetchone():
+                cursor.execute("""
+                    INSERT INTO rooms (id, name, location, floor, status, category, description,
+                                       capacity, svg_id, sortOrder, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, 'free', 'Wykładowa', '', 0, ?, 99, ?, ?)
+                """, (num, name, f"Poziom {old['floor']}", old["floor"], svg, now, now))
+        conn.commit()
+        print("[DB] Podzielono AULĘ na aula 111 / aula 101_102 / aula 103_104.")
+
     # Seed Default Administrator if no users
     cursor.execute("SELECT COUNT(*) FROM users")
     if cursor.fetchone()[0] == 0:
@@ -371,7 +427,7 @@ def init_db():
 
         # Seed Sample Operators for testing
         op_pass = hash_password("operator123")
-        for room_no in ["104", "AULA", "Garaż"]:
+        for room_no in ["104", "aula 111", "Garaż"]:
             cursor.execute("""
                 INSERT INTO users (id, username, password_hash, display_name, role, room_id, is_active, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
@@ -386,7 +442,7 @@ def init_db():
         default_devices = [
             ("dev_token_sala104", "CYD_ESP32_Sala_104", "104"),
             ("dev_token_sala112", "ESP_Sala_112", "112"),
-            ("dev_token_sala_aula", "ESP_Sala_AULA", "AULA"),
+            ("dev_token_sala_aula", "ESP_Sala_AULA", "aula 111"),
             ("dev_token_sala_garaz", "ESP_Sala_Garaz", "Garaż"),
         ]
         for token, name, r_id in default_devices:
@@ -399,6 +455,32 @@ def init_db():
             cursor.execute("UPDATE rooms SET device_id = ? WHERE id = ?", (dev_id, r_id))
         conn.commit()
         print("[DB] Seeded default hardware controller tokens.")
+
+    # Puste pomieszczenia z rzutów SVG dostają edytowalne sale bez informacji.
+    for floor in ("Piętro", "Parter"):
+        used = set(SVG_ASSIGNED[floor].values()) | SVG_SPECIAL[floor]
+        used.update(r["svg_id"] for r in cursor.execute(
+            "SELECT svg_id FROM rooms WHERE svg_id IS NOT NULL") if r["svg_id"])
+        created = 0
+        for pid in svg_polygon_ids(floor):
+            if pid in used or cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (pid,)).fetchone():
+                continue
+            now = utc_now()
+            cursor.execute("""
+                INSERT INTO rooms (id, name, location, floor, status, category, description,
+                                   capacity, svg_id, sortOrder, created_at, updated_at)
+                VALUES (?, ?, ?, ?, 'free', 'Inne', '', 0, ?, 99, ?, ?)
+            """, (pid, pid, f"Poziom {floor}", floor, pid, now, now))
+            created += 1
+        conn.commit()
+        if created:
+            print(f"[DB] Dodano {created} pustych pomieszczeń z rzutu {floor}.")
+
+    # Przypisanie istniejących sal do poligonów rzutu (bez zmiany numerów).
+    for floor, mapping in SVG_ASSIGNED.items():
+        for number, pid in mapping.items():
+            cursor.execute("UPDATE rooms SET svg_id = ? WHERE id = ? AND svg_id IS NULL", (pid, number))
+    conn.commit()
 
     conn.close()
 
@@ -524,6 +606,14 @@ def require_device(device: Optional[sqlite3.Row] = Depends(get_current_device_op
         raise DomainException(401, "UNAUTHENTICATED", "Niepoprawny lub nieaktywny token urządzenia ESP.")
     return device
 
+def ensure_room_unlocked(db: sqlite3.Connection, room_id: str, field: str, user=None):
+    """Admin zawsze może; pozostali są blokowani przez flagi sali."""
+    if user and user["role"] == "admin":
+        return
+    row = db.execute(f"SELECT {field} FROM rooms WHERE id = ?", (room_id,)).fetchone()
+    if row and bool(row[field]):
+        raise DomainException(403, "ROOM_LOCKED", "Ta czynność jest zablokowana dla tej sali.")
+
 # Audit Logging Helper
 def log_audit(db: sqlite3.Connection, actor_type: str, actor_id: str, action: str, res_type: str, res_id: str, details: Optional[Dict] = None):
     cursor = db.cursor()
@@ -588,6 +678,9 @@ def build_room_representation(r: sqlite3.Row, db: sqlite3.Connection) -> Dict[st
         "layout_angle": r["layout_angle"] if "layout_angle" in keys else None,
         "svg_id": r["svg_id"] if "svg_id" in keys else None,
         "is_break": bool(r["is_break"]) if "is_break" in keys else False,
+        "lock_status": bool(r["lock_status"]) if "lock_status" in keys else False,
+        "lock_info": bool(r["lock_info"]) if "lock_info" in keys else False,
+        "lock_layout": bool(r["lock_layout"]) if "lock_layout" in keys else False,
         "sortOrder": r["sortOrder"] if "sortOrder" in keys else 0,
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": format_active_session(session),
@@ -744,6 +837,9 @@ def get_public_rooms(floor: Optional[str] = None, db: sqlite3.Connection = Depen
             "layout_angle": r["layout_angle"],
             "svg_id": r["svg_id"],
             "is_break": bool(r["is_break"]),
+            "lock_status": bool(r["lock_status"]),
+            "lock_info": bool(r["lock_info"]),
+            "lock_layout": bool(r["lock_layout"]),
             "default_alert_limit_seconds": r["default_alert_limit_seconds"],
             "active_session": session_data,
             "updated_at": r["updated_at"]
@@ -793,6 +889,9 @@ def get_public_room(room_id: str, db: sqlite3.Connection = Depends(get_db)):
         "layout_angle": r["layout_angle"],
         "svg_id": r["svg_id"],
         "is_break": bool(r["is_break"]),
+        "lock_status": bool(r["lock_status"]),
+        "lock_info": bool(r["lock_info"]),
+        "lock_layout": bool(r["lock_layout"]),
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": session_data,
         "updated_at": r["updated_at"]
@@ -960,6 +1059,9 @@ def get_rooms_detailed(user: sqlite3.Row = Depends(require_current_user), db: sq
             "layout_angle": r["layout_angle"],
             "svg_id": r["svg_id"],
             "is_break": bool(r["is_break"]),
+            "lock_status": bool(r["lock_status"]),
+            "lock_info": bool(r["lock_info"]),
+            "lock_layout": bool(r["lock_layout"]),
             "active_session": session_data,
             "created_at": r["created_at"],
             "updated_at": r["updated_at"]
@@ -1015,6 +1117,9 @@ def get_room_detailed(room_id: str, user: sqlite3.Row = Depends(require_current_
         "layout_angle": r["layout_angle"],
         "svg_id": r["svg_id"],
         "is_break": bool(r["is_break"]),
+        "lock_status": bool(r["lock_status"]),
+        "lock_info": bool(r["lock_info"]),
+        "lock_layout": bool(r["lock_layout"]),
         "default_alert_limit_seconds": r["default_alert_limit_seconds"],
         "active_session": session_data,
         "created_at": r["created_at"],
@@ -1034,6 +1139,7 @@ async def change_room_occupant(
     """Zmienia nazwę osoby przy aktywnej sesji (np. gdy ktoś zmienił swoją nazwę)."""
     if user and user["role"] == "operator" and user["room_id"] != room_id:
         raise DomainException(403, "FORBIDDEN", "Operator może zarządzać wyłącznie swoją przypisaną salą.")
+    ensure_room_unlocked(db, room_id, "lock_info", user)
 
     cursor = db.cursor()
     cursor.execute("SELECT * FROM occupancy_sessions WHERE room_id = ? AND ended_at IS NULL", (room_id,))
@@ -1064,6 +1170,7 @@ async def change_room_status(
 ):
     if user and user["role"] == "operator" and user["room_id"] != room_id:
         raise DomainException(403, "FORBIDDEN", "Operator może zarządzać wyłącznie swoją przypisaną salą.")
+    ensure_room_unlocked(db, room_id, "lock_status", user)
 
     cursor = db.cursor()
     cursor.execute("SELECT * FROM rooms WHERE id = ?", (room_id,))
@@ -1204,6 +1311,7 @@ async def update_room_default_limit(
 ):
     if user and user["role"] == "operator" and user["room_id"] != room_id:
         raise DomainException(403, "FORBIDDEN", "Operator może zmieniać limit wyłącznie swojej sali.")
+    ensure_room_unlocked(db, room_id, "lock_info", user)
 
     limit_val = req.alert_limit_seconds or req.limit_seconds
     if not limit_val or limit_val <= 0:
@@ -1379,6 +1487,28 @@ def update_room_admin(room_id: str, req: UpdateRoomRequest, admin: sqlite3.Row =
         log_audit(db, "user", admin["id"], "room_updated", "room", room_id, req.dict(exclude_unset=True))
     
     return {"status": "success", "room_id": room_id}
+
+class RoomLocksRequest(BaseModel):
+    lock_status: Optional[bool] = None
+    lock_info: Optional[bool] = None
+    lock_layout: Optional[bool] = None
+
+@app.patch("/api/v1/admin/rooms/{room_id}/locks", tags=["Admin"])
+def set_room_locks(room_id: str, req: RoomLocksRequest, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    if not cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (room_id,)).fetchone():
+        raise DomainException(404, "RESOURCE_NOT_FOUND", "Sala nie istnieje.")
+    values = {k: v for k, v in req.dict(exclude_unset=True).items() if v is not None}
+    if values:
+        sets = ", ".join(f"{k} = ?" for k in values)
+        cursor.execute(f"UPDATE rooms SET {sets}, updated_at = ? WHERE id = ?",
+                       list(values.values()) + [utc_now(), room_id])
+        db.commit()
+        log_audit(db, "user", admin["id"], "room_locks_changed", "room", room_id, values)
+    row = cursor.execute("SELECT lock_status, lock_info, lock_layout FROM rooms WHERE id = ?", (room_id,)).fetchone()
+    return {"status": "success", "room_id": room_id,
+            "lock_status": bool(row["lock_status"]), "lock_info": bool(row["lock_info"]),
+            "lock_layout": bool(row["lock_layout"])}
 
 @app.delete("/api/v1/admin/rooms/{room_id}", tags=["Admin"])
 def delete_room_admin(room_id: str, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
@@ -1737,6 +1867,7 @@ async def set_device_room_status(
     room_id = device["room_id"]
     if not room_id:
         raise DomainException(400, "ROOM_NOT_ASSIGNED", "Urządzenie nie ma przypisanej sali.")
+    ensure_room_unlocked(db, room_id, "lock_status")
 
     cursor = db.cursor()
     cursor.execute("SELECT * FROM rooms WHERE id = ?", (room_id,))
@@ -1854,6 +1985,7 @@ async def device_set_alert_limit(
 
     if not target_room_id:
         raise DomainException(400, "ROOM_NOT_ASSIGNED", "Brak przypisanej sali.")
+    ensure_room_unlocked(db, target_room_id, "lock_info", user)
 
     limit_val = req.limit_seconds or req.alert_limit_seconds
     if not limit_val or limit_val <= 0:

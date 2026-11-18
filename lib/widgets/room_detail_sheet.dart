@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
 import '../models/room_model.dart';
 import '../services/room_database_helper.dart';
+import '../services/room_sync_service.dart';
 import '../theme/app_theme.dart';
+
+Widget _lockTile(String label, bool value, IconData icon, Future<void> Function(bool) onChanged) {
+  return SwitchListTile(
+    dense: true,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+    activeThumbColor: AppColors.primary,
+    secondary: Icon(icon, color: value ? AppColors.primary : Colors.white54, size: 18),
+    title: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+    value: value,
+    onChanged: (v) => onChanged(v),
+  );
+}
 
 void showRoomDetailSheet({
   required BuildContext context,
@@ -11,6 +24,7 @@ void showRoomDetailSheet({
   required VoidCallback onEdit,
   required VoidCallback onDelete,
   Future<void> Function(Room updatedRoom, int newLimitSeconds)? onLimitChanged,
+  Future<void> Function()? onLocksChanged,
 }) {
   final isAvailable = room.isAvailable;
   final statusColor = room.isBreak ? AppColors.warning : (isAvailable ? AppColors.success : AppColors.danger);
@@ -469,6 +483,40 @@ void showRoomDetailSheet({
                       ),
                     ),
                   ),
+
+                  if (RoomSyncService.instance.isAdmin) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1C1C1C),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(8, 8, 8, 2),
+                            child: Text('BLOKADA SALI (tylko admin)',
+                                style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold)),
+                          ),
+                          _lockTile('Zmiana statusu', room.lockStatus, Icons.lock_outline, (v) async {
+                            await RoomDatabaseHelper.instance.setRoomLocks(room.number, lockStatus: v, lockInfo: room.lockInfo, lockLayout: room.lockLayout);
+                            await onLocksChanged?.call();
+                          }),
+                          _lockTile('Edycja informacji i timera', room.lockInfo, Icons.edit_off_outlined, (v) async {
+                            await RoomDatabaseHelper.instance.setRoomLocks(room.number, lockStatus: room.lockStatus, lockInfo: v, lockLayout: room.lockLayout);
+                            await onLocksChanged?.call();
+                          }),
+                          _lockTile('Przenoszenie na mapie', room.lockLayout, Icons.open_with, (v) async {
+                            await RoomDatabaseHelper.instance.setRoomLocks(room.number, lockStatus: room.lockStatus, lockInfo: room.lockInfo, lockLayout: v);
+                            await onLocksChanged?.call();
+                          }),
+                        ],
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 10),
 
