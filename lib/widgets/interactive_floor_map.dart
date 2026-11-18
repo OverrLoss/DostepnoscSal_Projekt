@@ -19,7 +19,7 @@ const _fixedSvgIds = {
 /// Sale rysowane na stałe w [_buildPietroRooms]/[_buildParterRooms] — nie
 /// powielamy ich przez [InteractiveFloorMapState._svgBoundRooms].
 const _hardcodedRoomNumbers = <String, Set<String>>{
-  'Piętro': {'aula 111', 'aula 101_102', 'aula 103_104', '104', '112', '113', '115', '116', '117', '118', '120', '122'},
+  'Piętro': {'Aula 111', 'Aula 101_102', 'Aula 103_104', '104', '112', '113', '115', '116', '117', '118', '120', '122'},
   'Parter': {'9', '12', '14', 'HOL'},
 };
 
@@ -234,7 +234,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
 
   List<Room> _getExtraRooms() {
     final knownNumbers = [
-      '104', 'AULA', 'aula 111', 'aula 101_102', 'aula 103_104',
+      '104', 'AULA', 'Aula 111', 'Aula 101_102', 'Aula 103_104',
       '112', '113', '115', '116', '117', '118', '120', '122',
       '9', '12', '14', 'HOL', 'GARAŻ', 'GARAZ'
     ];
@@ -812,9 +812,9 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     ];
 
     return [
-      _polyRoom('aula 111', 'room-1-38', label: floor1ToCanvas(95, 590), font: 10),
-      _polyRoom('aula 101_102', 'room-1-24', font: 8),
-      _polyRoom('aula 103_104', 'room-1-20', font: 8),
+      _polyRoom('Aula 111', 'room-1-38', label: floor1ToCanvas(95, 590), font: 10),
+      _polyRoom('Aula 101_102', 'room-1-20', font: 8),
+      _polyRoom('Aula 103_104', 'room-1-24', font: 8),
       for (final r in wing) _polyRoom(r[0], r[1]),
       _specialRoom('room-1-05', Icons.stairs_rounded, 'Schody'),
       _specialRoom('room-1-19', Icons.stairs_rounded, 'Schody'),

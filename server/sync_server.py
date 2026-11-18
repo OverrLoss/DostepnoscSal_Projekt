@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 14,
-        "versionName": "1.3.9",
+        "versionCode": 15,
+        "versionName": "1.3.10",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -117,9 +117,9 @@ def get_db_direct():
 # Database Initialization & Migration
 INITIAL_ROOMS = [
     {"number": "104", "name": "Gwiezdne Wojny", "floor": "Piętro", "category": "EXTRAS", "description": "Pokazy tematyczne Star Wars i robotyki kosmicznej", "capacity": 25, "posX": 70.0, "posY": 60.0},
-    {"number": "aula 111", "name": "Aula 111", "floor": "Piętro", "category": "Wykładowa", "description": "Aula główna (I piętro)", "capacity": 150, "posX": 200.0, "posY": 60.0},
-    {"number": "aula 101_102", "name": "Aula 101_102", "floor": "Piętro", "category": "Wykładowa", "description": "Sale 101 i 102 (łączone)", "capacity": 100, "posX": 70.0, "posY": 60.0},
-    {"number": "aula 103_104", "name": "Aula 103_104", "floor": "Piętro", "category": "Wykładowa", "description": "Sale 103 i 104 (łączone)", "capacity": 100, "posX": 135.0, "posY": 60.0},
+    {"number": "Aula 111", "name": "Aula 111", "floor": "Piętro", "category": "Wykładowa", "description": "Aula główna (I piętro)", "capacity": 150, "posX": 200.0, "posY": 60.0},
+    {"number": "Aula 101_102", "name": "Aula 101_102", "floor": "Piętro", "category": "Wykładowa", "description": "Sale 101 i 102 (łączone)", "capacity": 100, "posX": 70.0, "posY": 60.0},
+    {"number": "Aula 103_104", "name": "Aula 103_104", "floor": "Piętro", "category": "Wykładowa", "description": "Sale 103 i 104 (łączone)", "capacity": 100, "posX": 135.0, "posY": 60.0},
     {"number": "112", "name": "Druk 3D", "floor": "Piętro", "category": "Laboratorium", "description": "Warsztaty druku 3D", "capacity": 20, "posX": 70.0, "posY": 160.0},
     {"number": "113", "name": "Zabawa światłem", "floor": "Piętro", "category": "Laboratorium", "description": "Optyka i lasery", "capacity": 20, "posX": 200.0, "posY": 160.0},
     {"number": "115", "name": "Projektowanie CAD", "floor": "Piętro", "category": "Laboratorium", "description": "Inżynieria komputerowa", "capacity": 25, "posX": 70.0, "posY": 240.0},
@@ -139,7 +139,7 @@ INITIAL_ROOMS = [
 # w rozkładach zajęć WMT Stalowa Wola; pozostałe zachowane z poprzedniej wersji.
 SVG_ASSIGNED = {
     "Piętro": {
-        "aula 111": "room-1-38", "aula 101_102": "room-1-24", "aula 103_104": "room-1-20",
+        "Aula 111": "room-1-38", "Aula 101_102": "room-1-20", "Aula 103_104": "room-1-24",
         "104": "room-1-41", "112": "room-1-42", "113": "room-1-43", "115": "room-1-44",
         "116": "room-1-45", "117": "room-1-46", "118": "room-1-49", "120": "room-1-50",
         "122": "room-1-51",
@@ -399,13 +399,13 @@ def init_db():
         old = cursor.execute("SELECT * FROM rooms WHERE id = 'AULA'").fetchone()
         now = utc_now()
         conn.execute("PRAGMA foreign_keys = OFF")
-        cursor.execute("UPDATE rooms SET id = 'aula 111', name = 'Aula 111' WHERE id = 'AULA'")
+        cursor.execute("UPDATE rooms SET id = 'Aula 111', name = 'Aula 111' WHERE id = 'AULA'")
         for table in ("users", "devices", "occupancy_sessions", "alerts"):
-            cursor.execute(f"UPDATE {table} SET room_id = 'aula 111' WHERE room_id = 'AULA'")
+            cursor.execute(f"UPDATE {table} SET room_id = 'Aula 111' WHERE room_id = 'AULA'")
         conn.commit()
         conn.execute("PRAGMA foreign_keys = ON")
-        for num, name, svg in [("aula 101_102", "Aula 101_102", "room-1-24"),
-                               ("aula 103_104", "Aula 103_104", "room-1-20")]:
+        for num, name, svg in [("Aula 101_102", "Aula 101_102", "room-1-20"),
+                               ("Aula 103_104", "Aula 103_104", "room-1-24")]:
             if not cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (num,)).fetchone():
                 cursor.execute("""
                     INSERT INTO rooms (id, name, location, floor, status, category, description,
@@ -413,7 +413,29 @@ def init_db():
                     VALUES (?, ?, ?, ?, 'free', 'Wykładowa', '', 0, ?, 99, ?, ?)
                 """, (num, name, f"Poziom {old['floor']}", old["floor"], svg, now, now))
         conn.commit()
-        print("[DB] Podzielono AULĘ na aula 111 / aula 101_102 / aula 103_104.")
+        print("[DB] Podzielono AULĘ na Aula 111 / Aula 101_102 / Aula 103_104.")
+
+    # Migracja: nazwy sal Aula z wielkiej litery.
+    renamed_any = False
+    for old_id, new_id in (("aula 111", "Aula 111"),
+                           ("aula 101_102", "Aula 101_102"),
+                           ("aula 103_104", "Aula 103_104")):
+        if (cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (old_id,)).fetchone()
+                and not cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (new_id,)).fetchone()):
+            conn.execute("PRAGMA foreign_keys = OFF")
+            cursor.execute("UPDATE rooms SET id = ?, name = ? WHERE id = ?", (new_id, new_id, old_id))
+            for table in ("users", "devices", "occupancy_sessions", "alerts"):
+                cursor.execute(f"UPDATE {table} SET room_id = ? WHERE room_id = ?", (new_id, old_id))
+            conn.commit()
+            conn.execute("PRAGMA foreign_keys = ON")
+            renamed_any = True
+    if renamed_any:
+        print("[DB] Zaktualizowano nazwy sal Aula (wielka litera).")
+
+    # Aula 101_102 i Aula 103_104 zamieniły się poligonami na rzucie.
+    cursor.execute("UPDATE rooms SET svg_id = 'room-1-20' WHERE id = 'Aula 101_102'")
+    cursor.execute("UPDATE rooms SET svg_id = 'room-1-24' WHERE id = 'Aula 103_104'")
+    conn.commit()
 
     # Seed Default Administrator if no users
     cursor.execute("SELECT COUNT(*) FROM users")
@@ -427,7 +449,7 @@ def init_db():
 
         # Seed Sample Operators for testing
         op_pass = hash_password("operator123")
-        for room_no in ["104", "aula 111", "Garaż"]:
+        for room_no in ["104", "Aula 111", "Garaż"]:
             cursor.execute("""
                 INSERT INTO users (id, username, password_hash, display_name, role, room_id, is_active, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
@@ -442,7 +464,7 @@ def init_db():
         default_devices = [
             ("dev_token_sala104", "CYD_ESP32_Sala_104", "104"),
             ("dev_token_sala112", "ESP_Sala_112", "112"),
-            ("dev_token_sala_aula", "ESP_Sala_AULA", "aula 111"),
+            ("dev_token_sala_aula", "ESP_Sala_AULA", "Aula 111"),
             ("dev_token_sala_garaz", "ESP_Sala_Garaz", "Garaż"),
         ]
         for token, name, r_id in default_devices:

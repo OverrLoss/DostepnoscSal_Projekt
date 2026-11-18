@@ -1,8 +1,8 @@
 {
-  "versionCode": 14,
-  "versionName": "1.3.9",
+  "versionCode": 15,
+  "versionName": "1.3.10",
   "apkSize": 55978401,
-  "apkUrl": "https://sale.pwojtaszek.codes/DostepnoscSal.apk?v=14",
-  "releaseNotes": "Wersja 1.3.9: podział AULI na trzy sale, sale z rzutów SVG i blokady opcji dla admina",
-  "builtAt": "2026-11-18T11:39:04Z"
+  "apkUrl": "https://sale.pwojtaszek.codes/DostepnoscSal.apk?v=15",
+  "releaseNotes": "Wersja 1.3.10: zamiana położeń Aula 101_102 i Aula 103_104 na rzucie, nazwy sal Aula z wielkiej litery",
+  "builtAt": "2026-11-18T12:03:33Z"
 }
