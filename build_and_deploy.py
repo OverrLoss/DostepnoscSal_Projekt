@@ -28,6 +28,9 @@ import subprocess
 from datetime import datetime
 import argparse
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 SERVER_DIR   = os.path.join(PROJECT_ROOT, "server")
 WEB_DIR      = os.path.join(PROJECT_ROOT, "build", "web")
