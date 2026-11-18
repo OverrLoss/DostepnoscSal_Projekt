@@ -143,17 +143,183 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       pairings = await RoomSyncService.instance.getPairingDevices();
     } catch (_) {}
 
+    final sync = RoomSyncService.instance;
+    // Operator widzi wyłącznie salę, do której jest przypisany.
+    final visibleRooms = (sync.isOperator && sync.operatorRoomId != null)
+        ? rooms.where((r) => r.number == sync.operatorRoomId).toList()
+        : rooms;
+
     if (mounted) {
       setState(() {
-        _rooms = rooms;
+        _rooms = visibleRooms;
         _pairingDevices = pairings;
         if (showLoading) _isLoading = false;
       });
     }
   }
 
+  /// Panel operatora: tylko przypisana sala i czynności, które wolno mu wykonać.
+  Future<void> _openMyRoomPanel() async {
+    final sync = RoomSyncService.instance;
+    final roomNumber = sync.operatorRoomId;
+    if (roomNumber == null) return;
+    final all = await RoomDatabaseHelper.instance.getRooms();
+    Room? room;
+    try {
+      room = all.firstWhere((r) => r.number == roomNumber);
+    } catch (_) {}
+    if (room == null || !mounted) return;
+
+    int minutes = ((room.defaultAlertLimitSeconds ?? 900) / 60).round().clamp(15, 120);
+    final currentRoom = room;
+
+    Future<void> apply(Future<bool> Function() action, String message) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final ok = await action();
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      await _loadRooms(showLoading: false);
+      messenger.showSnackBar(
+        SnackBar(content: Text(ok ? message : 'Nie udało się zapisać zmiany.'),
+            backgroundColor: ok ? AppColors.success : AppColors.danger),
+      );
+    }
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setPanelState) => AlertDialog(
+          backgroundColor: const Color(0xFF141414),
+          title: Text('Moja sala: ${currentRoom.displayName}',
+              style: const TextStyle(color: Colors.white, fontSize: 17)),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 320,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.glassStroke),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('AKTUALNY STATUS',
+                            style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
+                        Text(currentRoom.statusText,
+                            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        if (currentRoom.durationFormatted.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('Czas: ${currentRoom.durationFormatted}',
+                              style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('ZMIANA STATUSU',
+                      style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: Colors.black),
+                          onPressed: () => apply(
+                            () => RoomSyncService.instance.changeRoomStatus(currentRoom.number, 'free'),
+                            'Sala oznaczona jako dostępna.',
+                          ),
+                          child: const Text('DOSTĘPNA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning, foregroundColor: Colors.black),
+                          onPressed: () => apply(
+                            () => RoomDatabaseHelper.instance.setBreakStatus(
+                                currentRoom.id ?? 0, currentRoom.number, true),
+                            'Sala w przerwie (bez timera).',
+                          ),
+                          child: const Text('PRZERWA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger, foregroundColor: Colors.white),
+                          onPressed: () => apply(
+                            () => RoomSyncService.instance.changeRoomStatus(
+                                currentRoom.number, 'occupied', occupantName: _myNick.isNotEmpty ? _myNick : null),
+                            'Sala oznaczona jako zajęta.',
+                          ),
+                          child: const Text('ZAJĘTA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('CZAS SESJI (LIMIT)',
+                      style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButton<int>(
+                          value: minutes,
+                          dropdownColor: const Color(0xFF141414),
+                          isExpanded: true,
+                          style: const TextStyle(color: Colors.white),
+                          items: [15, 30, 45, 60, 90, 120]
+                              .map((m) => DropdownMenuItem<int>(value: m, child: Text('$m min')))
+                              .toList(),
+                          onChanged: (v) async {
+                            if (v == null) return;
+                            setPanelState(() => minutes = v);
+                            final ok = await RoomSyncService.instance.setRoomAlertLimit(currentRoom.number, v * 60);
+                            if (ctx.mounted) {
+                              ScaffoldMessenger.of(ctx).showSnackBar(
+                                SnackBar(
+                                    content: Text(ok ? 'Limit czasu: $v min' : 'Nie udało się zapisać limitu.'),
+                                    backgroundColor: ok ? AppColors.success : AppColors.danger),
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Zamknij', style: TextStyle(color: Colors.white60)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _toggleBreak(Room room) async {
     final sync = RoomSyncService.instance;
+    if (!sync.isLoggedIn) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gość może tylko oglądać dostępność sal.'), backgroundColor: AppColors.danger),
+        );
+      }
+      return;
+    }
     if (room.lockStatus && !sync.isAdmin) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -193,6 +359,14 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
 
   Future<void> _toggleAvailability(Room room) async {
     final sync = RoomSyncService.instance;
+    if (!sync.isLoggedIn) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gość może tylko oglądać dostępność sal.'), backgroundColor: AppColors.danger),
+        );
+      }
+      return;
+    }
     if (room.lockStatus && !sync.isAdmin) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -454,6 +628,12 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
   }
 
   Future<void> _navigateToEditRoom(Room room) async {
+    if (!RoomSyncService.instance.isAdmin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Edycja sal jest dostępna tylko dla administratora.'), backgroundColor: AppColors.danger),
+      );
+      return;
+    }
     if (room.lockInfo && !RoomSyncService.instance.isAdmin) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Edycja informacji tej sali jest zablokowana.'), backgroundColor: AppColors.danger),
@@ -830,6 +1010,37 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           final role = sync.userRole;
           final assignedRoom = sync.operatorRoomId;
 
+          Future<void> quickLogin(String login, String pass) async {
+            usernameController.text = login;
+            passwordController.text = pass;
+            setDialogState(() {
+              isLoading = true;
+              errorMsg = '';
+            });
+            final ok = await sync.login(login, pass);
+            if (!ctx.mounted) return;
+            setDialogState(() => isLoading = false);
+            if (ok) {
+              Navigator.of(ctx).pop();
+              setState(() {});
+              await _loadRooms();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Zalogowano jako ${sync.userDisplayName} (${sync.userRole})'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              }
+            } else {
+              setDialogState(() {
+                errorMsg = sync.lastErrorMessage.isNotEmpty
+                    ? sync.lastErrorMessage
+                    : 'Niepoprawny login lub hasło.';
+              });
+            }
+          }
+
           return AlertDialog(
             backgroundColor: const Color(0xFF141414),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -1002,36 +1213,28 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                 backgroundColor: const Color(0xFF000000),
                                 side: const BorderSide(color: AppColors.cyan, width: 0.8),
                                 label: const Text('Admin', style: TextStyle(color: AppColors.cyan, fontSize: 11)),
-                                onPressed: () {
-                                  usernameController.text = 'admin';
-                                },
+                                onPressed: isLoading ? null : () => quickLogin('admin', 'admin123'),
                               ),
                               ActionChip(
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
                                 backgroundColor: const Color(0xFF000000),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
                                 label: const Text('Sala 104', style: TextStyle(color: AppColors.primary, fontSize: 11)),
-                                onPressed: () {
-                                  usernameController.text = 'operator_104';
-                                },
+                                onPressed: isLoading ? null : () => quickLogin('operator_104', 'operator123'),
                               ),
                               ActionChip(
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
                                 backgroundColor: const Color(0xFF000000),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
-                                label: const Text('AULA', style: TextStyle(color: AppColors.primary, fontSize: 11)),
-                                onPressed: () {
-                                  usernameController.text = 'operator_aula';
-                                },
+                                label: const Text('Aula 111', style: TextStyle(color: AppColors.primary, fontSize: 11)),
+                                onPressed: isLoading ? null : () => quickLogin('operator_aula111', 'operator123'),
                               ),
                               ActionChip(
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
                                 backgroundColor: const Color(0xFF000000),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
                                 label: const Text('Garaż', style: TextStyle(color: AppColors.primary, fontSize: 11)),
-                                onPressed: () {
-                                  usernameController.text = 'operator_garaz';
-                                },
+                                onPressed: isLoading ? null : () => quickLogin('operator_garaz', 'operator123'),
                               ),
                             ],
                           ),
@@ -1129,7 +1332,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               ),
             ),
             const Text(
-              'Politechnika Rzeszowska, wersja 1.3.10',
+              'Politechnika Rzeszowska, wersja 1.3.11',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
@@ -1352,9 +1555,10 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   ],
                 ),
               ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'free_all',
+              if (RoomSyncService.instance.isAdmin) ...[
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'free_all',
                 child: Row(
                   children: [
                     Icon(Icons.check_circle_outline, color: AppColors.success, size: 18),
@@ -1384,6 +1588,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   ],
                 ),
               ),
+              ],
             ],
           ),
         ],
@@ -1441,16 +1646,18 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _navigateToAddRoom,
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-        icon: const Icon(Icons.add),
-        label: const Text(
-          'Dodaj salę',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-      ),
+      floatingActionButton: RoomSyncService.instance.isAdmin
+          ? FloatingActionButton.extended(
+              onPressed: _navigateToAddRoom,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              icon: const Icon(Icons.add),
+              label: const Text(
+                'Dodaj salę',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            )
+          : null,
       ),
     );
   }
@@ -1525,9 +1732,23 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                   ),
                 ),
               ),
-              if (_currentViewIndex == 0) ...[
+              if (_currentViewIndex == 0 && RoomSyncService.instance.isAdmin) ...[
                 const SizedBox(width: 8),
                 _buildLayoutEditButton(),
+              ],
+              if (RoomSyncService.instance.isOperator) ...[
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.meeting_room_outlined, size: 16, color: AppColors.warning),
+                  label: const Text('Moja sala',
+                      style: TextStyle(color: AppColors.warning, fontSize: 12, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.warning),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppColors.radiusPill)),
+                  ),
+                  onPressed: _openMyRoomPanel,
+                ),
               ],
               const SizedBox(width: 8),
               _buildTvModeButton(),

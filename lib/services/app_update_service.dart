@@ -49,7 +49,7 @@ class AppUpdateService {
 
   Future<Map<String, dynamic>> getLocalAppVersion() async {
     if (kIsWeb) {
-      return {'versionCode': 15, 'versionName': '1.3.10'};
+      return {'versionCode': 16, 'versionName': '1.3.11'};
     }
     try {
       final res = await _channel.invokeMethod<Map<dynamic, dynamic>>('getAppVersion');

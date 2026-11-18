@@ -28,6 +28,9 @@ void showRoomDetailSheet({
 }) {
   final isAvailable = room.isAvailable;
   final statusColor = room.isBreak ? AppColors.warning : (isAvailable ? AppColors.success : AppColors.danger);
+  final sync = RoomSyncService.instance;
+  final canEdit = sync.isAdmin ||
+      (sync.isOperator && sync.operatorRoomId == room.number);
 
   showModalBottomSheet(
     context: context,
@@ -452,13 +455,14 @@ void showRoomDetailSheet({
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  if (canEdit) ...[
+                    const SizedBox(height: 16),
 
-                  // Big 1-Tap Toggle Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton.icon(
+                    // Big 1-Tap Toggle Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
                       onPressed: () async {
                         Navigator.of(ctx).pop();
                         await onToggleAvailability(room);
@@ -483,6 +487,7 @@ void showRoomDetailSheet({
                       ),
                     ),
                   ),
+                  ],
 
                   if (RoomSyncService.instance.isAdmin) ...[
                     const SizedBox(height: 16),
@@ -518,13 +523,14 @@ void showRoomDetailSheet({
                     ),
                   ],
 
-                  const SizedBox(height: 10),
+                  if (canEdit) ...[
+                    const SizedBox(height: 10),
 
-                  // Przerwa: niedostępna, ale bez licznika czasu.
-                  SizedBox(
-                    width: double.infinity,
-                    height: 44,
-                    child: OutlinedButton.icon(
+                    // Przerwa: niedostępna, ale bez licznika czasu.
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: OutlinedButton.icon(
                       onPressed: () async {
                         Navigator.of(ctx).pop();
                         await onToggleBreak(room);
@@ -541,6 +547,7 @@ void showRoomDetailSheet({
                       ),
                     ),
                   ),
+                  ],
 
                   const SizedBox(height: 20),
                   const Divider(color: Colors.white12),

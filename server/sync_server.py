@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 15,
-        "versionName": "1.3.10",
+        "versionCode": 16,
+        "versionName": "1.3.11",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -137,6 +137,15 @@ INITIAL_ROOMS = [
 
 # Przypisanie sal do wielokątów rzutów SVG. Numery 1xx/0xx potwierdzone
 # w rozkładach zajęć WMT Stalowa Wola; pozostałe zachowane z poprzedniej wersji.
+def operator_login(room_no: str) -> str:
+    """Login operatora bez spacji i polskich znaków (szybkie profile testowe)."""
+    slug = room_no.lower().replace(" ", "")
+    for pl, ascii_ in (("ż", "z"), ("ź", "z"), ("ó", "o"), ("ł", "l"), ("ę", "e"),
+                       ("ą", "a"), ("ś", "s"), ("ć", "c"), ("ń", "n")):
+        slug = slug.replace(pl, ascii_)
+    return "operator_" + slug
+
+
 SVG_ASSIGNED = {
     "Piętro": {
         "Aula 111": "room-1-38", "Aula 101_102": "room-1-20", "Aula 103_104": "room-1-24",
@@ -432,6 +441,11 @@ def init_db():
     if renamed_any:
         print("[DB] Zaktualizowano nazwy sal Aula (wielka litera).")
 
+    # Login operatora Auli bez spacji (szybkie profile testowe).
+    cursor.execute("UPDATE users SET username = 'operator_aula111' WHERE username = 'operator_aula 111'")
+    cursor.execute("UPDATE users SET username = 'operator_garaz' WHERE username = 'operator_garaż'")
+    conn.commit()
+
     # Aula 101_102 i Aula 103_104 zamieniły się poligonami na rzucie.
     cursor.execute("UPDATE rooms SET svg_id = 'room-1-20' WHERE id = 'Aula 101_102'")
     cursor.execute("UPDATE rooms SET svg_id = 'room-1-24' WHERE id = 'Aula 103_104'")
@@ -450,10 +464,11 @@ def init_db():
         # Seed Sample Operators for testing
         op_pass = hash_password("operator123")
         for room_no in ["104", "Aula 111", "Garaż"]:
+            login_name = operator_login(room_no)
             cursor.execute("""
                 INSERT INTO users (id, username, password_hash, display_name, role, room_id, is_active, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
-            """, (str(uuid.uuid4()), f"operator_{room_no.lower()}", op_pass, f"Operator Sali {room_no}", "operator", room_no, now, now))
+            """, (str(uuid.uuid4()), login_name, op_pass, f"Operator Sali {room_no}", "operator", room_no, now, now))
         conn.commit()
         print("[DB] Seeded default administrator (admin / admin123) and sample operators.")
 
@@ -1159,7 +1174,9 @@ async def change_room_occupant(
     db: sqlite3.Connection = Depends(get_db)
 ):
     """Zmienia nazwę osoby przy aktywnej sesji (np. gdy ktoś zmienił swoją nazwę)."""
-    if user and user["role"] == "operator" and user["room_id"] != room_id:
+    if not user:
+        raise DomainException(403, "FORBIDDEN", "Gość może tylko oglądać dostępność sal.")
+    if user["role"] == "operator" and user["room_id"] != room_id:
         raise DomainException(403, "FORBIDDEN", "Operator może zarządzać wyłącznie swoją przypisaną salą.")
     ensure_room_unlocked(db, room_id, "lock_info", user)
 
@@ -1190,7 +1207,9 @@ async def change_room_status(
     user: Optional[sqlite3.Row] = Depends(get_current_user_optional),
     db: sqlite3.Connection = Depends(get_db)
 ):
-    if user and user["role"] == "operator" and user["room_id"] != room_id:
+    if not user:
+        raise DomainException(403, "FORBIDDEN", "Gość może tylko oglądać dostępność sal.")
+    if user["role"] == "operator" and user["room_id"] != room_id:
         raise DomainException(403, "FORBIDDEN", "Operator może zarządzać wyłącznie swoją przypisaną salą.")
     ensure_room_unlocked(db, room_id, "lock_status", user)
 
@@ -2007,6 +2026,8 @@ async def device_set_alert_limit(
 
     if not target_room_id:
         raise DomainException(400, "ROOM_NOT_ASSIGNED", "Brak przypisanej sali.")
+    if user and user["role"] == "operator" and user["room_id"] != target_room_id:
+        raise DomainException(403, "FORBIDDEN", "Operator może zmieniać czas wyłącznie swojej sali.")
     ensure_room_unlocked(db, target_room_id, "lock_info", user)
 
     limit_val = req.limit_seconds or req.alert_limit_seconds
