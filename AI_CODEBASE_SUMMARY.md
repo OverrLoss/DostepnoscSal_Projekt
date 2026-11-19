@@ -14,7 +14,7 @@ Projekt **„Dostępność Sal”** to kompleksowy, hybrydowy ekosystem służą
 
 System integruje:
 1. **Aplikację wieloplatformową (Flutter)**:
-   - **Web**: Działa w dowolnej przeglądarce (laptop, tablet) pod adresem publicznym [https://sale.pwojtaszek.codes](https://sale.pwojtaszek.codes) lub lokalnie `http://localhost:8081`.
+   - **Web**: Działa w dowolnej przeglądarce (laptop, tablet) pod adresem publicznym [https://sale.pwojtaszek.5g.in](https://sale.pwojtaszek.5g.in) lub lokalnie `http://localhost:8081`.
    - **Android**: Aplikacja natywna `.apk` z obsługą autoupdate (`DostepnoscSal.apk`).
    - **Tryb TV / Kiosk Dashboard**: Dedykowany, pełnoekranowy widok na telewizory i infokioski z zegarem czasu rzeczywistego, licznikami sal i automatycznym odświeżaniem co 3 sekundy.
 2. **Serwer Synchronizacji i Bazy Danych (Python + SQLite)**:
@@ -23,7 +23,7 @@ System integruje:
    - Serwer autoupdate aplikacji mobilnej (`/api/app-version`).
    - Beacon UDP na porcie `8082` do automatycznego wykrywania adresu serwera w sieci lokalnej (LAN Wi-Fi).
 3. **Tunel Internetowy (Cloudflare Tunnel `wmt-gra`)**:
-   - Bezpieczne wystawienie aplikacji lokalnej do Internetu z certyfikatem HTTPS pod domeną `sale.pwojtaszek.codes` bez konieczności posiadania publicznego adresu IP ani przekierowywania portów na routerze.
+   - Bezpieczne wystawienie aplikacji lokalnej do Internetu z certyfikatem HTTPS pod domeną `sale.pwojtaszek.5g.in` bez konieczności posiadania publicznego adresu IP ani przekierowywania portów na routerze.
 4. **Węzeł Sprzętowy IoT (ESP8266 Wemos D1 mini)**:
    - Skaner sieci Wi-Fi i automatyczny klient HTTP/REST.
    - Sprzętowa sygnalizacja stanu sal za pomocą dwukolorowych diod LED (zielona = sala wolna, czerwona = sala zajęta).
@@ -42,7 +42,7 @@ flowchart TD
     end
 
     subgraph Siec ["Warstwa Sieciowa"]
-        Cloudflare["Cloudflare Edge (HTTPS: sale.pwojtaszek.codes)"]
+        Cloudflare["Cloudflare Edge (HTTPS: sale.pwojtaszek.5g.in)"]
         LocalWifi["Sieć Lokalna Wi-Fi (UDP 8082 Beacon + HTTP 8081)"]
     end
 

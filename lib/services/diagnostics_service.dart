@@ -59,7 +59,7 @@ class DiagnosticsService {
     return {
       'app_name': 'Dostępność Sal - Politechnika Rzeszowska',
       'package_name': 'com.example.roomavailability',
-      'app_version': '1.3.11+16',
+      'app_version': '1.3.12+17',
       'platform': kIsWeb ? 'Web Browser' : Platform.operatingSystem,
       'os_version': kIsWeb ? 'HTML5 / WebAssembly' : Platform.operatingSystemVersion,
       'is_web': kIsWeb,
@@ -70,7 +70,7 @@ class DiagnosticsService {
       },
       'sync_status': {
         'connection_state': RoomSyncService.instance.connectionState.name,
-        'server_url': RoomSyncService.instance.serverUrl.isEmpty ? 'https://sale.pwojtaszek.codes' : RoomSyncService.instance.serverUrl,
+        'server_url': RoomSyncService.instance.serverUrl.isEmpty ? 'https://sale.pwojtaszek.5g.in' : RoomSyncService.instance.serverUrl,
         'last_sync': RoomSyncService.instance.lastSyncTime?.toIso8601String() ?? 'Nigdy',
         'ping_success': pingSuccess,
         'ping_latency_ms': pingLatencyMs,

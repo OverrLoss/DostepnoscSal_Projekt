@@ -1,6 +1,6 @@
 # Specyfikacja API i Protokołów Komunikacyjnych (API Reference)
 
-Serwer backendowy (`server/sync_server.py`) udostępnia interfejs REST API na porcie `8081` (lub przez HTTPS pod adresem [https://sale.pwojtaszek.codes](https://sale.pwojtaszek.codes)) oraz responder UDP na porcie `8082`.
+Serwer backendowy (`server/sync_server.py`) udostępnia interfejs REST API na porcie `8081` (lub przez HTTPS pod adresem [https://sale.pwojtaszek.5g.in](https://sale.pwojtaszek.5g.in)) oraz responder UDP na porcie `8082`.
 
 ---
 
@@ -125,7 +125,7 @@ Używane przez klienta Android do automatycznego wykrywania nowej wersji `.apk`.
 {
   "versionCode": 4,
   "versionName": "1.2.0",
-  "apkUrl": "https://sale.pwojtaszek.codes/DostepnoscSal.apk",
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk",
   "apkSize": 54795717,
   "releaseNotes": "• Nowy widok wszystkich pięter na jednym ekranie (Tryb TV / Kiosk)\n• Ulepszone wyświetlanie mapy w przeglądarce i przeniesienie przycisku układu sal\n• Automatyczne pobieranie adresu serwera w sieci lokalnej Wi-Fi\n• Skaner sieci Wi-Fi i integracja ESP8266 Wemos D1 mini",
   "updatedAt": "2026-10-20T07:40:54.929856+00:00"
@@ -146,7 +146,7 @@ Zwraca adresy IP oraz URL-e serwera w sieci lokalnej oraz w Internecie.
   "allLanUrls": [
     "http://10.90.250.195:8081"
   ],
-  "publicUrl": "https://sale.pwojtaszek.codes"
+  "publicUrl": "https://sale.pwojtaszek.5g.in"
 }
 ```
 
@@ -165,7 +165,7 @@ Prosty test gotowości serwera.
   "lanUrl": "http://10.90.250.195:8081",
   "lanIp": "10.90.250.195",
   "port": 8081,
-  "publicUrl": "https://sale.pwojtaszek.codes"
+  "publicUrl": "https://sale.pwojtaszek.5g.in"
 }
 ```
 

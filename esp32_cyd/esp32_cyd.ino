@@ -99,7 +99,7 @@ enum ScreenMode {
 ScreenMode currentScreen = SCREEN_MAIN;
 
 // --- DANE WERSJI I AKTUALIZACJI OTA ---
-const char* CYD_FIRMWARE_VERSION = "1.3.7";
+const char* CYD_FIRMWARE_VERSION = "1.3.8";
 bool isDisplayInverted = true;
 unsigned long lastOtaCheck = 0;
 const unsigned long OTA_CHECK_INTERVAL = 300000; // Sprawdzaj co 5 minut w tle (300 s)
@@ -131,7 +131,7 @@ static String currentClockText() {
 // --- DANE KONFIGURACYJNE (NVS + SD) ---
 String wifiSsid = "TWOJA_NAZWA_WIFI";
 String wifiPassword = "TWOJE_HASLO_WIFI";
-String serverUrl = "https://sale.pwojtaszek.codes";
+String serverUrl = "https://sale.pwojtaszek.5g.in";
 String deviceToken = "dev_token_sala104";
 String roomNumber = "104";
 String roomName = "Gwiezdne Wojny";

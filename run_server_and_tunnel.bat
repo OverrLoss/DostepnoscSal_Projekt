@@ -13,13 +13,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0server_control.ps1
 
 echo.
 echo [2/2] Otwieranie aplikacji w przegladarce...
-start https://sale.pwojtaszek.codes
+start https://sale.pwojtaszek.5g.in
 
 :menu
 echo.
 echo =====================================================================
 echo   DOSTEPNE OPCJE:
-echo   [1] Otworz aplikacje w przegladarce (https://sale.pwojtaszek.codes)
+echo   [1] Otworz aplikacje w przegladarce (https://sale.pwojtaszek.5g.in)
 echo   [2] Otworz widok TV Kiosk / Wszystkie pietra
 echo   [3] Zrestartuj serwer i tunel
 echo   [4] ZATRZYMAJ serwer i tunel (calkowite wylaczenie)
@@ -32,11 +32,11 @@ choice /C 12345 /T 10 /D 5 /N /M "Wybierz opcje (1-5): "
 set opt=%errorlevel%
 
 if "%opt%"=="1" (
-    start https://sale.pwojtaszek.codes
+    start https://sale.pwojtaszek.5g.in
     goto menu
 )
 if "%opt%"=="2" (
-    start https://sale.pwojtaszek.codes/#/tv
+    start https://sale.pwojtaszek.5g.in/#/tv
     goto menu
 )
 if "%opt%"=="3" (

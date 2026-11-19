@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 16,
-        "versionName": "1.3.11",
+        "versionCode": 17,
+        "versionName": "1.3.12",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -1878,12 +1878,12 @@ def get_device_assigned_room_state(
     db.commit()
 
     is_esp8266 = "8266" in chip or "wemos" in chip
-    fw_ver = "1.3.5" if is_esp8266 else "1.3.7"
+    fw_ver = "1.3.6" if is_esp8266 else "1.3.8"
     bin_name = "esp8266_firmware.bin" if is_esp8266 else "cyd_firmware.bin"
     bin_path = os.path.join(BASE_DIR, bin_name)
     has_update = os.path.exists(bin_path)
     chip_tag = "esp8266" if is_esp8266 else "esp32"
-    fw_url = f"https://sale.pwojtaszek.codes/api/v1/firmware/download?chip={chip_tag}&v={fw_ver.replace('.', '')}"
+    fw_url = f"https://sale.pwojtaszek.5g.in/api/v1/firmware/download?chip={chip_tag}&v={fw_ver.replace('.', '')}"
 
     return {
         "device_id": device["id"],
@@ -2170,7 +2170,7 @@ def get_app_version():
     # Prefer stored apkSize (exact), fallback to measured file size
     apk_size = ver.get("apkSize") or apk_size_actual
     # Prefer stored URL (has cache-buster param), otherwise build it
-    apk_url = ver.get("apkUrl") or f"https://sale.pwojtaszek.codes/DostepnoscSal.apk?v={version_code}"
+    apk_url = ver.get("apkUrl") or f"https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v={version_code}"
 
     return JSONResponse(
         content={
@@ -2221,14 +2221,14 @@ def get_firmware_version(chip: str = "esp32"):
     fw_path = _get_firmware_file(chip)
     fw_size = os.path.getsize(fw_path) if os.path.exists(fw_path) else 0
     norm_chip = "esp8266" if "8266" in chip.lower() else "esp32"
-    version = "1.3.5" if norm_chip == "esp8266" else "1.3.7"
+    version = "1.3.6" if norm_chip == "esp8266" else "1.3.8"
     version_tag = version.replace(".", "")
     return JSONResponse(
         content={
             "chip": norm_chip,
             "version": version,
             "has_update": os.path.exists(fw_path),
-            "firmware_url": f"https://sale.pwojtaszek.codes/api/v1/firmware/download?chip={norm_chip}&v={version_tag}",
+            "firmware_url": f"https://sale.pwojtaszek.5g.in/api/v1/firmware/download?chip={norm_chip}&v={version_tag}",
             "firmware_size": fw_size,
             "release_notes": f"Wersja {version}: Zegar synchronizowany z serwerem (NTP jako zapas) oraz odswiezanie listy wolnych sal co 5 sekund."
         },

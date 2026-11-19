@@ -97,7 +97,7 @@ except Exception:
 data['versionCode'] = $versionCode
 data['versionName'] = '$versionName'
 data['apkSize'] = $apkSize
-data['apkUrl'] = 'https://sale.pwojtaszek.codes/DostepnoscSal.apk?v=$versionCode'
+data['apkUrl'] = 'https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=$versionCode'
 if '$ReleaseNotes':
     data['releaseNotes'] = '$ReleaseNotes'
 elif 'releaseNotes' not in data:
@@ -113,7 +113,7 @@ Write-Host "`n======================================================" -Foregroun
 Write-Host "  ✓ Build & Deploy zakończony!" -ForegroundColor Green
 Write-Host "  Wersja: v$versionName (versionCode=$versionCode)" -ForegroundColor Green
 if (-not $WebOnly) {
-    Write-Host "  APK URL: https://sale.pwojtaszek.codes/DostepnoscSal.apk?v=$versionCode" -ForegroundColor Green
+    Write-Host "  APK URL: https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=$versionCode" -ForegroundColor Green
 }
 Write-Host "======================================================`n" -ForegroundColor Green
 Write-Host "  WAŻNE: Uruchom ponownie sync_server.py" -ForegroundColor Yellow

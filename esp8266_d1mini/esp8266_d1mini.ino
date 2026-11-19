@@ -34,7 +34,7 @@
 #include <EEPROM.h>
 #include <ArduinoJson.h>
 
-const char* ESP8266_FIRMWARE_VERSION = "1.3.5";
+const char* ESP8266_FIRMWARE_VERSION = "1.3.6";
 
 // --- PINOUT ---
 const int PIN_LED_FREE = 4;  // D2 (GPIO 4) -> LED Wolna (Zielona)
@@ -421,7 +421,7 @@ void announcePairingMode() {
   if (WiFi.status() != WL_CONNECTED) return;
 
   String serverBase = String(config.serverUrl);
-  if (serverBase.length() == 0) serverBase = "https://sale.pwojtaszek.codes";
+  if (serverBase.length() == 0) serverBase = "https://sale.pwojtaszek.5g.in";
   String endpoint = serverBase + "/api/devices/pairing";
 
   HTTPClient http;
@@ -467,7 +467,7 @@ void sendRoomStatus(bool isFree) {
   }
 
   String serverBase = String(config.serverUrl);
-  if (serverBase.length() == 0) serverBase = "https://sale.pwojtaszek.codes";
+  if (serverBase.length() == 0) serverBase = "https://sale.pwojtaszek.5g.in";
   String endpoint = serverBase + "/api/v1/device/status";
 
   HTTPClient http;
@@ -513,7 +513,7 @@ void syncWithServer() {
   if (WiFi.status() != WL_CONNECTED) return;
 
   String serverBase = String(config.serverUrl);
-  if (serverBase.length() == 0) serverBase = "https://sale.pwojtaszek.codes";
+  if (serverBase.length() == 0) serverBase = "https://sale.pwojtaszek.5g.in";
   String endpoint = serverBase + "/api/v1/device/state";
 
   HTTPClient http;
@@ -760,7 +760,7 @@ void handleRoot() {
         <div class="card-title">🌐 Serwer API</div>
         <div class="form-group">
           <label>Adres URL serwera:</label>
-          <input type="text" id="serverUrl" name="serverUrl" value=")rawliteral" + (strlen(config.serverUrl) > 0 ? String(config.serverUrl) : String("https://sale.pwojtaszek.codes")) + R"rawliteral(" required>
+          <input type="text" id="serverUrl" name="serverUrl" value=")rawliteral" + (strlen(config.serverUrl) > 0 ? String(config.serverUrl) : String("https://sale.pwojtaszek.5g.in")) + R"rawliteral(" required>
         </div>
         <div class="form-group">
           <label>Token autoryzacyjny ESP (z panelu administratora):</label>
@@ -907,7 +907,7 @@ void loadConfig() {
     Serial.println("[EEPROM] Pamięć czysta lub brak konfiguracji. Ładowanie domyślnych wartości.");
     memset(&config, 0, sizeof(config));
     config.magic = EEPROM_MAGIC;
-    strncpy(config.serverUrl, "https://sale.pwojtaszek.codes", sizeof(config.serverUrl) - 1);
+    strncpy(config.serverUrl, "https://sale.pwojtaszek.5g.in", sizeof(config.serverUrl) - 1);
     strncpy(config.deviceToken, "dev_token_sala104", sizeof(config.deviceToken) - 1);
     config.roomId = 0;
     saveConfig();

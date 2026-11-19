@@ -49,7 +49,7 @@ class AppUpdateService {
 
   Future<Map<String, dynamic>> getLocalAppVersion() async {
     if (kIsWeb) {
-      return {'versionCode': 16, 'versionName': '1.3.11'};
+      return {'versionCode': 17, 'versionName': '1.3.12'};
     }
     try {
       final res = await _channel.invokeMethod<Map<dynamic, dynamic>>('getAppVersion');
@@ -76,7 +76,7 @@ class AppUpdateService {
 
       final serverBase = RoomSyncService.instance.serverUrl.isNotEmpty
           ? RoomSyncService.instance.serverUrl
-          : 'https://sale.pwojtaszek.codes';
+          : 'https://sale.pwojtaszek.5g.in';
 
       // Add cache-buster to prevent any caching layer from serving stale response
       final ts = DateTime.now().millisecondsSinceEpoch;

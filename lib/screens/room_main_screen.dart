@@ -793,7 +793,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFF000000),
-                      hintText: 'https://sale.pwojtaszek.codes',
+                      hintText: 'https://sale.pwojtaszek.5g.in',
                       hintStyle: const TextStyle(color: Colors.white30),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -833,9 +833,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                       ActionChip(
                         avatar: const Icon(Icons.cloud, size: 14, color: AppColors.primary),
                         backgroundColor: const Color(0xFF2A2A2A),
-                        label: const Text('sale.pwojtaszek.codes', style: TextStyle(color: AppColors.primary, fontSize: 11)),
+                        label: const Text('sale.pwojtaszek.5g.in', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                         onPressed: () {
-                          serverController.text = 'https://sale.pwojtaszek.codes';
+                          serverController.text = 'https://sale.pwojtaszek.5g.in';
                         },
                       ),
                       if (!kIsWeb || Uri.base.scheme != 'https')
@@ -910,7 +910,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                         ),
                         SizedBox(height: 6),
                         SelectableText(
-                          'https://sale.pwojtaszek.codes',
+                          'https://sale.pwojtaszek.5g.in',
                           style: TextStyle(color: AppColors.cyan, fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 4),
@@ -958,7 +958,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
   }
 
   Future<void> _downloadApk() async {
-    const apkUrl = 'https://sale.pwojtaszek.codes/DostepnoscSal.apk';
+    const apkUrl = 'https://sale.pwojtaszek.5g.in/DostepnoscSal.apk';
     try {
       final uri = Uri.parse(kIsWeb ? '/DostepnoscSal.apk' : apkUrl);
       final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -1332,7 +1332,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               ),
             ),
             const Text(
-              'Politechnika Rzeszowska, wersja 1.3.11',
+              'Politechnika Rzeszowska, wersja 1.3.12',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),

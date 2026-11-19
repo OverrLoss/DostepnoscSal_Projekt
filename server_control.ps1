@@ -19,7 +19,7 @@ tunnel: b3ecea77-5b0d-460d-88d6-28e570d05421
 credentials-file: $LocalCredFile
 
 ingress:
-  - hostname: sale.pwojtaszek.codes
+  - hostname: sale.pwojtaszek.5g.in
     service: http://127.0.0.1:8081
   - hostname: gra.pwojtaszek.codes
     service: http://localhost:8080
@@ -122,7 +122,7 @@ function Start-All {
         CloudflareRunning = ($cf -ne $null)
         CloudflarePid     = $cf
         LanIp             = $lanIp
-        PublicUrl         = "https://sale.pwojtaszek.codes"
+        PublicUrl         = "https://sale.pwojtaszek.5g.in"
         LanUrl            = "http://${lanIp}:8081"
         LocalUrl          = "http://localhost:8081"
     }

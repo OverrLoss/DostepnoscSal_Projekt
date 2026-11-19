@@ -16,7 +16,7 @@ Kompleksowy system monitorowania, wizualizacji na planie architektonicznym oraz 
 - 🚗 **Garaż na Parterze**: Dostępność strefy pojazdów zabytkowych wkomponowana w centralny dziedziniec Parteru.
 - ✏️ **Tryb Edycji Rozkładu Sal**: Przeciąganie sal po planie i zapis współrzędnych do bazy w czasie rzeczywistym.
 - 📺 **Tryb TV / Kiosk Dashboard**: Pełnoekranowy widok na duże telewizory z zegarem `HH:mm:ss`, statystykami sal i płynnym paskiem informacyjnym (ticker).
-- 🔄 **Hybrydowa Synchronizacja LAN + Cloud**: Bezproblemowe działanie w sieci lokalnej (UDP Auto-Discovery na porcie 8082) oraz w Internecie przez szyfrowany tunel HTTPS ([https://sale.pwojtaszek.codes](https://sale.pwojtaszek.codes)).
+- 🔄 **Hybrydowa Synchronizacja LAN + Cloud**: Bezproblemowe działanie w sieci lokalnej (UDP Auto-Discovery na porcie 8082) oraz w Internecie przez szyfrowany tunel HTTPS ([https://sale.pwojtaszek.5g.in](https://sale.pwojtaszek.5g.in)).
 - 📱 **Automatyczne Aktualizacje OTA (Android)**: Wbudowany sprawdzacz nowej wersji, pasek pobierania APK i instalacja.
 - 💡 **Węzły IoT ESP8266 Wemos D1 mini**: Skaner sieci Wi-Fi i sprzętowa sygnalizacja statusu diodami LED.
 
@@ -57,7 +57,7 @@ W dowolnym momencie uruchom:
 ```cmd
 run_server_and_tunnel.bat
 ```
-(lub kliknij skrót na Pulpicie). Skrypt uruchomi usługi w tle i otworzy stronę [https://sale.pwojtaszek.codes](https://sale.pwojtaszek.codes).
+(lub kliknij skrót na Pulpicie). Skrypt uruchomi usługi w tle i otworzy stronę [https://sale.pwojtaszek.5g.in](https://sale.pwojtaszek.5g.in).
 
 ---
 

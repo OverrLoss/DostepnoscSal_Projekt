@@ -116,7 +116,7 @@ def update_version_json(version_name, version_code, apk_size, release_notes=None
     data["versionCode"] = version_code
     data["versionName"] = version_name
     data["apkSize"] = apk_size
-    data["apkUrl"]  = f"https://sale.pwojtaszek.codes/DostepnoscSal.apk?v={version_code}"
+    data["apkUrl"]  = f"https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v={version_code}"
     data["builtAt"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     with open(VERSION_FILE, "w", encoding="utf-8") as f:
@@ -204,7 +204,7 @@ def main():
     print(f"  ✓ Build & Deploy zakończony pomyślnie!")
     print(f"  Wersja: v{version_name} (versionCode={version_code})")
     if build_apk:
-        print(f"  APK URL: https://sale.pwojtaszek.codes/DostepnoscSal.apk?v={version_code}")
+        print(f"  APK URL: https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v={version_code}")
     print("=" * 60)
     print("\n  Zrestartuj teraz sync_server.py aby serwer wczytał nowe dane.\n")
 

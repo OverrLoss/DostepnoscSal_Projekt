@@ -124,7 +124,7 @@ tunnel: b3ecea77-5b0d-460d-88d6-28e570d05421
 credentials-file: $credFile
 
 ingress:
-  - hostname: sale.pwojtaszek.codes
+  - hostname: sale.pwojtaszek.5g.in
     service: http://localhost:8081
   - hostname: gra.pwojtaszek.codes
     service: http://localhost:8080
@@ -170,7 +170,7 @@ if ($flutterCmd) {
 Write-Host "`n[5/5] Tworzenie skrotu na Pulpicie..." -ForegroundColor Yellow
 try {
     $desktopPath = [Environment]::GetFolderPath("Desktop")
-    $shortcutPath = Join-Path $desktopPath "Uruchom Serwer Sal (sale.pwojtaszek.codes).lnk"
+    $shortcutPath = Join-Path $desktopPath "Uruchom Serwer Sal (sale.pwojtaszek.5g.in).lnk"
     $targetBat = Join-Path $ProjectDir "run_server_and_tunnel.bat"
 
     $wsh = New-Object -ComObject WScript.Shell
@@ -181,7 +181,7 @@ try {
     $shortcut.IconLocation = "shell32.dll,18"
     $shortcut.Save()
 
-    Write-Host "      [OK] Utworzono skrot na Pulpicie: 'Uruchom Serwer Sal (sale.pwojtaszek.codes)'" -ForegroundColor Green
+    Write-Host "      [OK] Utworzono skrot na Pulpicie: 'Uruchom Serwer Sal (sale.pwojtaszek.5g.in)'" -ForegroundColor Green
 } catch {
     Write-Host "      [!] Nie udalo sie utworzyc skrotu na Pulpicie: $_" -ForegroundColor Yellow
 }

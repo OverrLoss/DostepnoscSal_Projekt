@@ -30,7 +30,7 @@ Program dla modułu **ESP32-2432S028R** (Cheap Yellow Display / CYD) z 2.8-calow
    - Dziennik zdarzeń w pliku `/dostepnosc_sal/events.log` (historia zajęcia, zwolnienia sal, alertów).
 
 5. **Zdalna Automatyczna Aktualizacja (Auto-OTA over Wi-Fi)**:
-   - **Automatyczny Update w Tle**: Za każdym razem po połączeniu z Wi-Fi oraz cyklicznie co 5 minut w tle urządzenie odpytuje endpoint `https://sale.pwojtaszek.codes/api/v1/cyd-version`.
+   - **Automatyczny Update w Tle**: Za każdym razem po połączeniu z Wi-Fi oraz cyklicznie co 5 minut w tle urządzenie odpytuje endpoint `https://sale.pwojtaszek.5g.in/api/v1/cyd-version`.
    - **Samoczynne Pobranie i Wgranie**: Jeśli na serwerze pojawi się nowsza wersja firmware (np. po kompilacji nowego pliku `.bin`), CYD przełącza się w widok aktualizacji, wyświetla graficzny pasek postępu (0-100%), wgrywa nowy kod do pamięci Flash i samoczynnie się restartuje.
    - **ArduinoOTA**: Dodatkowo urządzenie rozgłasza się w sieci lokalnej jako `cyd-sala-104` (hasło: `admin123`) dla bezpośredniego flashowania z Arduino IDE bez kabla USB.
 
@@ -60,7 +60,7 @@ Plik w folderze `Dokumenty/Arduino/libraries/TFT_eSPI/User_Setup.h` został już
 - **Upload Speed**: `921600`
 
 ### Jak zaktualizować oprogramowanie na serwerze (dla wszystkich urządzeń CYD):
-1. Dokonaj zmian w kodzie `esp32_cyd.ino` i zwiększ stałą `CYD_FIRMWARE_VERSION` (np. na `"1.3.8"`).
+1. Dokonaj zmian w kodzie `esp32_cyd.ino` i zwiększ stałą `CYD_FIRMWARE_VERSION` (np. na `"1.3.9"`).
 2. Skompiluj binarkę:
    ```powershell
    arduino-cli compile --export-binaries --fqbn "esp32:esp32:esp32:PartitionScheme=min_spiffs" "esp32_cyd\esp32_cyd.ino"

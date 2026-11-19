@@ -1,8 +1,8 @@
 {
-  "versionCode": 16,
-  "versionName": "1.3.11",
+  "versionCode": 17,
+  "versionName": "1.3.12",
   "apkSize": 55994785,
-  "apkUrl": "https://sale.pwojtaszek.codes/DostepnoscSal.apk?v=16",
-  "releaseNotes": "Wersja 1.3.11: hierarchia ról (admin/operator/gość), panel Moja sala i naprawa szybkich profili testowych",
-  "builtAt": "2026-11-18T13:00:38Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=17",
+  "releaseNotes": "Wersja 1.3.12: nowa domena sale.pwojtaszek.5g.in, firmware CYD 1.3.8 i ESP8266 1.3.6",
+  "builtAt": "2026-11-19T23:31:10Z"
 }

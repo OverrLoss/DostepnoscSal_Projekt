@@ -18,7 +18,7 @@ class RoomSyncService {
   static final RoomSyncService instance = RoomSyncService._init();
   RoomSyncService._init();
 
-  static const String _defaultRemoteUrl = 'https://sale.pwojtaszek.codes';
+  static const String _defaultRemoteUrl = 'https://sale.pwojtaszek.5g.in';
   static const String _prefKeyServerUrl = 'room_sync_server_url';
   static const String _prefKeyToken = 'room_sync_auth_token';
   static const String _prefKeyUser = 'room_sync_auth_user';

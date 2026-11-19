@@ -94,7 +94,7 @@ def update_version_json(version_code: int, version_name: str, apk_size: int):
     data["versionCode"] = version_code
     data["versionName"] = version_name
     data["apkSize"] = apk_size
-    data["apkUrl"]  = f"https://sale.pwojtaszek.codes/DostepnoscSal.apk?v={version_code}"
+    data["apkUrl"]  = f"https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v={version_code}"
     data["builtAt"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     with open(VERSION_FILE, "w", encoding="utf-8") as f:
@@ -167,8 +167,8 @@ def main():
             print(f"[deploy] Wersja z app_version.json: {version_name} (versionCode={version_code})")
         else:
             print("[deploy] Nie można ustalić wersji. Podaj ręcznie:")
-            version_name = input("  versionName (np. 1.4.0): ").strip() or "1.3.11"
-            version_code = int(input("  versionCode (np. 17): ").strip() or "16")
+            version_name = input("  versionName (np. 1.4.0): ").strip() or "1.3.12"
+            version_code = int(input("  versionCode (np. 18): ").strip() or "17")
 
     # Distribute APK
     copy_apk(SRC_APK, version_name, version_code)
@@ -177,7 +177,7 @@ def main():
     update_version_json(version_code, version_name, apk_size)
 
     print(f"\n[deploy] ✓ Dystrybucja zakończona pomyślnie!")
-    print(f"[deploy] APK URL: https://sale.pwojtaszek.codes/DostepnoscSal.apk?v={version_code}")
+    print(f"[deploy] APK URL: https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v={version_code}")
     print("[deploy] Zrestartuj sync_server.py jeśli jest uruchomiony, aby odświeżyć apkSize.\n")
 
 if __name__ == "__main__":
