@@ -1,8 +1,0 @@
-# Tunel Cloudflare na tym komputerze: jeden, `victus`
-# (usluga Windows Cloudflared, token: .cloudflared\victus.token).
-#
-# Lokalny config.yml nie jest uzywany — trasy ustawia sie w panelu
-# Cloudflare Zero Trust -> Network -> Tunnels -> victus -> Public Hostname:
-#   sale.pwojtaszek.5g.in -> HTTP -> localhost:8081
-#   gra.pwojtaszek.5g.in  -> HTTP -> localhost:8080
-#   plan.pwojtaszek.5g.in -> HTTP -> localhost:7702 (Academic Scheduler)

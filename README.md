@@ -28,7 +28,6 @@ Szczegółowa dokumentacja techniczna znajduje się w dedykowanych plikach:
 
 | Plik | Opis |
 |---|---|
-| [**`AI_CODEBASE_SUMMARY.md`**](AI_CODEBASE_SUMMARY.md) | **Główny podręcznik dla modeli AI**: Pełna architektura, diagramy Mermaid, schematy bazy SQLite, mapowanie komponentów i stanów |
 | [**`DEVELOPER_GUIDE.md`**](DEVELOPER_GUIDE.md) | **Instrukcja uruchomienia i kompilacji**: Krok po kroku na nowym komputerze (Web, Android APK, Python, Cloudflare, ESP8266) |
 | [**`API_REFERENCE.md`**](API_REFERENCE.md) | **Specyfikacja API**: Wszystkie endpointy REST, formaty JSON, nagłówki CORS i protokół UDP 8082 |
 | [**`ROADMAP.md`**](ROADMAP.md) | **Plan rozwoju**: Zrealizowane kamienie milowe oraz proponowane kolejne zadania i ulepszenia |
