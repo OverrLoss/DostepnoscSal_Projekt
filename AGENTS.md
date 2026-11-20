@@ -6,7 +6,7 @@ Język pracy: polski.
 
 - Gałąź `main`. Autor commitów: `OverrLoss <119266256+OverrLoss@users.noreply.github.com>`.
 - Zakaz dopisków o agentach/AI i znaczników `Co-authored-by` w commitach.
-- Przed pracą: `git fetch --all --prune`, `git status`, `git pull --ff-only`, sprawdź PR i issue.
+- Sprawdzaj `git fetch --all --prune`, `git status` i `git pull --ff-only` tylko przed commitami, pushami, merge’ami i wdrożeniami — wtedy, gdy nieaktualne repo mogłoby spowodować konflikt. PR i issue sprawdzaj tylko wtedy, gdy mogą wpłynąć na wykonywaną zmianę.
 
 ## Ścieżki i domena
 
