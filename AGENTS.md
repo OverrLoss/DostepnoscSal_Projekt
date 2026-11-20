@@ -7,7 +7,6 @@ Język pracy: polski.
 - Gałąź `main`. Autor commitów: `OverrLoss <119266256+OverrLoss@users.noreply.github.com>`.
 - Zakaz dopisków o agentach/AI i znaczników `Co-authored-by` w commitach.
 - Przed pracą: `git fetch --all --prune`, `git status`, `git pull --ff-only`, sprawdź PR i issue.
-- `Academic-Scheduler-main/` to osobny projekt użytkownika — nie ruszać go.
 
 ## Ścieżki i domena
 
