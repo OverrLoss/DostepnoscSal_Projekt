@@ -13,6 +13,7 @@ if (-not $ProjectDir) { $ProjectDir = (Get-Location).Path }
 # lokalny config.yml nie jest uzywany. Nie uruchamiamy osobnych tuneli.
 $LocalCfDir = Join-Path $ProjectDir ".cloudflared"
 $CloudflaredService = "Cloudflared"
+$TunnelTokenFile = Join-Path $LocalCfDir "victus.token"
 
 function Get-CloudflaredPath {
     $paths = @(
@@ -37,6 +38,11 @@ function Get-PythonPid {
 function Get-CloudflarePid {
     $svc = Get-Service -Name $CloudflaredService -ErrorAction SilentlyContinue
     if ($svc -and $svc.Status -eq "Running") { return $svc.Status }
+    # Na komputerze bez uslugi: tunel uruchomiony z pliku tokenu.
+    $procs = Get-CimInstance Win32_Process -Filter "Name = 'cloudflared.exe'" -ErrorAction SilentlyContinue
+    foreach ($p in $procs) {
+        if ($p.CommandLine -and $p.CommandLine.Contains("victus.token")) { return $p.ProcessId }
+    }
     return $null
 }
 
@@ -46,6 +52,13 @@ function Stop-All {
         Stop-Process -Id $py -Force -ErrorAction SilentlyContinue
     }
     # Nie zatrzymujemy uslugi Cloudflared - obsluga rowniez inne aplikacje.
+    # Zatrzymujemy tylko tunel uruchomiony z naszego pliku tokenu.
+    $procs = Get-CimInstance Win32_Process -Filter "Name = 'cloudflared.exe'" -ErrorAction SilentlyContinue
+    foreach ($p in $procs) {
+        if ($p.CommandLine -and $p.CommandLine.Contains("victus.token")) {
+            Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue
+        }
+    }
 }
 
 function Start-All {
@@ -61,12 +74,25 @@ function Start-All {
         }
     }
 
-    # 2. Upewnij sie, ze jedyna usluga tunelu (victus) dziala
+    # 2. Tunel victus: usluga Windows albo plik tokenu z folderu projektu
     $cf = Get-CloudflarePid
     if (-not $cf) {
-        Start-Service -Name $CloudflaredService -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 2
-        $cf = Get-CloudflarePid
+        $svc = Get-Service -Name $CloudflaredService -ErrorAction SilentlyContinue
+        if ($svc) {
+            Start-Service -Name $CloudflaredService -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 2
+            $cf = Get-CloudflarePid
+        } else {
+            $cfExe = Get-CloudflaredPath
+            if ($cfExe -and (Test-Path $TunnelTokenFile)) {
+                Start-Process -FilePath $cfExe -ArgumentList "tunnel run --token-file `"$TunnelTokenFile`"" -WorkingDirectory $ProjectDir -WindowStyle Hidden
+                for ($i = 0; $i -lt 15; $i++) {
+                    Start-Sleep -Milliseconds 400
+                    $cf = Get-CloudflarePid
+                    if ($cf) { break }
+                }
+            }
+        }
     }
 
     # 3. Pobierz aktualne IP Wi-Fi
