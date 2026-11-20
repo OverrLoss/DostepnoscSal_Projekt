@@ -22,7 +22,7 @@ System integruje:
    - Wbudowany serwer plików statycznych dla wersji Web.
    - Serwer autoupdate aplikacji mobilnej (`/api/app-version`).
    - Beacon UDP na porcie `8082` do automatycznego wykrywania adresu serwera w sieci lokalnej (LAN Wi-Fi).
-3. **Tunel Internetowy (Cloudflare Tunnel `wmt-gra`)**:
+3. **Tunel Internetowy (Cloudflare Tunnel `victus`)**:
    - Bezpieczne wystawienie aplikacji lokalnej do Internetu z certyfikatem HTTPS pod domeną `sale.pwojtaszek.5g.in` bez konieczności posiadania publicznego adresu IP ani przekierowywania portów na routerze.
 4. **Węzeł Sprzętowy IoT (ESP8266 Wemos D1 mini)**:
    - Skaner sieci Wi-Fi i automatyczny klient HTTP/REST.
@@ -47,7 +47,7 @@ flowchart TD
     end
 
     subgraph SerwerLokalny ["Lokalny Serwer (Windows / Linux)"]
-        CFTunnel["Cloudflared Tunnel (wmt-gra)"]
+        CFTunnel["Cloudflared Tunnel (victus)"]
         PythonServer["Python HTTP Server (sync_server.py :8081)"]
         UdpBeacon["UDP Discovery Responder (:8082)"]
         SqliteDB[("Baza Danych SQLite: rooms_backend.db")]

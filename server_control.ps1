@@ -8,29 +8,11 @@ $ErrorActionPreference = "SilentlyContinue"
 $ProjectDir = $PSScriptRoot
 if (-not $ProjectDir) { $ProjectDir = (Get-Location).Path }
 
-# Dynamiczna konfiguracja tunelu Cloudflare
+# Tunel Cloudflare jest jedna usluga Windows (victus, token z C:\ProgramData\cloudflared\token).
+# Trasy publiczne (sale/gra/plan) sa ustawione w panelu Cloudflare Zero Trust,
+# lokalny config.yml nie jest uzywany. Nie uruchamiamy osobnych tuneli.
 $LocalCfDir = Join-Path $ProjectDir ".cloudflared"
-$LocalCredFile = Join-Path $LocalCfDir "b3ecea77-5b0d-460d-88d6-28e570d05421.json"
-
-if (Test-Path $LocalCredFile) {
-    $ConfigFile = Join-Path $LocalCfDir "config.yml"
-    $configContent = @"
-tunnel: b3ecea77-5b0d-460d-88d6-28e570d05421
-credentials-file: $LocalCredFile
-
-ingress:
-  - hostname: sale.pwojtaszek.5g.in
-    service: http://127.0.0.1:8081
-  - hostname: gra.pwojtaszek.codes
-    service: http://localhost:8080
-  - hostname: gra.pwojtaszek.5g.in
-    service: http://localhost:8080
-  - service: http_status:404
-"@
-    Set-Content -Path $ConfigFile -Value $configContent -Encoding UTF8
-} else {
-    $ConfigFile = Join-Path $env:USERPROFILE ".cloudflared\config.yml"
-}
+$CloudflaredService = "Cloudflared"
 
 function Get-CloudflaredPath {
     $paths = @(
@@ -53,15 +35,8 @@ function Get-PythonPid {
 }
 
 function Get-CloudflarePid {
-    $procs = Get-CimInstance Win32_Process -Filter "Name = 'cloudflared.exe'" -ErrorAction SilentlyContinue
-    foreach ($p in $procs) {
-        if ($p.CommandLine -and $p.CommandLine.Contains("wmt-gra")) {
-            return $p.ProcessId
-        }
-    }
-    if ($procs) {
-        return ($procs | Select-Object -Last 1).ProcessId
-    }
+    $svc = Get-Service -Name $CloudflaredService -ErrorAction SilentlyContinue
+    if ($svc -and $svc.Status -eq "Running") { return $svc.Status }
     return $null
 }
 
@@ -70,10 +45,7 @@ function Stop-All {
     if ($py) {
         Stop-Process -Id $py -Force -ErrorAction SilentlyContinue
     }
-    $cf = Get-CloudflarePid
-    if ($cf) {
-        Stop-Process -Id $cf -Force -ErrorAction SilentlyContinue
-    }
+    # Nie zatrzymujemy uslugi Cloudflared - obsluga rowniez inne aplikacje.
 }
 
 function Start-All {
@@ -89,24 +61,12 @@ function Start-All {
         }
     }
 
-    # 2. Start Cloudflare Tunnel if not running
+    # 2. Upewnij sie, ze jedyna usluga tunelu (victus) dziala
     $cf = Get-CloudflarePid
-    $cfExe = Get-CloudflaredPath
-
     if (-not $cf) {
-        if (-not $cfExe) {
-            Write-Host "      [!] Program cloudflared nie jest zainstalowany na tym komputerze." -ForegroundColor Yellow
-            Write-Host "          Aby wlaczyc tunel publiczny HTTPS, wpisz w terminalu:" -ForegroundColor Yellow
-            Write-Host "          winget install --id Cloudflare.cloudflared" -ForegroundColor White
-        } else {
-            Start-Process -FilePath $cfExe -ArgumentList "tunnel --config `"$ConfigFile`" run wmt-gra" -WorkingDirectory $ProjectDir -WindowStyle Hidden
-            for ($i = 0; $i -lt 15; $i++) {
-                Start-Sleep -Milliseconds 400
-                $cf = Get-CloudflarePid
-                if ($cf) { break }
-            }
-            Start-Sleep -Seconds 4
-        }
+        Start-Service -Name $CloudflaredService -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+        $cf = Get-CloudflarePid
     }
 
     # 3. Pobierz aktualne IP Wi-Fi

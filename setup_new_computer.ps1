@@ -114,30 +114,10 @@ if (Test-Path $localCfExe) {
 # -----------------------------------------------------------------------------
 # KROK 3: Generowanie dynamicznej konfiguracji Cloudflare
 # -----------------------------------------------------------------------------
-Write-Host "`n[3/5] Konfiguracja poswiadczen tunelu Cloudflare..." -ForegroundColor Yellow
-$credFile = Join-Path $localCfDir "b3ecea77-5b0d-460d-88d6-28e570d05421.json"
-
-if (Test-Path $credFile) {
-    $configFile = Join-Path $localCfDir "config.yml"
-    $configContent = @"
-tunnel: b3ecea77-5b0d-460d-88d6-28e570d05421
-credentials-file: $credFile
-
-ingress:
-  - hostname: sale.pwojtaszek.5g.in
-    service: http://localhost:8081
-  - hostname: gra.pwojtaszek.codes
-    service: http://localhost:8080
-  - hostname: gra.pwojtaszek.5g.in
-    service: http://localhost:8080
-  - service: http_status:404
-"@
-    Set-Content -Path $configFile -Value $configContent -Encoding UTF8
-    Write-Host "      [OK] Klucz autoryzacyjny powiazany pomyslnie." -ForegroundColor Green
-    Write-Host "      [OK] Plik konfiguracyjny .cloudflared\config.yml wygenerowany dla biezacego komputera." -ForegroundColor Green
-} else {
-    Write-Host "      [!] Brak pliku poswiadczen b3ecea77-5b0d-460d-88d6-28e570d05421.json w folderze .cloudflared." -ForegroundColor Red
-}
+Write-Host "`n[3/5] Tunel Cloudflare..." -ForegroundColor Yellow
+Write-Host "      Uzywana jest jedna usluga Windows Cloudflared (tunel victus z tokenem)." -ForegroundColor Green
+Write-Host "      Trasy sale/gra/plan sa konfigurowane w panelu Cloudflare Zero Trust," -ForegroundColor Gray
+Write-Host "      nie w lokalnym pliku config.yml." -ForegroundColor Gray
 
 # -----------------------------------------------------------------------------
 # KROK 4: Sprawdzenie Flutter SDK i pobranie zaleznosci

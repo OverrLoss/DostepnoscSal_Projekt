@@ -1,11 +1,8 @@
-tunnel: b3ecea77-5b0d-460d-88d6-28e570d05421
-credentials-file: .cloudflared\b3ecea77-5b0d-460d-88d6-28e570d05421.json
-
-ingress:
-  - hostname: sale.pwojtaszek.5g.in
-    service: http://localhost:8081
-  - hostname: gra.pwojtaszek.codes
-    service: http://localhost:8080
-  - hostname: gra.pwojtaszek.5g.in
-    service: http://localhost:8080
-  - service: http_status:404
+# Tunel Cloudflare na tym komputerze: jeden, `victus`
+# (usluga Windows Cloudflared, token: C:\ProgramData\cloudflared\token).
+#
+# Lokalny config.yml nie jest uzywany — trasy ustawia sie w panelu
+# Cloudflare Zero Trust -> Network -> Tunnels -> victus -> Public Hostname:
+#   sale.pwojtaszek.5g.in -> HTTP -> localhost:8081
+#   gra.pwojtaszek.5g.in  -> HTTP -> localhost:8080
+#   plan.pwojtaszek.5g.in -> HTTP -> localhost:7702 (Academic Scheduler)
