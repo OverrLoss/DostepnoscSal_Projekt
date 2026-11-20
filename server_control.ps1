@@ -8,7 +8,7 @@ $ErrorActionPreference = "SilentlyContinue"
 $ProjectDir = $PSScriptRoot
 if (-not $ProjectDir) { $ProjectDir = (Get-Location).Path }
 
-# Tunel Cloudflare jest jedna usluga Windows (victus, token z C:\ProgramData\cloudflared\token).
+# Tunel Cloudflare jest jedna usluga Windows (victus, token z .cloudflared\victus.token).
 # Trasy publiczne (sale/gra/plan) sa ustawione w panelu Cloudflare Zero Trust,
 # lokalny config.yml nie jest uzywany. Nie uruchamiamy osobnych tuneli.
 $LocalCfDir = Join-Path $ProjectDir ".cloudflared"

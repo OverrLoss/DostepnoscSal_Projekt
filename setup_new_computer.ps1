@@ -115,7 +115,12 @@ if (Test-Path $localCfExe) {
 # KROK 3: Generowanie dynamicznej konfiguracji Cloudflare
 # -----------------------------------------------------------------------------
 Write-Host "`n[3/5] Tunel Cloudflare..." -ForegroundColor Yellow
-Write-Host "      Uzywana jest jedna usluga Windows Cloudflared (tunel victus z tokenem)." -ForegroundColor Green
+$tunnelToken = Join-Path $localCfDir "victus.token"
+if (Test-Path $tunnelToken) {
+    Write-Host "      [OK] Token tunelu victus znajduje sie w folderze projektu." -ForegroundColor Green
+} else {
+    Write-Host "      [!] Brak .cloudflared\victus.token - dolacz plik otrzymany od administratora." -ForegroundColor Yellow
+}
 Write-Host "      Trasy sale/gra/plan sa konfigurowane w panelu Cloudflare Zero Trust," -ForegroundColor Gray
 Write-Host "      nie w lokalnym pliku config.yml." -ForegroundColor Gray
 

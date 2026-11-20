@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
 [![ESP8266](https://img.shields.io/badge/ESP8266-Wemos%20D1%20mini-E7352C?logo=espressif&logoColor=white)](https://www.espressif.com)
-[![Version](https://img.shields.io/badge/Wersja-1.2.0%20(Code%204)-brightgreen)](#)
+[![Version](https://img.shields.io/badge/Wersja-1.3.12%20(Code%2017)-brightgreen)](#)
 
 Kompleksowy system monitorowania, wizualizacji na planie architektonicznym oraz zarządzania dostępnością sal wykładowych, laboratoriów i stref specjalnych (w tym wystawy pojazdów w Garażu) w budynku Politechniki Rzeszowskiej.
 

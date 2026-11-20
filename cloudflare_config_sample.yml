@@ -1,5 +1,5 @@
 # Tunel Cloudflare na tym komputerze: jeden, `victus`
-# (usluga Windows Cloudflared, token: C:\ProgramData\cloudflared\token).
+# (usluga Windows Cloudflared, token: .cloudflared\victus.token).
 #
 # Lokalny config.yml nie jest uzywany — trasy ustawia sie w panelu
 # Cloudflare Zero Trust -> Network -> Tunnels -> victus -> Public Hostname:
