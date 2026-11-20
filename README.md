@@ -32,6 +32,7 @@ Szczegółowa dokumentacja techniczna znajduje się w dedykowanych plikach:
 | [**`DEVELOPER_GUIDE.md`**](DEVELOPER_GUIDE.md) | **Instrukcja uruchomienia i kompilacji**: Krok po kroku na nowym komputerze (Web, Android APK, Python, Cloudflare, ESP8266) |
 | [**`API_REFERENCE.md`**](API_REFERENCE.md) | **Specyfikacja API**: Wszystkie endpointy REST, formaty JSON, nagłówki CORS i protokół UDP 8082 |
 | [**`ROADMAP.md`**](ROADMAP.md) | **Plan rozwoju**: Zrealizowane kamienie milowe oraz proponowane kolejne zadania i ulepszenia |
+| [**`TUNNEL_TOKEN.md`**](TUNNEL_TOKEN.md) | **Tunel `victus`**: jak przekazać projekt lub sam plik tokenu innej osobie |
 
 ---
 
@@ -43,10 +44,9 @@ PRZYGOTUJ_KOMPUTER.bat
 ```
 Ten jeden plik automatycznie:
 1. Sprawdza i w razie potrzeby instaluje środowisko **Python 3**.
-2. Weryfikuje i konfiguruje przenośny **Cloudflare Tunnel (`cloudflared`)**.
-3. Wiąże klucze kryptograficzne i generuje dynamiczną konfigurację tunelu.
-4. Pobiera pakiety Flutter (`flutter pub get`).
-5. Tworzy skrót **"Uruchom Serwer Sal"** na Pulpicie nowego komputera.
+2. Weryfikuje przenośny plik `cloudflared.exe` i token `.cloudflared/victus.token` w folderze projektu.
+3. Pobiera pakiety Flutter (`flutter pub get`).
+4. Tworzy skrót **"Uruchom Serwer Sal"** na Pulpicie nowego komputera.
 
 Po zakończeniu działania tego jednego pliku komputer jest w 100% gotowy do pracy, a serwer i aplikacja natychmiast dostępne!
 

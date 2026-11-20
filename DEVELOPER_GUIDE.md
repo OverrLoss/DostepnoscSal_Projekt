@@ -76,49 +76,26 @@ build/app/outputs/flutter-apk/app-release.apk
 Aby aplikacja mogła być automatycznie pobierana przez użytkowników w ramach aktualizacji (OTA update), skopiuj plik `.apk` do katalogu `build/web/DostepnoscSal.apk` oraz `server/DostepnoscSal.apk`.
 
 ### 3.3. Zwiększanie Wersji (Version Bump)
-Przed publikacją nowej wersji należy:
-1. W [pubspec.yaml](pubspec.yaml) zwiększyć wersję, np.:
-   ```yaml
-   version: 1.2.1+5  # versionName: 1.2.1, versionCode: 5
-   ```
-2. W [server/sync_server.py](server/sync_server.py) w metodzie `/api/app-version` zaktualizować `versionCode` oraz `versionName`:
-   ```python
-   "versionCode": 5,
-   "versionName": "1.2.1",
-   ```
-Dzięki temu zainstalowane aplikacje automatycznie wykryją nowszą wersję (`remoteCode > localCode`) i wyświetlą monit o aktualizację.
+Przed publikacją nowej wersji zwiększ numer w:
+- [pubspec.yaml](pubspec.yaml) — np. `version: 1.3.12+17`,
+- `lib/services/app_update_service.dart` (lokalna wersja Web),
+- `lib/services/diagnostics_service.dart`,
+- `server/sync_server.py` (awaryjne metadane `/api/app-version`),
+- `server/deploy_apk.py` (domyślne wartości przy wdrożeniu).
+
+Następnie uruchom `python build_and_deploy.py`, który wygeneruje `server/app_version.json` z nowym numerem i rozmiarem APK. Dzięki temu zainstalowane aplikacje automatycznie wykryją aktualizację.
 
 ---
 
-## 4. Konfiguracja Tunelu Cloudflare na Nowym Urządzeniu
+## 4. Tunel Cloudflare na Nowym Urządzeniu
 
-Jeśli chcesz uruchomić tunel internetowy Cloudflare na nowym komputerze:
-1. Zaloguj się do Cloudflare:
-   ```bash
-   cloudflared tunnel login
-   ```
-2. Utwórz tunel:
-   ```bash
-   cloudflared tunnel create sale-serwer
-   ```
-3. Skonfiguruj plik `~/.cloudflared/config.yml` wzorując się na dołączonym w projekcie `cloudflare_config_sample.yml`:
-   ```yaml
-   tunnel: <TWÓJ-UUID-TUNELU>
-   credentials-file: ~/.cloudflared/<TWÓJ-UUID-TUNELU>.json
+Projekt używa jednego tunelu `victus` i nie wymaga plików poza folderem projektu.
 
-   ingress:
-     - hostname: sale.twojadomena.pl
-       service: http://localhost:8081
-     - service: http_status:404
-   ```
-4. Przypisz domenę DNS:
-   ```bash
-   cloudflared tunnel route dns sale-serwer sale.twojadomena.pl
-   ```
-5. Uruchom tunel:
-   ```bash
-   cloudflared tunnel --config ~/.cloudflared/config.yml run sale-serwer
-   ```
+1. Umieść otrzymany plik `victus.token` w `.cloudflared/` (jest objęty `.gitignore`).
+2. Upewnij się, że w `.cloudflared/` jest `cloudflared.exe`. Jeśli go nie ma, zainstaluj cloudflared poleceniem `winget install --id Cloudflare.cloudflared`.
+3. Uruchom `run_server_and_tunnel.bat` — skrypt sam odpali serwer i tunel z tokenu (chyba że na komputerze działa już usługa `Cloudflared`).
+
+Trasy publiczne (`sale`, `gra`, `plan`) są ustawione w panelu Cloudflare Zero Trust. Szczegóły przekazania tokenu znajdują się w [TUNNEL_TOKEN.md](TUNNEL_TOKEN.md).
 
 ---
 
