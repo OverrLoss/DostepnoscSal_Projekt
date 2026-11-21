@@ -10,7 +10,7 @@ if (-not $ProjectDir) { $ProjectDir = (Get-Location).Path }
 Clear-Host
 Write-Host "=====================================================================" -ForegroundColor Cyan
 Write-Host "   DOSTEPNOSC SAL - POLITECHNIKA RZESZOWSKA                          " -ForegroundColor Cyan
-Write-Host "   Automatyczne Przygotowanie Nowego Komputera do Pracy (v1.2.0)     " -ForegroundColor Cyan
+Write-Host "   Automatyczne Przygotowanie Nowego Komputera do Pracy (v1.3.12)    " -ForegroundColor Cyan
 Write-Host "=====================================================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Katalog projektu: $ProjectDir" -ForegroundColor Gray
@@ -19,7 +19,7 @@ Write-Host ""
 # -----------------------------------------------------------------------------
 # KROK 1: Sprawdzenie i instalacja Pythona
 # -----------------------------------------------------------------------------
-Write-Host "[1/5] Sprawdzanie srodowiska Python..." -ForegroundColor Yellow
+Write-Host "[1/6] Sprawdzanie srodowiska Python..." -ForegroundColor Yellow
 $pyCmd = Get-Command python -ErrorAction SilentlyContinue
 $pyInstalled = $false
 
@@ -56,9 +56,29 @@ if (-not $pyInstalled) {
 }
 
 # -----------------------------------------------------------------------------
-# KROK 2: Sprawdzenie programu Cloudflare Tunnel (cloudflared)
+# KROK 2: Instalacja zaleznosci backendu (requirements.txt)
 # -----------------------------------------------------------------------------
-Write-Host "`n[2/5] Sprawdzanie narzedzia Cloudflare Tunnel (cloudflared)..." -ForegroundColor Yellow
+Write-Host "`n[2/6] Instalacja zaleznosci Python (requirements.txt)..." -ForegroundColor Yellow
+$requirementsFile = Join-Path $ProjectDir "requirements.txt"
+if ($pyInstalled -and (Test-Path $requirementsFile)) {
+    try {
+        & python -m pip install --disable-pip-version-check -r $requirementsFile
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "      [OK] Zaleznosci Python zainstalowane pomyslnie!" -ForegroundColor Green
+        } else {
+            Write-Host "      [!] pip zakonczyl sie kodem $LASTEXITCODE. Serwer moze nie uruchomic sie bez recznej instalacji." -ForegroundColor Red
+        }
+    } catch {
+        Write-Host "      [!] Blad instalacji zaleznosci: $_" -ForegroundColor Red
+    }
+} else {
+    Write-Host "      [!] Python lub requirements.txt niedostepny - instalacja pominieta." -ForegroundColor Yellow
+}
+
+# -----------------------------------------------------------------------------
+# KROK 3: Sprawdzenie programu Cloudflare Tunnel (cloudflared)
+# -----------------------------------------------------------------------------
+Write-Host "`n[3/6] Sprawdzanie narzedzia Cloudflare Tunnel (cloudflared)..." -ForegroundColor Yellow
 $localCfDir = Join-Path $ProjectDir ".cloudflared"
 if (-not (Test-Path $localCfDir)) {
     New-Item -ItemType Directory -Path $localCfDir -Force | Out-Null
@@ -114,7 +134,7 @@ if (Test-Path $localCfExe) {
 # -----------------------------------------------------------------------------
 # KROK 3: Generowanie dynamicznej konfiguracji Cloudflare
 # -----------------------------------------------------------------------------
-Write-Host "`n[3/5] Tunel Cloudflare..." -ForegroundColor Yellow
+Write-Host "`n[4/6] Tunel Cloudflare..." -ForegroundColor Yellow
 $tunnelToken = Join-Path $localCfDir "victus.token"
 if (Test-Path $tunnelToken) {
     Write-Host "      [OK] Token tunelu victus znajduje sie w folderze projektu." -ForegroundColor Green
@@ -127,7 +147,7 @@ Write-Host "      nie w lokalnym pliku config.yml." -ForegroundColor Gray
 # -----------------------------------------------------------------------------
 # KROK 4: Sprawdzenie Flutter SDK i pobranie zaleznosci
 # -----------------------------------------------------------------------------
-Write-Host "`n[4/5] Sprawdzanie srodowiska Flutter / Dart..." -ForegroundColor Yellow
+Write-Host "`n[5/6] Sprawdzanie srodowiska Flutter / Dart..." -ForegroundColor Yellow
 $flutterCmd = Get-Command flutter -ErrorAction SilentlyContinue
 
 if ($flutterCmd) {
@@ -152,7 +172,7 @@ if ($flutterCmd) {
 # -----------------------------------------------------------------------------
 # KROK 5: Utworzenie skrotu na Pulpicie nowego komputera
 # -----------------------------------------------------------------------------
-Write-Host "`n[5/5] Tworzenie skrotu na Pulpicie..." -ForegroundColor Yellow
+Write-Host "`n[6/6] Tworzenie skrotu na Pulpicie..." -ForegroundColor Yellow
 try {
     $desktopPath = [Environment]::GetFolderPath("Desktop")
     $shortcutPath = Join-Path $desktopPath "Uruchom Serwer Sal (sale.pwojtaszek.5g.in).lnk"

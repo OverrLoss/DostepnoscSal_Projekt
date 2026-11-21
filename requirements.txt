@@ -1,0 +1,8 @@
+# Backend Dostepnosc Sal (server/sync_server.py) - Python 3.10+
+# Instalacja: python -m pip install -r requirements.txt
+fastapi>=0.115,<1.0
+uvicorn>=0.30,<1.0
+pydantic>=2.9,<3.0
+
+# Testy kontraktu (server/test_contract.py, fastapi.testclient)
+httpx>=0.27,<1.0
