@@ -16,13 +16,7 @@
 <path id="room-0-12" class="room" fill="#fff" fill-rule="evenodd" d="M0.4 306.2L88.2 306.2L88.2 329.6L0.4 329.6L0.4 306.2ZM0.4 331.7L88.2 331.7L88.2 406.8L0.4 406.8L0.4 331.7Z"/>
 <path id="room-0-15" class="room" fill="#fff" fill-rule="evenodd" d="M0.9 408.2L86.8 408.2L86.8 475.5L0.9 475.5L0.9 408.2Z"/>
 <path id="room-0-17" class="room" fill="#fff" fill-rule="evenodd" d="M122.2 495.7L142.3 495.7L156.1 502.3L174.1 512.9L167.2 517.6L122.2 495.7Z"/>
-<path id="room-0-20" class="room" fill="#fff" fill-rule="evenodd" d="M260.4 525.8L297.8 492.1L310.2 505.9L272.8 539.6L260.4 525.8Z"/>
-<path id="room-0-21" class="room" fill="#fff" fill-rule="evenodd" d="M273.4 540.2L310.8 506.5L333.4 531.6L295.9 565.2L273.4 540.2Z"/>
-<path id="room-0-22" class="room" fill="#fff" fill-rule="evenodd" d="M269.2 572.5L287.2 556.3L295.6 565.6L277.6 581.8L269.2 572.5Z"/>
-<path id="room-0-23" class="room" fill="#fff" fill-rule="evenodd" d="M247.6 592.0L268.7 573.0L277.0 582.3L255.9 601.3L247.6 592.0Z"/>
-<path id="room-0-25" class="room" fill="#fff" fill-rule="evenodd" d="M259.7 561.9L277.6 545.7L286.6 555.7L268.7 571.9L259.7 561.9Z"/>
-<path id="room-0-26" class="room" fill="#fff" fill-rule="evenodd" d="M238.0 581.4L249.3 571.2L258.3 581.2L247.0 591.4L238.0 581.4Z"/>
-<path id="room-0-27" class="room" fill="#fff" fill-rule="evenodd" d="M277.1 545.1L260.0 526.1L220.4 561.8L237.5 580.8L248.8 570.7L258.3 581.2L268.7 571.9L259.2 561.3L277.1 545.1Z"/>
+<path id="room-0-27" class="room" fill="#fff" fill-rule="evenodd" d="M277.1 545.1L260.0 526.1L220.4 561.8L237.5 580.8L248.8 570.7L258.3 581.2L268.7 571.9L259.2 561.3L277.1 545.1ZM238.0 581.4L249.3 571.2L258.3 581.2L247.0 591.4L238.0 581.4ZM259.7 561.9L277.6 545.7L286.6 555.7L268.7 571.9L259.7 561.9ZM247.6 592.0L268.7 573.0L277.0 582.3L255.9 601.3L247.6 592.0ZM269.2 572.5L287.2 556.3L295.6 565.6L277.6 581.8L269.2 572.5ZM273.4 540.2L310.8 506.5L333.4 531.6L295.9 565.2L273.4 540.2ZM260.4 525.8L297.8 492.1L310.2 505.9L272.8 539.6L260.4 525.8Z"/>
 <path id="room-0-28" class="room" fill="#fff" fill-rule="evenodd" d="M275.4 465.9L312.2 432.8L370.8 497.9L334.0 531.0L275.4 465.9Z"/>
 <path id="room-0-29" class="room" fill="#fff" fill-rule="evenodd" d="M313.7 431.2L350.7 397.8L409.4 463.1L372.4 496.4L313.7 431.2Z"/>
 <path id="room-0-30" class="room" fill="#fff" fill-rule="evenodd" d="M351.8 396.8L388.8 363.6L447.5 428.8L410.6 462.1L351.8 396.8Z"/>

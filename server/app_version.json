@@ -1,8 +1,8 @@
 {
-  "versionCode": 26,
-  "versionName": "1.3.21",
+  "versionCode": 27,
+  "versionName": "1.3.22",
   "apkSize": 54959050,
-  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=26",
-  "releaseNotes": "Wersja 1.3.21: sala 5 podzielona na 5 i 4, przesunięcie numerów 2/3/4 na 1/2/3 oraz sala 2 powiększona o 0-04 i 0-05",
-  "builtAt": "2026-11-23T14:24:30Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=27",
+  "releaseNotes": "Wersja 1.3.22: scalenie poligonów 0-20/0-21/0-22/0-23/0-25/0-26/0-27 w salę Kafeteria",
+  "builtAt": "2026-11-23T15:08:27Z"
 }

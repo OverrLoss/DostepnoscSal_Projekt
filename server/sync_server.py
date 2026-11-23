@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 26,
-        "versionName": "1.3.21",
+        "versionCode": 27,
+        "versionName": "1.3.22",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -162,7 +162,7 @@ SVG_ASSIGNED = {
         "9": "room-0-28", "10": "room-0-29", "11": "room-0-30",
         "12": "room-0-31", "13_14": "room-0-32", "15_16": "room-0-34",
         "17": "room-0-36", "18": "room-0-44", "19": "room-0-45", "20": "room-0-46",
-        "Portiernia": "room-0-57",
+        "Portiernia": "room-0-57", "Kafeteria": "room-0-27",
     },
 }
 SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
@@ -173,7 +173,8 @@ SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
                "room-0-37", "room-0-38", "room-0-40", "room-0-41", "room-0-43",
                "room-0-45b", "room-0-52", "room-0-54", "room-0-55",
                 "room-0-35", "room-0-33", "room-0-58", "room-0-59",
-                "room-0-60", "room-0-14", "room-0-16", "room-0-04", "room-0-05"}
+                "room-0-60", "room-0-14", "room-0-16", "room-0-04", "room-0-05",
+                "room-0-26", "room-0-25", "room-0-23", "room-0-22", "room-0-21", "room-0-20"}
 SVG_SPECIAL = {
     "Piętro": {"room-1-05", "room-1-19", "room-1-12", "room-1-17", "room-1-14", "room-1-13",
                "room-1-01", "room-1-02", "room-1-04", "room-1-39", "room-1-40"} | SVG_REMOVED,
