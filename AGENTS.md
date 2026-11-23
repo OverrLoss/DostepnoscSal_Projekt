@@ -4,7 +4,7 @@ Język pracy: polski.
 
 ## Repozytorium
 
-- Gałąź `main`. Autor commitów: `OverrLoss <119266256+OverrLoss@users.noreply.github.com>`.
+- Gałąź `main`. Autor commitów: `OverrLoss <119266256+OverrLoss@users.noreply.github.com>` lub inny kontrybutor w zależności od zalowgowanego konta lub pytaj się użytkownika przed commit.
 - Zakaz dopisków o agentach/AI i znaczników `Co-authored-by` w commitach.
 - Po każdym podniesieniu wersji utwórz annotowany tag `vX.Y.Z` na commicie z nową wersją, wypchnij go (`git push origin --tags`) i opublikuj GitHub Release z plikiem APK jako assetem. Tagi są punktami powrotu: `git checkout vX.Y.Z`. Przed wdrożeniem sprawdź, że tag i release dla wersji istnieją.
 - Sprawdzaj `git fetch --all --prune`, `git status` i `git pull --ff-only` tylko przed commitami, pushami, merge’ami i wdrożeniami — wtedy, gdy nieaktualne repo mogłoby spowodować konflikt. PR i issue sprawdzaj tylko wtedy, gdy mogą wpłynąć na wykonywaną zmianę.
