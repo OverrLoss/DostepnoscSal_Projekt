@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 30,
-        "versionName": "1.3.25",
+        "versionCode": 31,
+        "versionName": "1.3.26",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -158,10 +158,10 @@ SVG_ASSIGNED = {
     },
     "Parter": {
         "1": "room-0-06", "2": "room-0-07", "3": "room-0-08",
-        "4": "room-0-10", "5": "room-0-09", "6": "room-0-11", "7": "room-0-12",
+        "4": "room-0-10b", "5": "room-0-10", "6": "room-0-11", "7": "room-0-12",
         "8": "room-0-28", "9": "room-0-29", "10": "room-0-30",
-        "11": "room-0-31", "12": "room-0-32", "13_14": "room-0-34",
-        "15_16": "room-0-36", "17": "room-0-36b", "18": "room-0-44",
+        "11": "room-0-31", "12": "room-0-32", "13_14": "room-0-33",
+        "15_16": "room-0-35", "17": "room-0-36b", "18": "room-0-44",
         "19": "room-0-45", "20": "room-0-46", "24": "room-0-60",
         "25": "room-0-61", "26": "room-0-62", "27": "room-0-63", "28": "room-0-64",
         "29": "room-0-65", "30": "room-0-66", "31": "room-0-67", "32": "room-0-68",
@@ -175,9 +175,10 @@ SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
                "room-1-52", "room-1-53", "room-1-54",
                "room-0-37", "room-0-38", "room-0-40", "room-0-41", "room-0-43",
                "room-0-45b", "room-0-52", "room-0-54", "room-0-55",
-                "room-0-35", "room-0-33", "room-0-58", "room-0-59",
+                "room-0-58", "room-0-59",
                 "room-0-14", "room-0-16", "room-0-04", "room-0-05",
-                "room-0-26", "room-0-25", "room-0-23", "room-0-22", "room-0-21", "room-0-20"}
+                "room-0-26", "room-0-25", "room-0-23", "room-0-22", "room-0-21", "room-0-20",
+                "room-0-09", "room-0-34", "room-0-36"}
 SVG_SPECIAL = {
     "Piętro": {"room-1-05", "room-1-19", "room-1-12", "room-1-17", "room-1-14", "room-1-13",
                "room-1-01", "room-1-02", "room-1-04", "room-1-39", "room-1-40"} | SVG_REMOVED,
@@ -570,6 +571,18 @@ def init_db():
                 cursor.execute(f"UPDATE {table} SET room_id = ? WHERE room_id = ?", (new_id, old_id))
             conn.commit()
             conn.execute("PRAGMA foreign_keys = ON")
+    conn.commit()
+
+    # Sala 5 (wąski pasek 0-09) znika; jej historia przechodzi do sali 4,
+    # a nowa sala 5 powstaje z górnej połówki dawnej sali 4 (0-10).
+    r5 = cursor.execute("SELECT svg_id FROM rooms WHERE id = '5'").fetchone()
+    if r5 and r5[0] == "room-0-09":
+        conn.execute("PRAGMA foreign_keys = OFF")
+        for table in ("users", "devices", "occupancy_sessions", "alerts"):
+            cursor.execute("UPDATE %s SET room_id = '4' WHERE room_id = '5'" % table)
+        cursor.execute("DELETE FROM rooms WHERE id = '5'")
+        conn.commit()
+        conn.execute("PRAGMA foreign_keys = ON")
     conn.commit()
 
     # Sale z rzutu SVG — nowe numery i przemapowania.

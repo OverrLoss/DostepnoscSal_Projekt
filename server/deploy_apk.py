@@ -167,8 +167,8 @@ def main():
             print(f"[deploy] Wersja z app_version.json: {version_name} (versionCode={version_code})")
         else:
             print("[deploy] Nie można ustalić wersji. Podaj ręcznie:")
-            version_name = input("  versionName (np. 1.4.0): ").strip() or "1.3.25"
-            version_code = int(input("  versionCode (np. 26): ").strip() or "30")
+            version_name = input("  versionName (np. 1.4.0): ").strip() or "1.3.26"
+            version_code = int(input("  versionCode (np. 26): ").strip() or "31")
 
     # Distribute APK
     copy_apk(SRC_APK, version_name, version_code)
