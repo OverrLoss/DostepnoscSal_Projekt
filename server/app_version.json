@@ -1,8 +1,8 @@
 {
-  "versionCode": 23,
-  "versionName": "1.3.18",
+  "versionCode": 24,
+  "versionName": "1.3.19",
   "apkSize": 54959050,
-  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=23",
-  "releaseNotes": "Wersja 1.3.18: porządek w salach startowych, tokenach ESP i panelu konfiguracji ESP8266",
-  "builtAt": "2026-11-23T12:50:21Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=24",
+  "releaseNotes": "Wersja 1.3.19: porządek w geometrii parteru — usunięto 0-43, 0-52, 0-41; scalono 0-36 z 0-37/0-38/0-40, 0-44 z 0-45b oraz windę 0-53 z 0-54/0-55",
+  "builtAt": "2026-11-23T13:23:04Z"
 }

@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 23,
-        "versionName": "1.3.18",
+        "versionCode": 24,
+        "versionName": "1.3.19",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -162,7 +162,9 @@ SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
                "room-1-26", "room-1-27", "room-1-30", "room-0-47", "room-0-51",
                "room-1-06", "room-1-08", "room-1-16", "room-1-18", "room-1-34", "room-1-35",
                "room-1-36", "room-1-37", "room-1-41", "room-1-48", "room-1-50",
-               "room-1-52", "room-1-53", "room-1-54"}
+               "room-1-52", "room-1-53", "room-1-54",
+               "room-0-37", "room-0-38", "room-0-40", "room-0-41", "room-0-43",
+               "room-0-45b", "room-0-52", "room-0-54", "room-0-55"}
 SVG_SPECIAL = {
     "Piętro": {"room-1-05", "room-1-19", "room-1-12", "room-1-17", "room-1-14", "room-1-13",
                "room-1-01", "room-1-02", "room-1-04", "room-1-39", "room-1-40"} | SVG_REMOVED,
