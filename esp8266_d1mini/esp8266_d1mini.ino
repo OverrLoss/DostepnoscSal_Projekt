@@ -34,7 +34,7 @@
 #include <EEPROM.h>
 #include <ArduinoJson.h>
 
-const char* ESP8266_FIRMWARE_VERSION = "1.3.7";
+const char* ESP8266_FIRMWARE_VERSION = "1.3.8";
 
 // --- PINOUT ---
 const int PIN_LED_FREE = 4;  // D2 (GPIO 4) -> LED Wolna (Zielona)
@@ -737,9 +737,23 @@ void handleRoot() {
             <span class="room-chip" onclick="setRoom('123')">123</span>
             <span class="room-chip" onclick="setRoom('124')">124</span>
             <span class="room-chip" onclick="setRoom('125')">125</span>
+            <span class="room-chip" onclick="setRoom('2')">2</span>
+            <span class="room-chip" onclick="setRoom('3')">3</span>
+            <span class="room-chip" onclick="setRoom('4')">4</span>
+            <span class="room-chip" onclick="setRoom('5')">5</span>
+            <span class="room-chip" onclick="setRoom('6')">6</span>
+            <span class="room-chip" onclick="setRoom('7')">7</span>
             <span class="room-chip" onclick="setRoom('9')">9</span>
+            <span class="room-chip" onclick="setRoom('10')">10</span>
+            <span class="room-chip" onclick="setRoom('11')">11</span>
             <span class="room-chip" onclick="setRoom('12')">12</span>
-            <span class="room-chip" onclick="setRoom('14')">14</span>
+            <span class="room-chip" onclick="setRoom('13_14')">13_14</span>
+            <span class="room-chip" onclick="setRoom('15_16')">15_16</span>
+            <span class="room-chip" onclick="setRoom('17')">17</span>
+            <span class="room-chip" onclick="setRoom('18')">18</span>
+            <span class="room-chip" onclick="setRoom('19')">19</span>
+            <span class="room-chip" onclick="setRoom('20')">20</span>
+            <span class="room-chip" onclick="setRoom('Portiernia')">Portiernia</span>
             <span class="room-chip" onclick="setRoom('HOL')">HOL</span>
             <span class="room-chip" onclick="setRoom('Garaż')">Garaż</span>
           </div>

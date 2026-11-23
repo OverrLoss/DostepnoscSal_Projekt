@@ -198,7 +198,7 @@ class RoomDatabaseHelper {
       // PARTER
       Room(
         id: 11,
-        number: '9',
+        number: '5',
         name: 'Bryłki bez kleju',
         floor: 'Parter',
         category: 'EXTRAS',
@@ -218,7 +218,7 @@ class RoomDatabaseHelper {
       ),
       Room(
         id: 13,
-        number: '14',
+        number: '7',
         name: 'Wirtualny świat',
         floor: 'Parter',
         category: 'Laboratorium',

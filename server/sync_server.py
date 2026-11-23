@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 24,
-        "versionName": "1.3.19",
+        "versionCode": 25,
+        "versionName": "1.3.20",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -156,7 +156,14 @@ SVG_ASSIGNED = {
         "118_119": "room-1-47", "120_121": "room-1-49", "122": "room-1-51",
         "123": "room-1-07", "124": "room-1-09", "125": "room-1-10",
     },
-    "Parter": {"9": "room-0-09", "12": "room-0-12", "14": "room-0-14"},
+    "Parter": {
+        "2": "room-0-06", "3": "room-0-07", "4": "room-0-08",
+        "5": "room-0-09", "6": "room-0-11", "7": "room-0-12",
+        "9": "room-0-28", "10": "room-0-29", "11": "room-0-30",
+        "12": "room-0-31", "13_14": "room-0-32", "15_16": "room-0-34",
+        "17": "room-0-36", "18": "room-0-44", "19": "room-0-45", "20": "room-0-46",
+        "Portiernia": "room-0-57",
+    },
 }
 SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
                "room-1-26", "room-1-27", "room-1-30", "room-0-47", "room-0-51",
@@ -164,7 +171,9 @@ SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
                "room-1-36", "room-1-37", "room-1-41", "room-1-48", "room-1-50",
                "room-1-52", "room-1-53", "room-1-54",
                "room-0-37", "room-0-38", "room-0-40", "room-0-41", "room-0-43",
-               "room-0-45b", "room-0-52", "room-0-54", "room-0-55"}
+               "room-0-45b", "room-0-52", "room-0-54", "room-0-55",
+                "room-0-35", "room-0-33", "room-0-10", "room-0-58", "room-0-59",
+                "room-0-60", "room-0-14", "room-0-16"}
 SVG_SPECIAL = {
     "Piętro": {"room-1-05", "room-1-19", "room-1-12", "room-1-17", "room-1-14", "room-1-13",
                "room-1-01", "room-1-02", "room-1-04", "room-1-39", "room-1-40"} | SVG_REMOVED,
@@ -491,19 +500,36 @@ def init_db():
             pass
     conn.commit()
 
+    # Renumeracja parteru: stare sale przechodzą na nowe numery wraz z historią,
+    # a zwolnione numery (9, 12) dostają nowe poligony poniżej.
+    for old_id, new_id in (("9", "5"), ("14", "7"), ("12", "7")):
+        if not cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (old_id,)).fetchone():
+            continue
+        conn.execute("PRAGMA foreign_keys = OFF")
+        for table in ("users", "devices", "occupancy_sessions", "alerts"):
+            cursor.execute(f"UPDATE {table} SET room_id = ? WHERE room_id = ?", (new_id, old_id))
+        if cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (new_id,)).fetchone():
+            cursor.execute("DELETE FROM rooms WHERE id = ?", (old_id,))
+        else:
+            cursor.execute("UPDATE rooms SET id = ?, name = ? WHERE id = ?", (new_id, new_id, old_id))
+        conn.commit()
+        conn.execute("PRAGMA foreign_keys = ON")
+    conn.commit()
+
     # Sale z rzutu SVG — nowe numery i przemapowania.
-    for num, pid in SVG_ASSIGNED["Piętro"].items():
-        if num.startswith("Aula "):
-            continue
-        if cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (num,)).fetchone():
-            cursor.execute("UPDATE rooms SET svg_id = ? WHERE id = ?", (pid, num))
-            continue
-        now = utc_now()
-        cursor.execute("""
-            INSERT INTO rooms (id, name, location, floor, status, category, description,
-                               capacity, svg_id, sortOrder, created_at, updated_at)
-            VALUES (?, ?, ?, ?, 'free', 'Laboratorium', '', 0, ?, 99, ?, ?)
-        """, (num, num, "Poziom Piętro", "Piętro", pid, now, now))
+    for floor, mapping in SVG_ASSIGNED.items():
+        for num, pid in mapping.items():
+            if num.startswith("Aula "):
+                continue
+            if cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (num,)).fetchone():
+                cursor.execute("UPDATE rooms SET svg_id = ? WHERE id = ?", (pid, num))
+                continue
+            now = utc_now()
+            cursor.execute("""
+                INSERT INTO rooms (id, name, location, floor, status, category, description,
+                                   capacity, svg_id, sortOrder, created_at, updated_at)
+                VALUES (?, ?, ?, ?, 'free', 'Laboratorium', '', 0, ?, 99, ?, ?)
+            """, (num, num, f"Poziom {floor}", floor, pid, now, now))
     conn.commit()
 
     # Seed Default Administrator if no users
@@ -1932,7 +1958,7 @@ def get_device_assigned_room_state(
     db.commit()
 
     is_esp8266 = "8266" in chip or "wemos" in chip
-    fw_ver = "1.3.7" if is_esp8266 else "1.3.8"
+    fw_ver = "1.3.8" if is_esp8266 else "1.3.8"
     bin_name = "esp8266_firmware.bin" if is_esp8266 else "cyd_firmware.bin"
     bin_path = os.path.join(BASE_DIR, bin_name)
     has_update = os.path.exists(bin_path)
@@ -2275,7 +2301,7 @@ def get_firmware_version(chip: str = "esp32"):
     fw_path = _get_firmware_file(chip)
     fw_size = os.path.getsize(fw_path) if os.path.exists(fw_path) else 0
     norm_chip = "esp8266" if "8266" in chip.lower() else "esp32"
-    version = "1.3.7" if norm_chip == "esp8266" else "1.3.8"
+    version = "1.3.8" if norm_chip == "esp8266" else "1.3.8"
     version_tag = version.replace(".", "")
     return JSONResponse(
         content={
