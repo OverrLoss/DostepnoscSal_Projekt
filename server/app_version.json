@@ -1,8 +1,8 @@
 {
-  "versionCode": 31,
-  "versionName": "1.3.26",
+  "versionCode": 32,
+  "versionName": "1.3.27",
   "apkSize": 54959050,
-  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=31",
-  "releaseNotes": "Wersja 1.3.26: układ sal według czerwonych konturów — 1 to górne 3 pola, 4 i 5 po połowie dużego pokoju, 13_14 i 15_16 po dwa pola",
-  "builtAt": "2026-11-23T17:34:34Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=32",
+  "releaseNotes": "Wersja 1.3.27: wypełnienie pustych pól w salach 5, 15_16 i 122 oraz wyprostowanie wcięcia w sali 123",
+  "builtAt": "2026-11-23T17:45:07Z"
 }
