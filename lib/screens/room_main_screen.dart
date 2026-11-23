@@ -1332,7 +1332,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               ),
             ),
             const Text(
-              'Politechnika Rzeszowska, wersja 1.3.20',
+              'Politechnika Rzeszowska, wersja 1.3.21',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),

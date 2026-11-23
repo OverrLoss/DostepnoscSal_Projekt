@@ -1,10 +1,10 @@
 # Plan Rozwoju Projektu (Roadmap)
 
-Dokument opisuje stan na wersję **1.3.20 (build 25)** oraz kierunki dalszego rozwoju. Szczegóły bieżącego kontraktu API znajdują się w [`API_REFERENCE.md`](API_REFERENCE.md), a scenariusze weryfikacji w [`TEST_PLAN.md`](TEST_PLAN.md).
+Dokument opisuje stan na wersję **1.3.21 (build 26)** oraz kierunki dalszego rozwoju. Szczegóły bieżącego kontraktu API znajdują się w [`API_REFERENCE.md`](API_REFERENCE.md), a scenariusze weryfikacji w [`TEST_PLAN.md`](TEST_PLAN.md).
 
 ---
 
-## 1. Aktualny stan (wersja 1.3.20) — zrealizowane
+## 1. Aktualny stan (wersja 1.3.21) — zrealizowane
 
 - [x] **Wektorowy plan pięter** z rzeczywistych rzutów SVG (`rzut-parteru-mapa.svg`, `rzut-pietra-mapa.svg`) i autoskalowaniem do ekranu.
 - [x] **Garaż podziemny** powiązany z parterem, wspólne zapytania z filtrem `floor=Parter`.

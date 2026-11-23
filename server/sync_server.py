@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 25,
-        "versionName": "1.3.20",
+        "versionCode": 26,
+        "versionName": "1.3.21",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -157,8 +157,8 @@ SVG_ASSIGNED = {
         "123": "room-1-07", "124": "room-1-09", "125": "room-1-10",
     },
     "Parter": {
-        "2": "room-0-06", "3": "room-0-07", "4": "room-0-08",
-        "5": "room-0-09", "6": "room-0-11", "7": "room-0-12",
+        "1": "room-0-06", "2": "room-0-07", "3": "room-0-08",
+        "4": "room-0-10", "5": "room-0-09", "6": "room-0-11", "7": "room-0-12",
         "9": "room-0-28", "10": "room-0-29", "11": "room-0-30",
         "12": "room-0-31", "13_14": "room-0-32", "15_16": "room-0-34",
         "17": "room-0-36", "18": "room-0-44", "19": "room-0-45", "20": "room-0-46",
@@ -172,8 +172,8 @@ SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
                "room-1-52", "room-1-53", "room-1-54",
                "room-0-37", "room-0-38", "room-0-40", "room-0-41", "room-0-43",
                "room-0-45b", "room-0-52", "room-0-54", "room-0-55",
-                "room-0-35", "room-0-33", "room-0-10", "room-0-58", "room-0-59",
-                "room-0-60", "room-0-14", "room-0-16"}
+                "room-0-35", "room-0-33", "room-0-58", "room-0-59",
+                "room-0-60", "room-0-14", "room-0-16", "room-0-04", "room-0-05"}
 SVG_SPECIAL = {
     "Piętro": {"room-1-05", "room-1-19", "room-1-12", "room-1-17", "room-1-14", "room-1-13",
                "room-1-01", "room-1-02", "room-1-04", "room-1-39", "room-1-40"} | SVG_REMOVED,
@@ -514,6 +514,19 @@ def init_db():
             cursor.execute("UPDATE rooms SET id = ?, name = ? WHERE id = ?", (new_id, new_id, old_id))
         conn.commit()
         conn.execute("PRAGMA foreign_keys = ON")
+    conn.commit()
+
+    # Przesunięcie numerów parteru o jeden w dół — od końca, żeby nie nadpisać
+    # numerów, które dopiero zostaną zwolnione.
+    for old_id, new_id in (("2", "1"), ("3", "2"), ("4", "3")):
+        if cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (old_id,)).fetchone() and not cursor.execute(
+                "SELECT 1 FROM rooms WHERE id = ?", (new_id,)).fetchone():
+            conn.execute("PRAGMA foreign_keys = OFF")
+            cursor.execute("UPDATE rooms SET id = ?, name = ? WHERE id = ?", (new_id, new_id, old_id))
+            for table in ("users", "devices", "occupancy_sessions", "alerts"):
+                cursor.execute(f"UPDATE {table} SET room_id = ? WHERE room_id = ?", (new_id, old_id))
+            conn.commit()
+            conn.execute("PRAGMA foreign_keys = ON")
     conn.commit()
 
     # Sale z rzutu SVG — nowe numery i przemapowania.

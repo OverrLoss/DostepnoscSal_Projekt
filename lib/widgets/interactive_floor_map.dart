@@ -13,7 +13,7 @@ const _fixedSvgIds = {
     'room-1-45', 'room-1-46', 'room-1-49', 'room-1-50', 'room-1-51', 'room-1-05', 'room-1-19',
     'room-1-12', 'room-1-13', 'room-1-14', 'room-1-17',
   },
-  'Parter': {'room-0-06', 'room-0-07', 'room-0-08', 'room-0-09', 'room-0-11', 'room-0-12',
+  'Parter': {'room-0-06', 'room-0-07', 'room-0-08', 'room-0-09', 'room-0-10', 'room-0-11', 'room-0-12',
              'room-0-28', 'room-0-29', 'room-0-30', 'room-0-31', 'room-0-32', 'room-0-34',
              'room-0-36', 'room-0-44', 'room-0-45', 'room-0-46', 'room-0-57',
              'room-0-15', 'room-0-48', 'room-0-49', 'room-0-50', 'room-0-53',
@@ -25,7 +25,7 @@ const _fixedSvgIds = {
 const _hardcodedRoomNumbers = <String, Set<String>>{
   'Piętro': {'Aula 111', 'Aula 101_102', 'Aula 103_104', '112', '113', '114', '115', '116', '117',
              '118_119', '120_121', '122', '123', '124', '125'},
-  'Parter': {'2', '3', '4', '5', '6', '7', '9', '10', '11', '12', '13_14', '15_16',
+  'Parter': {'1', '2', '3', '4', '5', '6', '7', '9', '10', '11', '12', '13_14', '15_16',
              '17', '18', '19', '20', 'Portiernia', 'HOL'},
 };
 
@@ -242,7 +242,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     final knownNumbers = [
       'AULA', 'Aula 111', 'Aula 101_102', 'Aula 103_104',
       '112', '113', '114', '115', '116', '117', '118_119', '120_121', '122', '123', '124', '125',
-      '2', '3', '4', '5', '6', '7', '9', '10', '11', '12', '13_14', '15_16',
+      '1', '2', '3', '4', '5', '6', '7', '9', '10', '11', '12', '13_14', '15_16',
       '17', '18', '19', '20', 'Portiernia', 'HOL', 'GARAŻ', 'GARAZ'
     ];
     return widget.rooms.where((r) {
@@ -841,9 +841,10 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     Widget poly(String number, String d, {double font = 9}) =>
         _polyRoomPath(number, floor0Rooms[d] ?? floor1Rooms[d]!, font: font);
     return [
-      poly('2', 'room-0-06'),
-      poly('3', 'room-0-07'),
-      poly('4', 'room-0-08'),
+      poly('1', 'room-0-06'),
+      poly('2', 'room-0-07'),
+      poly('3', 'room-0-08'),
+      poly('4', 'room-0-10'),
       poly('5', 'room-0-09'),
       poly('6', 'room-0-11'),
       poly('7', 'room-0-12'),
