@@ -1,8 +1,8 @@
 {
-  "versionCode": 18,
-  "versionName": "1.3.13",
+  "versionCode": 19,
+  "versionName": "1.3.14",
   "apkSize": 54959050,
-  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=18",
-  "releaseNotes": "Wersja 1.3.13: usunięto nieużywane moduły pogody, kontaktów i gry wraz z zależnościami i uprawnieniami",
-  "builtAt": "2026-11-23T00:37:49Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=19",
+  "releaseNotes": "Wersja 1.3.14: łazienki powiększone o sąsiednie pokoje, usunięto pokoje między aulami, dodano sale 105-109",
+  "builtAt": "2026-11-23T06:40:07Z"
 }

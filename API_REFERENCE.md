@@ -180,7 +180,7 @@ Wszystkie endpointy w tej grupie wymagają roli `admin`.
 |---|---|
 | `GET /api/v1/health`, `GET /api/health`, `GET /api/server-info` | Trzy aliasy tej samej funkcji: `status: "ok"`, `service: "DostepnoscSal-FastAPI"`, `contract_version: "0.1"`, `time`, `lanIp`, `lanUrl` |
 | `GET /api/service-info` | `status`, `service`, `contract_version`, `uptime_human`, `uptime_seconds`, `server_os`, `python_version`, `sqlite_version`, `database{path, size_formatted, total_rooms, free_rooms, occupied_rooms}`, `traffic_metrics` |
-| `GET /api/app-version`, `GET /api/v1/app-version` | `versionCode`, `versionName`, `apkUrl`, `apkSize`, `releaseNotes`; dane z `server/app_version.json`, fallback `1.3.13` / 18 |
+| `GET /api/app-version`, `GET /api/v1/app-version` | `versionCode`, `versionName`, `apkUrl`, `apkSize`, `releaseNotes`; dane z `server/app_version.json`, fallback `1.3.14` / 19 |
 | `GET /DostepnoscSal.apk`, `GET /dostepnoscsal.apk` | plik APK, typ `application/vnd.android.package-archive` |
 | `GET /DostepnoscSal_v{version}.apk` | zawsze najnowszy APK, niezależnie od `{version}` |
 | `GET /api/v1/firmware/version?chip=esp32` | `chip`, `version`, `has_update`, `firmware_url`, `firmware_size`, `release_notes` |

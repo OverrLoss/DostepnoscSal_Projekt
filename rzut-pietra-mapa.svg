@@ -25,19 +25,19 @@
 <clipPath id="c1_08"><path d="M449.9 202.3L470.4 183.8L504.1 221.3L483.7 239.8L449.9 202.3Z"/></clipPath>
 <clipPath id="c1_09"><path d="M413.8 234.8L448.7 203.3L482.5 240.8L447.5 272.3L413.8 234.8Z"/></clipPath>
 <clipPath id="c1_10"><path d="M378.0 267.0L412.6 235.9L446.3 273.4L411.8 304.5L378.0 267.0Z"/></clipPath>
-<clipPath id="c1_11"><path d="M344.6 304.4L380.0 272.5L409.0 304.8L373.6 336.6L344.6 304.4Z"/></clipPath>
-<clipPath id="c1_12"><path d="M314.3 331.6L343.1 305.7L372.1 337.9L359.8 349.0L346.1 333.8L329.7 348.6L314.3 331.6Z"/></clipPath>
+
+<clipPath id="c1_12"><path d="M343.1 305.7L344.6 304.4L380.0 272.5L409.0 304.8L373.6 336.6L372.1 337.9L359.8 349.0L346.1 333.8L329.7 348.6L314.3 331.6Z"/></clipPath>
 <clipPath id="c1_13"><path d="M329.7 348.6L344.4 335.4L358.1 350.6L343.4 363.8L329.7 348.6Z"/></clipPath>
-<clipPath id="c1_14"><path d="M280.6 362.0L312.7 333.1L341.7 365.3L309.6 394.2L280.6 362.0Z"/></clipPath>
-<clipPath id="c1_15"><path d="M259.4 381.0L279.1 363.4L303.8 390.9L299.4 394.9L303.7 399.6L288.5 413.3L259.4 381.0Z"/></clipPath>
+<clipPath id="c1_14"><path d="M280.6 362.0L312.7 333.1L341.7 365.3L309.6 394.2L303.8 390.9L299.4 394.9L303.7 399.6L288.5 413.3L259.4 381.0L279.1 363.4Z"/></clipPath>
+
 <clipPath id="c1_16"><path d="M299.8 395.2L304.2 391.3L308.1 395.6L303.7 399.6L299.8 395.2Z"/></clipPath>
 <clipPath id="c1_17"><path d="M259.7 411.9L273.2 399.8L289.9 418.4L276.4 430.5L259.7 411.9Z"/></clipPath>
 <clipPath id="c1_18"><path d="M241.8 392.0L255.2 379.9L271.7 398.1L258.2 410.2L241.8 392.0Z"/></clipPath>
 <clipPath id="c1_19"><path d="M186.1 442.1L240.1 393.5L274.3 431.4L220.3 480.1L186.1 442.1Z"/></clipPath>
 <clipPath id="c1_20"><path d="M0.3 -1.6L135.4 -1.6L135.4 125.6L0.3 125.6L0.3 -1.6Z"/></clipPath>
-<clipPath id="c1_21"><path d="M31.1 126.9L74.1 126.9L74.1 135.8L31.1 135.8L31.1 126.9Z"/></clipPath>
-<clipPath id="c1_22"><path d="M5.8 127.2L30.5 127.2L30.5 136.2L72.4 136.2L72.4 160.0L5.8 160.0L5.8 127.2Z"/></clipPath>
-<clipPath id="c1_23"><path d="M73.7 127.2L135.7 127.2L135.7 160.0L73.7 160.0L73.7 127.2Z"/></clipPath>
+
+
+
 <clipPath id="c1_24"><path d="M0.3 161.6L135.4 161.6L135.4 278.8L0.3 278.8L0.3 161.6Z"/></clipPath>
 <clipPath id="c1_25"><path d="M0.3 280.9L135.7 280.9L135.7 303.7L111.8 303.7L111.8 329.9L0.3 329.9L0.3 280.9Z"/></clipPath>
 <clipPath id="c1_26"><path d="M111.8 304.7L135.7 304.7L135.7 329.9L111.8 329.9L111.8 304.7Z"/></clipPath>
@@ -82,19 +82,19 @@
 <path id="room-1-08" class="room" fill="#fff" fill-rule="evenodd" d="M449.9 202.3L470.4 183.8L504.1 221.3L483.7 239.8L449.9 202.3Z"></path>
 <path id="room-1-09" class="room" fill="#fff" fill-rule="evenodd" d="M413.8 234.8L448.7 203.3L482.5 240.8L447.5 272.3L413.8 234.8Z"></path>
 <path id="room-1-10" class="room" fill="#fff" fill-rule="evenodd" d="M378.0 267.0L412.6 235.9L446.3 273.4L411.8 304.5L378.0 267.0Z"></path>
-<path id="room-1-11" class="room" fill="#fff" fill-rule="evenodd" d="M344.6 304.4L380.0 272.5L409.0 304.8L373.6 336.6L344.6 304.4Z"></path>
-<path id="room-1-12" class="room" fill="#fff" fill-rule="evenodd" d="M314.3 331.6L343.1 305.7L372.1 337.9L359.8 349.0L346.1 333.8L329.7 348.6L314.3 331.6Z"></path>
+
+<path id="room-1-12" class="room" fill="#fff" fill-rule="evenodd" d="M343.1 305.7L344.6 304.4L380.0 272.5L409.0 304.8L373.6 336.6L372.1 337.9L359.8 349.0L346.1 333.8L329.7 348.6L314.3 331.6Z"></path>
 <path id="room-1-13" class="room" fill="#fff" fill-rule="evenodd" d="M329.7 348.6L344.4 335.4L358.1 350.6L343.4 363.8L329.7 348.6Z"></path>
-<path id="room-1-14" class="room" fill="#fff" fill-rule="evenodd" d="M280.6 362.0L312.7 333.1L341.7 365.3L309.6 394.2L280.6 362.0Z"></path>
-<path id="room-1-15" class="room" fill="#fff" fill-rule="evenodd" d="M259.4 381.0L279.1 363.4L303.8 390.9L299.4 394.9L303.7 399.6L288.5 413.3L259.4 381.0Z"></path>
+<path id="room-1-14" class="room" fill="#fff" fill-rule="evenodd" d="M280.6 362.0L312.7 333.1L341.7 365.3L309.6 394.2L303.8 390.9L299.4 394.9L303.7 399.6L288.5 413.3L259.4 381.0L279.1 363.4Z"></path>
+
 <path id="room-1-16" class="room" fill="#fff" fill-rule="evenodd" d="M299.8 395.2L304.2 391.3L308.1 395.6L303.7 399.6L299.8 395.2Z"></path>
 <path id="room-1-17" class="room" fill="#fff" fill-rule="evenodd" d="M259.7 411.9L273.2 399.8L289.9 418.4L276.4 430.5L259.7 411.9Z"></path>
 <path id="room-1-18" class="room" fill="#fff" fill-rule="evenodd" d="M241.8 392.0L255.2 379.9L271.7 398.1L258.2 410.2L241.8 392.0Z"></path>
 <path id="room-1-19" class="room" fill="#fff" fill-rule="evenodd" d="M186.1 442.1L240.1 393.5L274.3 431.4L220.3 480.1L186.1 442.1Z"></path>
 <path id="room-1-20" class="room" fill="#fff" fill-rule="evenodd" d="M0.3 -1.6L135.4 -1.6L135.4 125.6L0.3 125.6L0.3 -1.6Z"></path>
-<path id="room-1-21" class="room" fill="#fff" fill-rule="evenodd" d="M31.1 126.9L74.1 126.9L74.1 135.8L31.1 135.8L31.1 126.9Z"></path>
-<path id="room-1-22" class="room" fill="#fff" fill-rule="evenodd" d="M5.8 127.2L30.5 127.2L30.5 136.2L72.4 136.2L72.4 160.0L5.8 160.0L5.8 127.2Z"></path>
-<path id="room-1-23" class="room" fill="#fff" fill-rule="evenodd" d="M73.7 127.2L135.7 127.2L135.7 160.0L73.7 160.0L73.7 127.2Z"></path>
+
+
+
 <path id="room-1-24" class="room" fill="#fff" fill-rule="evenodd" d="M0.3 161.6L135.4 161.6L135.4 278.8L0.3 278.8L0.3 161.6Z"></path>
 <path id="room-1-25" class="room" fill="#fff" fill-rule="evenodd" d="M0.3 280.9L135.7 280.9L135.7 303.7L111.8 303.7L111.8 329.9L0.3 329.9L0.3 280.9Z"></path>
 <path id="room-1-26" class="room" fill="#fff" fill-rule="evenodd" d="M111.8 304.7L135.7 304.7L135.7 329.9L111.8 329.9L111.8 304.7Z"></path>
