@@ -17,6 +17,8 @@ const _fixedSvgIds = {
              'room-0-28', 'room-0-29', 'room-0-30', 'room-0-31', 'room-0-32', 'room-0-34',
              'room-0-36', 'room-0-36b', 'room-0-44', 'room-0-45', 'room-0-46',
              'room-0-57', 'room-0-60', 'room-0-27',
+             'room-0-61', 'room-0-62', 'room-0-63', 'room-0-64',
+             'room-0-65', 'room-0-66', 'room-0-67', 'room-0-68',
              'room-0-15', 'room-0-48', 'room-0-49', 'room-0-50', 'room-0-53',
              'room-0-03', 'room-0-42', 'room-0-56'},
 };
@@ -27,7 +29,8 @@ const _hardcodedRoomNumbers = <String, Set<String>>{
   'Piętro': {'Aula 111', 'Aula 101_102', 'Aula 103_104', '112', '113', '114', '115', '116', '117',
              '118_119', '120_121', '122', '123', '124', '125'},
   'Parter': {'1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12_13', '14_15',
-             '16', '17', '18', '19', '20', '24', 'Portiernia', 'Kafeteria', 'HOL'},
+             '16', '17', '18', '19', '20', '24', '25', '26', '27', '28', '29', '30',
+             '31', '32', 'Portiernia', 'Kafeteria', 'HOL'},
 };
 
 Map<String, String> svgPolygonsFor(String floor) =>
@@ -244,7 +247,8 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
       'AULA', 'Aula 111', 'Aula 101_102', 'Aula 103_104',
       '112', '113', '114', '115', '116', '117', '118_119', '120_121', '122', '123', '124', '125',
       '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12_13', '14_15',
-      '16', '17', '18', '19', '20', '24', 'Portiernia', 'Kafeteria', 'HOL', 'GARAŻ', 'GARAZ'
+      '16', '17', '18', '19', '20', '24', '25', '26', '27', '28', '29', '30', '31', '32',
+      'Portiernia', 'Kafeteria', 'HOL', 'GARAŻ', 'GARAZ'
     ];
     return widget.rooms.where((r) {
       if (r.floor != widget.floor && !(widget.floor == 'Parter' && (r.floor == 'Garaż podziemny' || r.number.trim().toUpperCase() == 'GARAŻ'))) {
@@ -808,9 +812,9 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   // Przypisanie numerów do pokoi z SVG jest orientacyjne (poza AULĄ i oznaczonymi jako schody/WC).
   List<Widget> _buildPietroRooms() {
     const wing = [
-      ['114', 'room-1-39'],
-      ['112', 'room-1-42'],
-      ['113', 'room-1-43'],
+      ['112', 'room-1-39'],
+      ['113', 'room-1-42'],
+      ['114', 'room-1-43'],
       ['115', 'room-1-44'],
       ['116', 'room-1-45'],
       ['117', 'room-1-46'],
@@ -861,6 +865,14 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
       poly('19', 'room-0-45'),
       poly('20', 'room-0-46'),
       poly('24', 'room-0-60', font: 7),
+      poly('25', 'room-0-61'),
+      poly('26', 'room-0-62'),
+      poly('27', 'room-0-63'),
+      poly('28', 'room-0-64'),
+      poly('29', 'room-0-65'),
+      poly('30', 'room-0-66'),
+      poly('31', 'room-0-67'),
+      poly('32', 'room-0-68'),
       poly('Portiernia', 'room-0-57', font: 7),
       poly('Kafeteria', 'room-0-27', font: 7),
       // HOL = cypel (kształt jak AULA na Piętrze; osobnego pokoju w SVG parteru nie ma)

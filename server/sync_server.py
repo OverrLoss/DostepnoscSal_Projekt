@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 28,
-        "versionName": "1.3.23",
+        "versionCode": 29,
+        "versionName": "1.3.24",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -150,8 +150,8 @@ SVG_ASSIGNED = {
     "Piętro": {
         "Aula 111": "room-1-38", "Aula 101_102": "room-1-20", "Aula 103_104": "room-1-24",
         "105": "room-1-25", "106": "room-1-28", "107": "room-1-29", "108": "room-1-32",
-        "109": "room-1-33", "114": "room-1-39",
-        "112": "room-1-42", "113": "room-1-43", "115": "room-1-44",
+        "109": "room-1-33",
+        "112": "room-1-39", "113": "room-1-42", "114": "room-1-43", "115": "room-1-44",
         "116": "room-1-45", "117": "room-1-46",
         "118_119": "room-1-47", "120_121": "room-1-49", "122": "room-1-51",
         "123": "room-1-07", "124": "room-1-09", "125": "room-1-10",
@@ -163,6 +163,8 @@ SVG_ASSIGNED = {
         "11": "room-0-31", "12_13": "room-0-32", "14_15": "room-0-34",
         "16": "room-0-36", "17": "room-0-36b", "18": "room-0-44",
         "19": "room-0-45", "20": "room-0-46", "24": "room-0-60",
+        "25": "room-0-61", "26": "room-0-62", "27": "room-0-63", "28": "room-0-64",
+        "29": "room-0-65", "30": "room-0-66", "31": "room-0-67", "32": "room-0-68",
         "Portiernia": "room-0-57", "Kafeteria": "room-0-27",
     },
 }
@@ -542,6 +544,20 @@ def init_db():
                 cursor.execute(f"UPDATE {table} SET room_id = ? WHERE room_id = ?", (new_id, old_id))
             conn.commit()
             conn.execute("PRAGMA foreign_keys = ON")
+    conn.commit()
+
+    # Piętro: ciąg 112, 113, 114 wzdłuż skosu (przesunięcie numerów razem z powiązaniami).
+    r112 = cursor.execute("SELECT svg_id FROM rooms WHERE id = '112'").fetchone()
+    r114 = cursor.execute("SELECT svg_id FROM rooms WHERE id = '114'").fetchone()
+    if r112 and r112[0] == "room-1-42" and r114 and r114[0] == "room-1-39":
+        conn.execute("PRAGMA foreign_keys = OFF")
+        for old_id, new_id in (("114", "__renum_tmp"), ("113", "114"),
+                               ("112", "113"), ("__renum_tmp", "112")):
+            for table in ("users", "devices", "occupancy_sessions", "alerts"):
+                cursor.execute(f"UPDATE {table} SET room_id = ? WHERE room_id = ?", (new_id, old_id))
+            cursor.execute("UPDATE rooms SET id = ?, name = ? WHERE id = ?", (new_id, new_id, old_id))
+        conn.commit()
+        conn.execute("PRAGMA foreign_keys = ON")
     conn.commit()
 
     # Sale z rzutu SVG — nowe numery i przemapowania.

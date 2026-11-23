@@ -1,8 +1,8 @@
 {
-  "versionCode": 28,
-  "versionName": "1.3.23",
+  "versionCode": 29,
+  "versionName": "1.3.24",
   "apkSize": 54959050,
-  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=28",
-  "releaseNotes": "Wersja 1.3.23: podział sali 17 na 16 i 17, podział portierni na Portiernię i salę 24, przesunięcie numerów od Kafeterii do 8-17",
-  "builtAt": "2026-11-23T15:31:05Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=29",
+  "releaseNotes": "Wersja 1.3.24: kolejność sal 112, 113, 114 na piętrze oraz numery 25-32 na parterze obok sali 24",
+  "builtAt": "2026-11-23T16:47:10Z"
 }

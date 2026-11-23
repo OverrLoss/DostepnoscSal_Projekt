@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009485?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
-[![Wersja](https://img.shields.io/badge/Wersja-1.3.23%20%2B28-brightgreen)](#wersjonowanie-i-powrót)
+[![Wersja](https://img.shields.io/badge/Wersja-1.3.24%20%2B29-brightgreen)](#wersjonowanie-i-powrót)
 
 System monitorowania i zarządzania dostępnością sal wykładowych, laboratoriów oraz stref specjalnych budynku Politechniki Rzeszowskiej. Łączy plan piętra w przeglądarce i aplikacji mobilnej, backend HTTP/WebSocket, bazę SQLite oraz kontrolery ESP32 CYD i ESP8266 przy salach.
 
@@ -116,7 +116,7 @@ git tag -l
 git checkout v1.3.11
 ```
 
-Bieżąca wersja: **1.3.23 (build 28)**, firmware CYD **1.3.8**, ESP8266 **1.3.9**.
+Bieżąca wersja: **1.3.24 (build 29)**, firmware CYD **1.3.8**, ESP8266 **1.3.9**.
 
 ## Dokumentacja
 
