@@ -1219,7 +1219,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                                 avatar: const Icon(Icons.badge, size: 14, color: AppColors.primary),
                                 backgroundColor: const Color(0xFF000000),
                                 side: const BorderSide(color: AppColors.primary, width: 0.8),
-                                label: const Text('Sala 104', style: TextStyle(color: AppColors.primary, fontSize: 11)),
+                                label: const Text('Aula 103_104', style: TextStyle(color: AppColors.primary, fontSize: 11)),
                                 onPressed: isLoading ? null : () => quickLogin('operator_104', 'operator123'),
                               ),
                               ActionChip(
@@ -1332,7 +1332,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               ),
             ),
             const Text(
-              'Politechnika Rzeszowska, wersja 1.3.15',
+              'Politechnika Rzeszowska, wersja 1.3.16',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),

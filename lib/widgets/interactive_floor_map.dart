@@ -19,7 +19,8 @@ const _fixedSvgIds = {
 /// Sale rysowane na stałe w [_buildPietroRooms]/[_buildParterRooms] — nie
 /// powielamy ich przez [InteractiveFloorMapState._svgBoundRooms].
 const _hardcodedRoomNumbers = <String, Set<String>>{
-  'Piętro': {'Aula 111', 'Aula 101_102', 'Aula 103_104', '104', '112', '113', '115', '116', '117', '118', '120', '122'},
+  'Piętro': {'Aula 111', 'Aula 101_102', 'Aula 103_104', '112', '113', '114', '115', '116', '117',
+             '118_119', '120_121', '122', '123', '124', '125'},
   'Parter': {'9', '12', '14', 'HOL'},
 };
 
@@ -234,8 +235,8 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
 
   List<Room> _getExtraRooms() {
     final knownNumbers = [
-      '104', 'AULA', 'Aula 111', 'Aula 101_102', 'Aula 103_104',
-      '112', '113', '115', '116', '117', '118', '120', '122',
+      'AULA', 'Aula 111', 'Aula 101_102', 'Aula 103_104',
+      '112', '113', '114', '115', '116', '117', '118_119', '120_121', '122', '123', '124', '125',
       '9', '12', '14', 'HOL', 'GARAŻ', 'GARAZ'
     ];
     return widget.rooms.where((r) {
@@ -800,15 +801,18 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   // Przypisanie numerów do pokoi z SVG jest orientacyjne (poza AULĄ i oznaczonymi jako schody/WC).
   List<Widget> _buildPietroRooms() {
     const wing = [
-      ['104', 'room-1-41'], // orientacyjnie
+      ['114', 'room-1-39'],
       ['112', 'room-1-42'],
       ['113', 'room-1-43'],
       ['115', 'room-1-44'],
       ['116', 'room-1-45'],
       ['117', 'room-1-46'],
-      ['118', 'room-1-49'], // potwierdzone
-      ['120', 'room-1-50'], // potwierdzone
-      ['122', 'room-1-51'], // orientacyjnie
+      ['118_119', 'room-1-47'],
+      ['120_121', 'room-1-49'],
+      ['122', 'room-1-51'],
+      ['123', 'room-1-07'],
+      ['124', 'room-1-09'],
+      ['125', 'room-1-10'],
     ];
 
     return [

@@ -116,7 +116,7 @@ Gotowy plik: `build/app/outputs/flutter-apk/app-release.apk`. Skrypt `build_and_
 
 Przed publikacją zwiększ numer w:
 
-- `pubspec.yaml` (`version: 1.3.15+20`),
+- `pubspec.yaml` (`version: 1.3.16+21`),
 - `lib/services/app_update_service.dart` (wersja lokalna Web),
 - `lib/services/diagnostics_service.dart`,
 - `lib/screens/room_main_screen.dart` (nagłówek),
