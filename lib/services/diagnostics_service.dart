@@ -59,7 +59,7 @@ class DiagnosticsService {
     return {
       'app_name': 'Dostępność Sal - Politechnika Rzeszowska',
       'package_name': 'com.example.roomavailability',
-      'app_version': '1.3.24+29',
+      'app_version': '1.3.25+30',
       'platform': kIsWeb ? 'Web Browser' : Platform.operatingSystem,
       'os_version': kIsWeb ? 'HTML5 / WebAssembly' : Platform.operatingSystemVersion,
       'is_web': kIsWeb,

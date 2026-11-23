@@ -1,8 +1,8 @@
 {
-  "versionCode": 29,
-  "versionName": "1.3.24",
+  "versionCode": 30,
+  "versionName": "1.3.25",
   "apkSize": 54959050,
-  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=29",
-  "releaseNotes": "Wersja 1.3.24: kolejność sal 112, 113, 114 na piętrze oraz numery 25-32 na parterze obok sali 24",
-  "builtAt": "2026-11-23T16:47:10Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=30",
+  "releaseNotes": "Wersja 1.3.25: powrót do numerów 12, 13_14 i 15_16 na parterze zgodnie z rzutem",
+  "builtAt": "2026-11-23T17:11:47Z"
 }

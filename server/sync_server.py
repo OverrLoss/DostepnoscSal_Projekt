@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 29,
-        "versionName": "1.3.24",
+        "versionCode": 30,
+        "versionName": "1.3.25",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -160,8 +160,8 @@ SVG_ASSIGNED = {
         "1": "room-0-06", "2": "room-0-07", "3": "room-0-08",
         "4": "room-0-10", "5": "room-0-09", "6": "room-0-11", "7": "room-0-12",
         "8": "room-0-28", "9": "room-0-29", "10": "room-0-30",
-        "11": "room-0-31", "12_13": "room-0-32", "14_15": "room-0-34",
-        "16": "room-0-36", "17": "room-0-36b", "18": "room-0-44",
+        "11": "room-0-31", "12": "room-0-32", "13_14": "room-0-34",
+        "15_16": "room-0-36", "17": "room-0-36b", "18": "room-0-44",
         "19": "room-0-45", "20": "room-0-46", "24": "room-0-60",
         "25": "room-0-61", "26": "room-0-62", "27": "room-0-63", "28": "room-0-64",
         "29": "room-0-65", "30": "room-0-66", "31": "room-0-67", "32": "room-0-68",
@@ -558,6 +558,18 @@ def init_db():
             cursor.execute("UPDATE rooms SET id = ?, name = ? WHERE id = ?", (new_id, new_id, old_id))
         conn.commit()
         conn.execute("PRAGMA foreign_keys = ON")
+    conn.commit()
+
+    # Powrót do numerów z rzutu: 12, 13_14, 15_16 (salę 17 zostawiamy podzieloną).
+    for old_id, new_id in (("12_13", "12"), ("14_15", "13_14"), ("16", "15_16")):
+        if cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (old_id,)).fetchone() and not cursor.execute(
+                "SELECT 1 FROM rooms WHERE id = ?", (new_id,)).fetchone():
+            conn.execute("PRAGMA foreign_keys = OFF")
+            cursor.execute("UPDATE rooms SET id = ?, name = ? WHERE id = ?", (new_id, new_id, old_id))
+            for table in ("users", "devices", "occupancy_sessions", "alerts"):
+                cursor.execute(f"UPDATE {table} SET room_id = ? WHERE room_id = ?", (new_id, old_id))
+            conn.commit()
+            conn.execute("PRAGMA foreign_keys = ON")
     conn.commit()
 
     # Sale z rzutu SVG — nowe numery i przemapowania.
@@ -2002,7 +2014,7 @@ def get_device_assigned_room_state(
     db.commit()
 
     is_esp8266 = "8266" in chip or "wemos" in chip
-    fw_ver = "1.3.9" if is_esp8266 else "1.3.8"
+    fw_ver = "1.3.10" if is_esp8266 else "1.3.8"
     bin_name = "esp8266_firmware.bin" if is_esp8266 else "cyd_firmware.bin"
     bin_path = os.path.join(BASE_DIR, bin_name)
     has_update = os.path.exists(bin_path)
@@ -2345,7 +2357,7 @@ def get_firmware_version(chip: str = "esp32"):
     fw_path = _get_firmware_file(chip)
     fw_size = os.path.getsize(fw_path) if os.path.exists(fw_path) else 0
     norm_chip = "esp8266" if "8266" in chip.lower() else "esp32"
-    version = "1.3.9" if norm_chip == "esp8266" else "1.3.8"
+    version = "1.3.10" if norm_chip == "esp8266" else "1.3.8"
     version_tag = version.replace(".", "")
     return JSONResponse(
         content={

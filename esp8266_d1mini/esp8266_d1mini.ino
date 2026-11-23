@@ -34,7 +34,7 @@
 #include <EEPROM.h>
 #include <ArduinoJson.h>
 
-const char* ESP8266_FIRMWARE_VERSION = "1.3.9";
+const char* ESP8266_FIRMWARE_VERSION = "1.3.10";
 
 // --- PINOUT ---
 const int PIN_LED_FREE = 4;  // D2 (GPIO 4) -> LED Wolna (Zielona)
@@ -748,9 +748,9 @@ void handleRoot() {
             <span class="room-chip" onclick="setRoom('9')">9</span>
             <span class="room-chip" onclick="setRoom('10')">10</span>
             <span class="room-chip" onclick="setRoom('11')">11</span>
-            <span class="room-chip" onclick="setRoom('12_13')">12_13</span>
-            <span class="room-chip" onclick="setRoom('14_15')">14_15</span>
-            <span class="room-chip" onclick="setRoom('16')">16</span>
+            <span class="room-chip" onclick="setRoom('12')">12</span>
+            <span class="room-chip" onclick="setRoom('13_14')">13_14</span>
+            <span class="room-chip" onclick="setRoom('15_16')">15_16</span>
             <span class="room-chip" onclick="setRoom('17')">17</span>
             <span class="room-chip" onclick="setRoom('18')">18</span>
             <span class="room-chip" onclick="setRoom('19')">19</span>
