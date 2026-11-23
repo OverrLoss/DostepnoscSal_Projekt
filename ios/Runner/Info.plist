@@ -54,19 +54,8 @@
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Aplikacja łączy się z serwerem sal w sieci lokalnej uczelni.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>Dostęp do kontaktów pozwala zaimportować osoby do książki adresowej aplikacji.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Dostęp do zdjęć pozwala ustawić zdjęcie kontaktu.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Aparat pozwala zrobić zdjęcie kontaktu.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Lokalizacja służy do pokazania pogody w Twojej okolicy.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-		<string>tel</string>
-		<string>sms</string>
-		<string>mailto</string>
 		<string>https</string>
 		<string>http</string>
 	</array>

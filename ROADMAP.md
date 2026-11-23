@@ -1,10 +1,10 @@
 # Plan Rozwoju Projektu (Roadmap)
 
-Dokument opisuje stan na wersję **1.3.12 (build 17)** oraz kierunki dalszego rozwoju. Szczegóły bieżącego kontraktu API znajdują się w [`API_REFERENCE.md`](API_REFERENCE.md), a scenariusze weryfikacji w [`TEST_PLAN.md`](TEST_PLAN.md).
+Dokument opisuje stan na wersję **1.3.13 (build 18)** oraz kierunki dalszego rozwoju. Szczegóły bieżącego kontraktu API znajdują się w [`API_REFERENCE.md`](API_REFERENCE.md), a scenariusze weryfikacji w [`TEST_PLAN.md`](TEST_PLAN.md).
 
 ---
 
-## 1. Aktualny stan (wersja 1.3.12) — zrealizowane
+## 1. Aktualny stan (wersja 1.3.13) — zrealizowane
 
 - [x] **Wektorowy plan pięter** z rzeczywistych rzutów SVG (`rzut-parteru-mapa.svg`, `rzut-pietra-mapa.svg`) i autoskalowaniem do ekranu.
 - [x] **Garaż podziemny** powiązany z parterem, wspólne zapytania z filtrem `floor=Parter`.
@@ -20,7 +20,7 @@ Dokument opisuje stan na wersję **1.3.12 (build 17)** oraz kierunki dalszego ro
 - [x] **Węzły IoT** ESP32 CYD z ekranem dotykowym i ESP8266 z dwukolorowymi diodami.
 - [x] **Uruchamianie w tle na Windows** przez `run_server_and_tunnel.bat` i `server_control.ps1`, tunel Cloudflare `victus`.
 - [x] **Wersjonowanie** tagami `vX.Y.Z`, wydania GitHub Release z plikiem APK.
-- [x] **Dokumentacja zgodna z kodem**: `README.md`, `DEVELOPER_GUIDE.md`, `API_REFERENCE.md`, `LEGACY_MODULES.md`, `TEST_PLAN.md`.
+- [x] **Dokumentacja zgodna z kodem**: `README.md`, `DEVELOPER_GUIDE.md`, `API_REFERENCE.md`, `TEST_PLAN.md`.
 
 ---
 
@@ -51,9 +51,9 @@ ESP32 z wyświetlaczem e-Ink 2.9" lub 4.2", pokazujący nazwę wydarzenia, prowa
 - Zamknąć luki uprawnień: anonimowy dostęp do `PATCH /api/v1/rooms/{id}/alert-limit`, brak kontroli maksymalnego limitu w `/api/v1/device/alert-limit` oraz nieegzekwowane `lock_layout`.
 - Dodać walidację `default_alert_limit <= max_alert_limit` w `PATCH /api/v1/admin/settings`.
 
-### 2.6. Uporządkowanie modułów pobocznych
+### 2.6. Uporządkowanie modułów pobocznych — wykonane
 
-Ekrany pogody, książki adresowej i gry w węża są zachowane, ale niepodłączone do `main.dart`. Ich możliwości opisuje [`LEGACY_MODULES.md`](LEGACY_MODULES.md). Decyzja do podjęcia: przywrócić je jako osobne trasy z warunkowymi importami dla Webu albo wydzielić do osobnego projektu. Na ten moment nic nie jest usuwane.
+Ekrany pogody, książki adresowej i gry w węża zostały usunięte wraz z nieużywanymi zależnościami (`geolocator`, `flutter_contacts`, `home_widget`, `image_picker`, `flutter_local_notifications`) i niepotrzebnymi uprawnieniami mobilnymi. Aplikacja zawiera wyłącznie widok sal.
 
 ### 2.7. Metryki i obserwowalność
 

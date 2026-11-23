@@ -116,7 +116,7 @@ Gotowy plik: `build/app/outputs/flutter-apk/app-release.apk`. Skrypt `build_and_
 
 Przed publikacją zwiększ numer w:
 
-- `pubspec.yaml` (`version: 1.3.12+17`),
+- `pubspec.yaml` (`version: 1.3.13+18`),
 - `lib/services/app_update_service.dart` (wersja lokalna Web),
 - `lib/services/diagnostics_service.dart`,
 - `lib/screens/room_main_screen.dart` (nagłówek),
@@ -167,7 +167,7 @@ Wersje firmware: CYD **1.3.8**, ESP8266 **1.3.6**. Po zmianie firmware zbuduj bi
 3. **Skala planu.** Geometria sal jest relatywna do płótna `360.0 x 520.0` px i skaluje się automatycznie. Zmieniając rzuty, zachowaj te proporcje.
 4. **Ścieżki.** Używaj `%~dp0`, `$PSScriptRoot`, `os.path.dirname(__file__)` oraz `ANDROID_HOME`/`LOCALAPPDATA`. Zakaz sztywnych `C:\...` i plików poza folderem projektu.
 5. **Baza testowa.** `DB_PATH` w `server/sync_server.py` jest obecnie stałą ścieżką `server/rooms_backend.db`. Nie uruchamiaj testów mutujących API na produkcyjnej bazie bez wcześniejszego odizolowania bazy.
-6. **Zachowane moduły poboczne.** Ekrany pogody, kontaktów i gry wężyka nie są podłączone do `main.dart`, ale zostały z zachowaniem na przyszłość. Ich możliwości opisuje [`LEGACY_MODULES.md`](LEGACY_MODULES.md).
+6. **Brak modułów pobocznych.** Widok sal jest jedynym ekranem aplikacji; nieużywane moduły pogodowe, kontaktowe i gra w węża zostały usunięte razem z niepotrzebnymi zależnościami i uprawnieniami.
 
 ---
 

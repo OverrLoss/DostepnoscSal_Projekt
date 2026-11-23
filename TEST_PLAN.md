@@ -4,7 +4,7 @@ Dokument przeznaczony dla osoby wykonującej testy przed wydaniem nowej wersji. 
 
 ## 0. Przygotowanie stanowiska
 
-- [ ] Odnotuj wersję aplikacji z ekranu głównego i z `pubspec.yaml` (`1.3.12+17`), wersje firmware (CYD `1.3.8`, ESP8266 `1.3.6`) oraz numer tagu Git.
+- [ ] Odnotuj wersję aplikacji z ekranu głównego i z `pubspec.yaml` (`1.3.13+18`), wersje firmware (CYD `1.3.8`, ESP8266 `1.3.6`) oraz numer tagu Git.
 - [ ] Uruchom backend poleceniem `python server/sync_server.py` i potwierdź dostęp do `http://localhost:8081/docs` oraz `http://localhost:8081/`.
 - [ ] Przygotuj konta: `admin`, operator z przypisaną salą i dostęp do widoku gościa (przeglądarka bez tokenu).
 - [ ] Zrób kopię bazy przed testami mutującymi. Nie uruchamiaj `python server/test_contract.py` na bazie produkcyjnej: `DB_PATH` jest na sztywno `server/rooms_backend.db`.
@@ -144,7 +144,7 @@ Wyniki wpisuj w tabelę na końcu pliku albo w osobny arkusz: identyfikator scen
 
 | ID | Scenariusz | Oczekiwany wynik |
 |---|---|---|
-| REL-01 | Otwórz dialog diagnostyki z menu ekranu sal | Raport zawiera platformę, wersję `1.3.12+17`, ping `/api/v1/health`, liczbę sal i dane `/api/service-info` |
+| REL-01 | Otwórz dialog diagnostyki z menu ekranu sal | Raport zawiera platformę, wersję `1.3.13+18`, ping `/api/v1/health`, liczbę sal i dane `/api/service-info` |
 | REL-02 | Skopiuj raport diagnostyczny | Schowek zawiera poprawny JSON |
 | REL-03 | Porównaj wersje we wszystkich miejscach z `AGENTS.md` | `pubspec.yaml`, `app_update_service.dart`, `diagnostics_service.dart`, nagłówek `room_main_screen.dart`, fallback w `sync_server.py`, `deploy_apk.py` i `app_version.json` są spójne |
 | REL-04 | Sprawdź tag i Release na GitHubie | Dla wersji istnieje annotowany tag `vX.Y.Z` i Release z plikiem APK |
@@ -152,21 +152,7 @@ Wyniki wpisuj w tabelę na końcu pliku albo w osobny arkusz: identyfikator scen
 
 ---
 
-## 11. Testy modułów pobocznych po ewentualnym włączeniu
-
-Moduły są obecnie nieosiągalne z `main.dart`. Jeśli zostaną podłączone, sprawdź dodatkowo:
-
-- [ ] ekran pogody: wyszukiwanie miasta, GPS, przełącznik °C/°F, ulubione, prognoza 24 h i 7 dni, ostrzeżenia AQI i burzowe,
-- [ ] książka adresowa: dodanie, edycja, usunięcie, import z telefonu, awatary emoji i z galerii, filtry i sortowanie,
-- [ ] ustawienia: motyw, akcent, domyślna kategoria i sortowanie, przyciski bazy kontaktów,
-- [ ] gra w węża: trzy poziomy trudności, sterowanie klawiaturą i gestami, pauza, reset, punkty specjalne,
-- [ ] na Webu: czy moduły mobilne nie powodują błędów kompilacji przez `dart:io`, `sqflite` i `flutter_contacts`.
-
-Szczegóły możliwości tych modułów: [`LEGACY_MODULES.md`](LEGACY_MODULES.md).
-
----
-
-## 12. Wyniki
+## 11. Wyniki
 
 | ID | Data | Środowisko | Wynik | Uwagi |
 |---|---|---|---|---|
