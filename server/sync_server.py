@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 19,
-        "versionName": "1.3.14",
+        "versionCode": 20,
+        "versionName": "1.3.15",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -149,20 +149,21 @@ def operator_login(room_no: str) -> str:
 SVG_ASSIGNED = {
     "Piętro": {
         "Aula 111": "room-1-38", "Aula 101_102": "room-1-20", "Aula 103_104": "room-1-24",
-        "104": "room-1-41", "105": "room-1-47", "106": "room-1-48", "107": "room-1-52",
-        "108": "room-1-53", "109": "room-1-54",
+        "104": "room-1-41", "105": "room-1-25", "106": "room-1-47", "107": "room-1-48",
+        "108": "room-1-52", "109": "room-1-53",
         "112": "room-1-42", "113": "room-1-43", "115": "room-1-44",
         "116": "room-1-45", "117": "room-1-46", "118": "room-1-49", "120": "room-1-50",
         "122": "room-1-51",
     },
     "Parter": {"9": "room-0-09", "12": "room-0-12", "14": "room-0-14"},
 }
-SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23"}
+SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
+               "room-1-26", "room-1-27", "room-1-30", "room-0-47", "room-0-51"}
 SVG_SPECIAL = {
     "Piętro": {"room-1-05", "room-1-19", "room-1-12", "room-1-17", "room-1-14", "room-1-13",
                "room-1-01", "room-1-02", "room-1-04", "room-1-39", "room-1-40"} | SVG_REMOVED,
     "Parter": {"room-0-15", "room-0-48", "room-0-49", "room-0-50", "room-0-53",
-               "room-0-03", "room-0-42", "room-0-56", "room-0-01", "room-0-02", "room-0-17"},
+               "room-0-03", "room-0-42", "room-0-56", "room-0-01", "room-0-02", "room-0-17"} | SVG_REMOVED,
 }
 
 
@@ -463,11 +464,12 @@ def init_db():
             pass
     conn.commit()
 
-    # Nowe sale 105-109 na wolnych poligonach skrzydła (obok istniejących 112-122).
+    # Sale 105-109: 105 to połączone pomieszczenie 1-25/1-26, pozostałe na wolnym skrzydle.
     for num, pid in SVG_ASSIGNED["Piętro"].items():
         if not (num.isdigit() and 105 <= int(num) <= 109):
             continue
         if cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (num,)).fetchone():
+            cursor.execute("UPDATE rooms SET svg_id = ? WHERE id = ?", (pid, num))
             continue
         now = utc_now()
         cursor.execute("""
