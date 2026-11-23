@@ -1,8 +1,8 @@
 {
-  "versionCode": 32,
-  "versionName": "1.3.27",
+  "versionCode": 33,
+  "versionName": "1.3.28",
   "apkSize": 54959050,
-  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=32",
-  "releaseNotes": "Wersja 1.3.27: wypełnienie pustych pól w salach 5, 15_16 i 122 oraz wyprostowanie wcięcia w sali 123",
-  "builtAt": "2026-11-23T17:45:07Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=33",
+  "releaseNotes": "Wersja 1.3.28: dociągnięcie krawędzi sal 122 i 123 do linii ścian obrysu piętra",
+  "builtAt": "2026-11-23T17:56:13Z"
 }
