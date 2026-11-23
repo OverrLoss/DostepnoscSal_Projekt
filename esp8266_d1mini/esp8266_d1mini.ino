@@ -34,7 +34,7 @@
 #include <EEPROM.h>
 #include <ArduinoJson.h>
 
-const char* ESP8266_FIRMWARE_VERSION = "1.3.6";
+const char* ESP8266_FIRMWARE_VERSION = "1.3.7";
 
 // --- PINOUT ---
 const int PIN_LED_FREE = 4;  // D2 (GPIO 4) -> LED Wolna (Zielona)
@@ -716,18 +716,27 @@ void handleRoot() {
         <div class="card-title">📍 Przypisanie do Sali</div>
         <div class="form-group">
           <label>Wybierz z listy lub wpisz numer:</label>
-          <input type="text" id="roomNumber" name="roomNumber" value=")rawliteral" + String(config.roomNumber) + R"rawliteral(" placeholder="np. 104, 112, AULA" required>
+          <input type="text" id="roomNumber" name="roomNumber" value=")rawliteral" + String(config.roomNumber) + R"rawliteral(" placeholder="np. 114, 118_119, Aula 111" required>
           <div class="quick-rooms">
-            <span class="room-chip" onclick="setRoom('104')">104</span>
-            <span class="room-chip" onclick="setRoom('AULA')">AULA</span>
+            <span class="room-chip" onclick="setRoom('Aula 103_104')">Aula 103_104</span>
+            <span class="room-chip" onclick="setRoom('Aula 111')">Aula 111</span>
+            <span class="room-chip" onclick="setRoom('105')">105</span>
+            <span class="room-chip" onclick="setRoom('106')">106</span>
+            <span class="room-chip" onclick="setRoom('107')">107</span>
+            <span class="room-chip" onclick="setRoom('108')">108</span>
+            <span class="room-chip" onclick="setRoom('109')">109</span>
             <span class="room-chip" onclick="setRoom('112')">112</span>
             <span class="room-chip" onclick="setRoom('113')">113</span>
+            <span class="room-chip" onclick="setRoom('114')">114</span>
             <span class="room-chip" onclick="setRoom('115')">115</span>
             <span class="room-chip" onclick="setRoom('116')">116</span>
             <span class="room-chip" onclick="setRoom('117')">117</span>
-            <span class="room-chip" onclick="setRoom('118')">118</span>
-            <span class="room-chip" onclick="setRoom('120')">120</span>
+            <span class="room-chip" onclick="setRoom('118_119')">118_119</span>
+            <span class="room-chip" onclick="setRoom('120_121')">120_121</span>
             <span class="room-chip" onclick="setRoom('122')">122</span>
+            <span class="room-chip" onclick="setRoom('123')">123</span>
+            <span class="room-chip" onclick="setRoom('124')">124</span>
+            <span class="room-chip" onclick="setRoom('125')">125</span>
             <span class="room-chip" onclick="setRoom('9')">9</span>
             <span class="room-chip" onclick="setRoom('12')">12</span>
             <span class="room-chip" onclick="setRoom('14')">14</span>

@@ -96,8 +96,8 @@ class RoomDatabaseHelper {
       // PIĘTRO
       Room(
         id: 1,
-        number: '104',
-        name: 'Gwiezdne Wojny',
+        number: '105',
+        name: 'Pracownia 105',
         floor: 'Piętro',
         category: 'EXTRAS',
         description: 'Pokazy tematyczne Star Wars i robotyki kosmicznej',
@@ -106,8 +106,8 @@ class RoomDatabaseHelper {
       ),
       Room(
         id: 2,
-        number: 'AULA',
-        name: 'Aula Wykładowa',
+        number: 'Aula 101_102',
+        name: 'Aula 101_102',
         floor: 'Piętro',
         category: 'Wykładowa',
         description: 'Wykłady i pokazy: Rowerowe show, Naukowcy, Fizyka bez tajemnic',
@@ -166,7 +166,7 @@ class RoomDatabaseHelper {
       ),
       Room(
         id: 8,
-        number: '118',
+        number: '118_119',
         name: 'Gry internetowe',
         floor: 'Piętro',
         category: 'Laboratorium',
@@ -176,7 +176,7 @@ class RoomDatabaseHelper {
       ),
       Room(
         id: 9,
-        number: '120',
+        number: '120_121',
         name: 'Robota czy roboty?',
         floor: 'Piętro',
         category: 'Laboratorium',

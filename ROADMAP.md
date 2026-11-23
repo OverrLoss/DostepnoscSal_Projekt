@@ -1,10 +1,10 @@
 # Plan Rozwoju Projektu (Roadmap)
 
-Dokument opisuje stan na wersję **1.3.16 (build 21)** oraz kierunki dalszego rozwoju. Szczegóły bieżącego kontraktu API znajdują się w [`API_REFERENCE.md`](API_REFERENCE.md), a scenariusze weryfikacji w [`TEST_PLAN.md`](TEST_PLAN.md).
+Dokument opisuje stan na wersję **1.3.18 (build 23)** oraz kierunki dalszego rozwoju. Szczegóły bieżącego kontraktu API znajdują się w [`API_REFERENCE.md`](API_REFERENCE.md), a scenariusze weryfikacji w [`TEST_PLAN.md`](TEST_PLAN.md).
 
 ---
 
-## 1. Aktualny stan (wersja 1.3.16) — zrealizowane
+## 1. Aktualny stan (wersja 1.3.18) — zrealizowane
 
 - [x] **Wektorowy plan pięter** z rzeczywistych rzutów SVG (`rzut-parteru-mapa.svg`, `rzut-pietra-mapa.svg`) i autoskalowaniem do ekranu.
 - [x] **Garaż podziemny** powiązany z parterem, wspólne zapytania z filtrem `floor=Parter`.
@@ -16,7 +16,7 @@ Dokument opisuje stan na wersję **1.3.16 (build 21)** oraz kierunki dalszego ro
 - [x] **Zarządzanie z API** salami, użytkownikami, urządzeniami i ustawieniami systemu, dokumentacja Swagger pod `/docs`.
 - [x] **Tryb TV / kiosk** z równoległymi rzutami pięter, zegarem i statystykami.
 - [x] **Auto-discovery serwera** w LAN przez UDP 8082 z weryfikacją przez `/api/v1/health`.
-- [x] **Aktualizacje OTA** aplikacji Android (APK z `app_version.json`) oraz firmware CYD `1.3.8` i ESP8266 `1.3.6`.
+- [x] **Aktualizacje OTA** aplikacji Android (APK z `app_version.json`) oraz firmware CYD `1.3.8` i ESP8266 `1.3.7`.
 - [x] **Węzły IoT** ESP32 CYD z ekranem dotykowym i ESP8266 z dwukolorowymi diodami.
 - [x] **Uruchamianie w tle na Windows** przez `run_server_and_tunnel.bat` i `server_control.ps1`, tunel Cloudflare `victus`.
 - [x] **Wersjonowanie** tagami `vX.Y.Z`, wydania GitHub Release z plikiem APK.

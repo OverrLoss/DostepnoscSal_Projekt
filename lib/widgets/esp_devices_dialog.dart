@@ -145,7 +145,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
   Future<void> _showAddDeviceDialog() async {
     final nameController = TextEditingController(text: 'ESP32_CYD_Sala_');
     String selectedType = 'esp32'; // 'esp32' or 'esp8266'
-    String selectedRoom = _allRooms.isNotEmpty ? _allRooms.first.number : '104';
+    String selectedRoom = _allRooms.isNotEmpty ? _allRooms.first.number : '';
 
     await showDialog(
       context: context,

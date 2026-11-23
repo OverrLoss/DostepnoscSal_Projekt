@@ -1,8 +1,8 @@
 {
-  "versionCode": 21,
-  "versionName": "1.3.16",
+  "versionCode": 23,
+  "versionName": "1.3.18",
   "apkSize": 54959050,
-  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=21",
-  "releaseNotes": "Wersja 1.3.16: nowa numeracja sal i połączenia pomieszczeń na rzucie",
-  "builtAt": "2026-11-23T07:31:24Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=23",
+  "releaseNotes": "Wersja 1.3.18: porządek w salach startowych, tokenach ESP i panelu konfiguracji ESP8266",
+  "builtAt": "2026-11-23T12:50:21Z"
 }

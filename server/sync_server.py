@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 21,
-        "versionName": "1.3.16",
+        "versionCode": 23,
+        "versionName": "1.3.18",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -160,8 +160,9 @@ SVG_ASSIGNED = {
 }
 SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
                "room-1-26", "room-1-27", "room-1-30", "room-0-47", "room-0-51",
-               "room-1-06", "room-1-08", "room-1-16", "room-1-18", "room-1-34", "room-1-36",
-               "room-1-37", "room-1-48", "room-1-50", "room-1-52", "room-1-53", "room-1-54"}
+               "room-1-06", "room-1-08", "room-1-16", "room-1-18", "room-1-34", "room-1-35",
+               "room-1-36", "room-1-37", "room-1-41", "room-1-48", "room-1-50",
+               "room-1-52", "room-1-53", "room-1-54"}
 SVG_SPECIAL = {
     "Piętro": {"room-1-05", "room-1-19", "room-1-12", "room-1-17", "room-1-14", "room-1-13",
                "room-1-01", "room-1-02", "room-1-04", "room-1-39", "room-1-40"} | SVG_REMOVED,
@@ -467,6 +468,15 @@ def init_db():
             pass
     conn.commit()
 
+    # Usuń stare placeholdery o ID równym przypisanemu poligonowi — powodowały nakładanie się etykiet.
+    assigned_pids = {pid for mapping in SVG_ASSIGNED.values() for pid in mapping.values()}
+    for pid in sorted(assigned_pids):
+        try:
+            cursor.execute("DELETE FROM rooms WHERE id = ?", (pid,))
+        except sqlite3.IntegrityError:
+            pass
+    conn.commit()
+
     # Sala 104 nie istnieje (jest częścią Auli 103_104); 118 i 120 zostały połączone.
     if cursor.execute("SELECT 1 FROM rooms WHERE id = '104'").fetchone():
         for table in ("users", "devices", "occupancy_sessions", "alerts"):
@@ -506,8 +516,8 @@ def init_db():
 
         # Seed Sample Operators for testing
         op_pass = hash_password("operator123")
-        for room_no in ["104", "Aula 111", "Garaż"]:
-            login_name = operator_login(room_no)
+        for room_no in ["Aula 103_104", "Aula 111", "Garaż"]:
+            login_name = "operator_104" if room_no == "Aula 103_104" else operator_login(room_no)
             cursor.execute("""
                 INSERT INTO users (id, username, password_hash, display_name, role, room_id, is_active, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
@@ -520,7 +530,7 @@ def init_db():
     if cursor.fetchone()[0] == 0:
         now = utc_now()
         default_devices = [
-            ("dev_token_sala104", "CYD_ESP32_Sala_104", "104"),
+            ("dev_token_sala104", "CYD_ESP32_Aula_103_104", "Aula 103_104"),
             ("dev_token_sala112", "ESP_Sala_112", "112"),
             ("dev_token_sala_aula", "ESP_Sala_AULA", "Aula 111"),
             ("dev_token_sala_garaz", "ESP_Sala_Garaz", "Garaż"),
@@ -1920,7 +1930,7 @@ def get_device_assigned_room_state(
     db.commit()
 
     is_esp8266 = "8266" in chip or "wemos" in chip
-    fw_ver = "1.3.6" if is_esp8266 else "1.3.8"
+    fw_ver = "1.3.7" if is_esp8266 else "1.3.8"
     bin_name = "esp8266_firmware.bin" if is_esp8266 else "cyd_firmware.bin"
     bin_path = os.path.join(BASE_DIR, bin_name)
     has_update = os.path.exists(bin_path)
@@ -2263,7 +2273,7 @@ def get_firmware_version(chip: str = "esp32"):
     fw_path = _get_firmware_file(chip)
     fw_size = os.path.getsize(fw_path) if os.path.exists(fw_path) else 0
     norm_chip = "esp8266" if "8266" in chip.lower() else "esp32"
-    version = "1.3.6" if norm_chip == "esp8266" else "1.3.8"
+    version = "1.3.7" if norm_chip == "esp8266" else "1.3.8"
     version_tag = version.replace(".", "")
     return JSONResponse(
         content={
