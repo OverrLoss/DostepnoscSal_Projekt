@@ -11,7 +11,7 @@ System monitorowania i zarządzania dostępnością sal wykładowych, laboratori
 **Publiczny adres:** [https://sale.pwojtaszek.5g.in](https://sale.pwojtaszek.5g.in)
 
 ## Funkcjonalności
-
+ 
 - **Plan budynku z rzeczywistych rzutów SVG** — parter i piętro, autoskalowanie, zoom, przypisanie sal do konkretnych pomieszczeń i swobodne przesuwanie układu w trybie edycji.
 - **Statusy sal** — `free` (wolna), `occupied` (zajęta) oraz przerwa (`occupied` z `is_break=1`), która nie tworzy sesji, timera ani alertu. Zajęcie sali uruchamia sesję z limitem czasu i alertem po jego przekroczeniu.
 - **Aktualizacje na żywo** — WebSocket `/api/v1/ws` rozsyła zdarzenie `room.updated` po każdej zmianie, z fallbackiem pollingowym i ze zegarem serwera dla ukrytych kart przeglądarki.
