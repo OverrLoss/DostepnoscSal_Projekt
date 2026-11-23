@@ -28,7 +28,7 @@ Język pracy: polski.
 - Aplikacja: `pubspec.yaml`, `lib/services/app_update_service.dart`, `lib/services/diagnostics_service.dart`, nagłówek w `lib/screens/room_main_screen.dart`, fallback w `server/sync_server.py`, monity w `server/deploy_apk.py`.
 - `server/app_version.json` modyfikuj z Pythona lub przez `build_and_deploy.py`; UTF-8 bez BOM.
 - Firmware CYD `1.3.8`: `CYD_FIRMWARE_VERSION` w `.ino`, `/api/v1/cyd-version`, `fw_ver` w `/api/v1/device/state`.
-- Firmware ESP8266 `1.3.8`: stała w `.ino` i endpointy wersji w serwerze.
+- Firmware ESP8266 `1.3.9`: stała w `.ino` i endpointy wersji w serwerze.
 - Po zmianie firmware zbuduj `arduino-cli` i podmień binarkę w `server/`; rozjazd wersji powoduje pętlę OTA.
 
 ## Modele i uprawnienia

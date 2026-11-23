@@ -116,7 +116,7 @@ Gotowy plik: `build/app/outputs/flutter-apk/app-release.apk`. Skrypt `build_and_
 
 Przed publikacją zwiększ numer w:
 
-- `pubspec.yaml` (`version: 1.3.22+27`),
+- `pubspec.yaml` (`version: 1.3.23+28`),
 - `lib/services/app_update_service.dart` (wersja lokalna Web),
 - `lib/services/diagnostics_service.dart`,
 - `lib/screens/room_main_screen.dart` (nagłówek),
@@ -156,7 +156,7 @@ W kodzie ustaw `ssid`, `password` oraz `targetRoomNumber`, w Arduino IDE wybierz
 
 Kod: [`esp32_cyd/esp32_cyd.ino`](esp32_cyd/esp32_cyd.ino), konfiguracja wyświetlacza w `User_Setup.h`, szczegóły w [`esp32_cyd/README_CYD.md`](esp32_cyd/README_CYD.md). Urządzenie czyta stan sali z `/api/v1/device/state`, wysyła heartbeat i wykonuje OTA, gdy wersja serwera różni się od `CYD_FIRMWARE_VERSION`.
 
-Wersje firmware: CYD **1.3.8**, ESP8266 **1.3.8**. Po zmianie firmware zbuduj binarkę `arduino-cli` i podmień plik w `server/`. Rozjazd wersji między urządzeniem a endpointami powoduje pętlę OTA.
+Wersje firmware: CYD **1.3.8**, ESP8266 **1.3.9**. Po zmianie firmware zbuduj binarkę `arduino-cli` i podmień plik w `server/`. Rozjazd wersji między urządzeniem a endpointami powoduje pętlę OTA.
 
 ---
 

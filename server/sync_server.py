@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 27,
-        "versionName": "1.3.22",
+        "versionCode": 28,
+        "versionName": "1.3.23",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -159,9 +159,10 @@ SVG_ASSIGNED = {
     "Parter": {
         "1": "room-0-06", "2": "room-0-07", "3": "room-0-08",
         "4": "room-0-10", "5": "room-0-09", "6": "room-0-11", "7": "room-0-12",
-        "9": "room-0-28", "10": "room-0-29", "11": "room-0-30",
-        "12": "room-0-31", "13_14": "room-0-32", "15_16": "room-0-34",
-        "17": "room-0-36", "18": "room-0-44", "19": "room-0-45", "20": "room-0-46",
+        "8": "room-0-28", "9": "room-0-29", "10": "room-0-30",
+        "11": "room-0-31", "12_13": "room-0-32", "14_15": "room-0-34",
+        "16": "room-0-36", "17": "room-0-36b", "18": "room-0-44",
+        "19": "room-0-45", "20": "room-0-46", "24": "room-0-60",
         "Portiernia": "room-0-57", "Kafeteria": "room-0-27",
     },
 }
@@ -173,7 +174,7 @@ SVG_REMOVED = {"room-1-11", "room-1-15", "room-1-21", "room-1-22", "room-1-23",
                "room-0-37", "room-0-38", "room-0-40", "room-0-41", "room-0-43",
                "room-0-45b", "room-0-52", "room-0-54", "room-0-55",
                 "room-0-35", "room-0-33", "room-0-58", "room-0-59",
-                "room-0-60", "room-0-14", "room-0-16", "room-0-04", "room-0-05",
+                "room-0-14", "room-0-16", "room-0-04", "room-0-05",
                 "room-0-26", "room-0-25", "room-0-23", "room-0-22", "room-0-21", "room-0-20"}
 SVG_SPECIAL = {
     "Piętro": {"room-1-05", "room-1-19", "room-1-12", "room-1-17", "room-1-14", "room-1-13",
@@ -520,6 +521,19 @@ def init_db():
     # Przesunięcie numerów parteru o jeden w dół — od końca, żeby nie nadpisać
     # numerów, które dopiero zostaną zwolnione.
     for old_id, new_id in (("2", "1"), ("3", "2"), ("4", "3")):
+        if cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (old_id,)).fetchone() and not cursor.execute(
+                "SELECT 1 FROM rooms WHERE id = ?", (new_id,)).fetchone():
+            conn.execute("PRAGMA foreign_keys = OFF")
+            cursor.execute("UPDATE rooms SET id = ?, name = ? WHERE id = ?", (new_id, new_id, old_id))
+            for table in ("users", "devices", "occupancy_sessions", "alerts"):
+                cursor.execute(f"UPDATE {table} SET room_id = ? WHERE room_id = ?", (new_id, old_id))
+            conn.commit()
+            conn.execute("PRAGMA foreign_keys = ON")
+    conn.commit()
+
+    # Przesunięcie numerów od Kafeterii o jeden w dół (po podziale dawnej sali 17).
+    for old_id, new_id in (("9", "8"), ("10", "9"), ("11", "10"), ("12", "11"),
+                           ("13_14", "12_13"), ("15_16", "14_15"), ("17", "16")):
         if cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (old_id,)).fetchone() and not cursor.execute(
                 "SELECT 1 FROM rooms WHERE id = ?", (new_id,)).fetchone():
             conn.execute("PRAGMA foreign_keys = OFF")
@@ -1972,7 +1986,7 @@ def get_device_assigned_room_state(
     db.commit()
 
     is_esp8266 = "8266" in chip or "wemos" in chip
-    fw_ver = "1.3.8" if is_esp8266 else "1.3.8"
+    fw_ver = "1.3.9" if is_esp8266 else "1.3.8"
     bin_name = "esp8266_firmware.bin" if is_esp8266 else "cyd_firmware.bin"
     bin_path = os.path.join(BASE_DIR, bin_name)
     has_update = os.path.exists(bin_path)
@@ -2315,7 +2329,7 @@ def get_firmware_version(chip: str = "esp32"):
     fw_path = _get_firmware_file(chip)
     fw_size = os.path.getsize(fw_path) if os.path.exists(fw_path) else 0
     norm_chip = "esp8266" if "8266" in chip.lower() else "esp32"
-    version = "1.3.8" if norm_chip == "esp8266" else "1.3.8"
+    version = "1.3.9" if norm_chip == "esp8266" else "1.3.8"
     version_tag = version.replace(".", "")
     return JSONResponse(
         content={
