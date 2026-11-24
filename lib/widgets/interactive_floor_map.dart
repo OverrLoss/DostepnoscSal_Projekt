@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/room_model.dart';
 import '../theme/app_theme.dart';
 import 'floor0_plan.dart';
@@ -56,6 +57,9 @@ class InteractiveFloorMap extends StatefulWidget {
   /// Zapis rozmiaru (skala, 1.0 = domyślna) i obrotu (stopnie) sali.
   /// Gdy null — pasek zmiany rozmiaru i obrotu się nie pokazuje.
   final Future<bool> Function(Room room, double scale, double angle)? onRoomLayoutChanged;
+
+  /// Zapis własnej ścieżki (linii) sali. Gdy null — edycja linii nie jest dostępna.
+  final Future<bool> Function(Room room, String path)? onRoomPathChanged;
   final bool? isEditMode;
   final VoidCallback? onToggleEditMode;
   final bool showEditToolbar;
@@ -71,6 +75,7 @@ class InteractiveFloorMap extends StatefulWidget {
     required this.onRoomPositionChanged,
     required this.onResetPositions,
     this.onRoomLayoutChanged,
+    this.onRoomPathChanged,
     this.isEditMode,
     this.onToggleEditMode,
     this.showEditToolbar = false,
@@ -100,6 +105,11 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   static const double _minScale = 0.5;
   static const double _maxScale = 2.5;
 
+  // Edycja linii sali: wierzchołki w współrzędnych SVG zapisane jako robocze.
+  final Map<String, List<List<Offset>>> _draftPaths = {};
+  String? _draggingVertex;
+  final Map<String, Offset> _dragOrigins = {};
+
   Room? _selectedRoom() {
     final key = _selectedKey;
     if (key == null) return null;
@@ -122,6 +132,94 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     if (v > 180) v -= 360;
     if (v < -180) v += 360;
     return v;
+  }
+
+  static final RegExp _numRe = RegExp(r'-?\d+(?:\.\d+)?');
+
+  /// Wierzchołki pogrupowane według podścieżek (M...Z), żeby edycja nie scalała dziur.
+  List<List<Offset>> _svgSubpaths(String d) {
+    return d.split('M').where((s) => s.trim().isNotEmpty).map((sub) {
+      final nums = _numRe.allMatches(sub).map((m) => double.parse(m.group(0)!)).toList();
+      final pts = <Offset>[];
+      for (var i = 0; i + 1 < nums.length; i += 2) {
+        pts.add(Offset(nums[i], nums[i + 1]));
+      }
+      return pts;
+    }).toList();
+  }
+
+  String _subpathsToPath(List<List<Offset>> subs) {
+    final b = StringBuffer();
+    for (final pts in subs) {
+      if (pts.isEmpty) continue;
+      b.write('M');
+      for (final p in pts) {
+        b.write('${p.dx.toStringAsFixed(1)} ${p.dy.toStringAsFixed(1)}L');
+      }
+      b.write('Z');
+    }
+    return b.toString().replaceAll('LZ', 'Z');
+  }
+
+  Offset _canvasToSvg(Offset p) => Offset(
+        p.dx / floor1Scale + floor1ViewX,
+        (p.dy - floor1OffsetY) / floor1Scale + floor1ViewY,
+      );
+
+  /// Węzły, do których przyciągamy przeciągany punkt (inne sali i obrys budynku).
+  List<Offset> _snapTargets(String? skipSvgId) {
+    final pts = <Offset>[];
+    for (final entry in svgPolygonsFor(widget.floor).entries) {
+      if (entry.key == skipSvgId) continue;
+      for (final sub in _svgSubpaths(entry.value)) {
+        pts.addAll(sub);
+      }
+    }
+    for (final sub in _svgSubpaths(widget.floor == 'Piętro' ? floor1Outline : floor0Outline)) {
+      pts.addAll(sub);
+    }
+    return pts;
+  }
+
+  void _onVertexPanUpdate(Room room, String basePath, int sub, int index, DragUpdateDetails details) {
+    final key = _roomKey(room);
+    final subs = _draftPaths[key] ??= _svgSubpaths(basePath);
+    if (sub >= subs.length || index >= subs[sub].length) return;
+    final verts = subs[sub];
+    final fit = _activeFitScale <= 0 ? 1.0 : _activeFitScale;
+    final zoom = _transformController.value.getMaxScaleOnAxis();
+    final adj = fit * (zoom <= 0 ? 1.0 : zoom);
+    final canvas = floor1ToCanvas(verts[index].dx, verts[index].dy);
+    final next = _canvasToSvg(canvas + details.delta / adj);
+    Offset best = next;
+    var bestDist = 10.0; // promień przyciągania w jednostkach SVG
+    final origin = _dragOrigins['$key:$sub:$index'];
+    for (final t in _snapTargets(room.svgId)) {
+      if (origin != null && (t - origin).distance < 0.5) continue;
+      if (subs.any((s) => s.any((v) => (v - t).distance < 0.5))) continue;
+      final dist = (t - next).distance;
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = t;
+      }
+    }
+    setState(() => verts[index] = best);
+  }
+
+  Future<void> _onVertexPanEnd(Room room) async {
+    final save = widget.onRoomPathChanged;
+    if (save == null) return;
+    final key = _roomKey(room);
+    final verts = _draftPaths[key];
+    if (verts == null) return;
+    if (mounted) {
+      setState(() {
+        _draggingVertex = null;
+        _dragOrigins.clear();
+      });
+    }
+    final saved = await save(room, _subpathsToPath(verts));
+    if (!saved && mounted) setState(() => _draftPaths.remove(key));
   }
 
   Future<void> _applyLayout(Room room, {double? scale, double? angle}) async {
@@ -172,6 +270,11 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (widget.onRoomPathChanged != null)
+            const Padding(
+              padding: EdgeInsets.only(right: 6),
+              child: Icon(Icons.edit_rounded, color: Colors.redAccent, size: 14),
+            ),
           Text(
             'Sala ${room.number}',
             style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
@@ -196,24 +299,64 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
     );
   }
   final TransformationController _transformController = TransformationController();
+  final FocusNode _mapFocus = FocusNode();
   double _activeFitScale = 1.0;
 
   @override
   void dispose() {
     _transformController.dispose();
+    _mapFocus.dispose();
     super.dispose();
   }
 
-  void _zoomIn() {
-    final matrix = _transformController.value.clone();
-    matrix.scaleByDouble(1.25, 1.25, 1.0, 1.0);
-    _transformController.value = matrix;
+  void _zoomBy(double factor) {
+    final matrix = _transformController.value;
+    final scale = matrix.getMaxScaleOnAxis();
+    final next = (scale * factor).clamp(0.25, 3.5);
+    final cx = _canvasWidth / 2;
+    final cy = _canvasHeight / 2;
+    final t = matrix.getTranslation();
+    final screenX = scale * cx + t.x;
+    final screenY = scale * cy + t.y;
+    _transformController.value = Matrix4.translationValues(
+      screenX - next * cx,
+      screenY - next * cy,
+      0,
+    )..scaleByDouble(next, next, 1.0, 1.0);
   }
 
-  void _zoomOut() {
-    final matrix = _transformController.value.clone();
-    matrix.scaleByDouble(0.8, 0.8, 1.0, 1.0);
-    _transformController.value = matrix;
+  void _zoomIn() => _zoomBy(1.25);
+
+  void _zoomOut() => _zoomBy(0.8);
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return KeyEventResult.ignored;
+    const step = 28.0;
+    final m = _transformController.value.clone();
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.arrowLeft:
+        m.translateByDouble(step, 0, 0, 1);
+      case LogicalKeyboardKey.arrowRight:
+        m.translateByDouble(-step, 0, 0, 1);
+      case LogicalKeyboardKey.arrowUp:
+        m.translateByDouble(0, step, 0, 1);
+      case LogicalKeyboardKey.arrowDown:
+        m.translateByDouble(0, -step, 0, 1);
+      case LogicalKeyboardKey.add:
+      case LogicalKeyboardKey.equal:
+        _zoomIn();
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.minus:
+        _zoomOut();
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.digit0:
+        _resetZoom();
+        return KeyEventResult.handled;
+      default:
+        return KeyEventResult.ignored;
+    }
+    _transformController.value = m;
+    return KeyEventResult.handled;
   }
 
   void _resetZoom() {
@@ -362,16 +505,16 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
 
         // Auto-scale calculation so the 360x520 canvas automatically scales to fit viewport
         final paddingH = 16.0;
-        final paddingV = _isEditMode ? 48.0 : 16.0;
+        final paddingV = 0.0;
         final scaleX = (availW - paddingH) / _canvasWidth;
         final scaleY = (availH - paddingV) / _canvasHeight;
-        final calculatedScale = (scaleX < scaleY ? scaleX : scaleY).clamp(0.25, 1.4);
+        final calculatedScale = (scaleX < scaleY ? scaleX : scaleY).clamp(0.25, 2.5);
         _activeFitScale = calculatedScale;
 
         Widget mapContent = SingleChildScrollView(
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -465,13 +608,13 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: AppColors.primary),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.open_with, color: AppColors.primary, size: 14),
-                          SizedBox(width: 8),
-                          Text(
-                            'Przeciągnij salę, aby ją przesunąć. Zmiany zapisują się od razu.',
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Wybierz salę: punkty na wierzchołkach zmieniają jej kształt. Przyciąganie do węzłów włączone.',
                             style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -621,8 +764,16 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
         ),
       );
 
+      final focusable = Focus(
+        focusNode: _mapFocus,
+        onKeyEvent: _onKey,
+        child: GestureDetector(
+          onTap: () => _mapFocus.requestFocus(),
+          child: mapContent,
+        ),
+      );
       if (!widget.enableViewer) {
-        return mapContent;
+        return focusable;
       }
 
       return Stack(
@@ -632,9 +783,9 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
             minScale: 0.25,
             maxScale: 3.5,
             panEnabled: !_isEditMode,
-            scaleEnabled: !_isEditMode,
+            scaleEnabled: true,
             boundaryMargin: const EdgeInsets.all(50),
-            child: mapContent,
+            child: focusable,
           ),
           // Pasek obrotu i rozmiaru zaznaczonej sali (tryb edycji)
           if (_isEditMode && widget.onRoomLayoutChanged != null && _selectedRoom() != null)
@@ -678,21 +829,21 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.remove, size: 18, color: Colors.white70),
+                    icon: const Icon(Icons.remove, size: 22, color: Colors.white70),
                     tooltip: 'Oddal widok',
                     padding: const EdgeInsets.all(6),
                     constraints: const BoxConstraints(),
                     onPressed: _zoomOut,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.fit_screen_rounded, size: 18, color: AppColors.cyan),
+                    icon: const Icon(Icons.fit_screen_rounded, size: 22, color: AppColors.cyan),
                     tooltip: 'Dopasuj do ekranu',
                     padding: const EdgeInsets.all(6),
                     constraints: const BoxConstraints(),
                     onPressed: _resetZoom,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add, size: 18, color: Colors.white70),
+                    icon: const Icon(Icons.add, size: 22, color: Colors.white70),
                     tooltip: 'Przybliż widok',
                     padding: const EdgeInsets.all(6),
                     constraints: const BoxConstraints(),
@@ -715,42 +866,90 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   Widget _polyRoomPath(String number, String d, {Offset? label, double font = 9}) {
     final room = _findRoom(number);
     if (room == null) return const SizedBox.shrink();
-    final path = floor1Path(d);
+    final key = _roomKey(room);
+    final pathD = room.customPath ?? d;
+    final path = floor1Path(pathD);
     final c = label ?? path.getBounds().center;
     final color = room.isBreak || room.isAlertDue
         ? AppColors.warning
         : (room.isAvailable ? AppColors.success : AppColors.danger);
     final duration = room.isAvailable ? '' : room.durationFormatted;
+    final editing = _isEditMode && _selectedKey == key && widget.onRoomPathChanged != null;
+    final subs = editing ? (_draftPaths[key] ??= _svgSubpaths(pathD)) : <List<Offset>>[];
+    final editPath = editing ? floor1Path(_subpathsToPath(subs)) : path;
     return Positioned.fill(
-      child: ClipPath(
-        clipper: _PathClipper(path),
-        child: GestureDetector(
-          onTap: () {
-            if (!_isEditMode) widget.onRoomQuickToggle(room);
-          },
-          onLongPress: () {
-            if (!_isEditMode) widget.onRoomTap(room);
-          },
-          child: Stack(
-            children: [
-              Positioned.fill(child: ColoredBox(color: color.withValues(alpha: 0.2))),
-              Positioned(
-                left: c.dx - 30,
-                top: c.dy - font,
-                width: 60,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(number,
-                        style: TextStyle(color: Colors.white, fontSize: font, fontWeight: FontWeight.w800)),
-                    if (duration.isNotEmpty)
-                      Text(duration, style: const TextStyle(color: Colors.white70, fontSize: 7)),
-                  ],
+      child: Stack(
+        children: [
+          ClipPath(
+            clipper: _PathClipper(path),
+            child: GestureDetector(
+              onTap: () {
+                if (_isEditMode) {
+                  setState(() => _selectedKey = key);
+                  return;
+                }
+                widget.onRoomQuickToggle(room);
+              },
+              onLongPress: () {
+                if (!_isEditMode) widget.onRoomTap(room);
+              },
+              child: Stack(
+                children: [
+                  Positioned.fill(child: ColoredBox(color: color.withValues(alpha: 0.2))),
+                  Positioned(
+                    left: c.dx - 30,
+                    top: c.dy - font,
+                    width: 60,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(number,
+                            style: TextStyle(color: Colors.white, fontSize: font, fontWeight: FontWeight.w800)),
+                        if (duration.isNotEmpty)
+                          Text(duration, style: const TextStyle(color: Colors.white70, fontSize: 7)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (editing) ...[
+            Positioned.fill(
+              child: IgnorePointer(child: CustomPaint(painter: _PathStrokePainter(editPath))),
+            ),
+            for (var si = 0; si < subs.length; si++)
+              for (var vi = 0; vi < subs[si].length; vi++)
+                Positioned(
+                left: floor1ToCanvas(subs[si][vi].dx, subs[si][vi].dy).dx - 6,
+                top: floor1ToCanvas(subs[si][vi].dx, subs[si][vi].dy).dy - 6,
+                width: 12,
+                height: 12,
+                child: Opacity(
+                  opacity: _draggingVertex == '$key:$si:$vi' ? 0.0 : 1.0,
+                  child: GestureDetector(
+                    onPanStart: (_) => setState(() {
+                      _draggingVertex = '$key:$si:$vi';
+                      _dragOrigins[_draggingVertex!] = subs[si][vi];
+                    }),
+                    onPanUpdate: (details) => _onVertexPanUpdate(room, pathD, si, vi, details),
+                    onPanEnd: (_) => _onVertexPanEnd(room),
+                    onPanCancel: () => setState(() {
+                      _draggingVertex = null;
+                      _dragOrigins.clear();
+                    }),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.2),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
+          ],
+        ],
       ),
     );
   }
@@ -1379,6 +1578,26 @@ class _BuildingOutlinePainter extends CustomPainter {
   bool shouldRepaint(covariant _BuildingOutlinePainter oldDelegate) {
     return oldDelegate.floor != floor;
   }
+}
+
+class _PathStrokePainter extends CustomPainter {
+  final Path path;
+
+  _PathStrokePainter(this.path);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = const Color(0xFFFF3B30)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PathStrokePainter old) => old.path != path;
 }
 
 class _PathClipper extends CustomClipper<Path> {

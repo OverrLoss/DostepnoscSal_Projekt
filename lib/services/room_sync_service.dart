@@ -604,6 +604,25 @@ class RoomSyncService {
     return null;
   }
 
+  Future<Room?> updateRoomPath(String roomId, String path) async {
+    if (!isLoggedIn) return null;
+    try {
+      final uri = _buildUri('/api/v1/admin/rooms/$roomId/path');
+      final res = await http
+          .post(uri, headers: _headers(), body: json.encode({'path': path}))
+          .timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        final data = json.decode(utf8.decode(res.bodyBytes));
+        if (data['room'] != null) {
+          return Room.fromMap(Map<String, dynamic>.from(data['room'] as Map));
+        }
+      }
+    } catch (e) {
+      debugPrint('[SyncService] updateRoomPath error: $e');
+    }
+    return null;
+  }
+
   Future<List<Room>?> resetPositions({String? floor}) async {
     if (!isLoggedIn) return null;
     try {

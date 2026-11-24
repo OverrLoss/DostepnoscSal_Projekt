@@ -3,6 +3,7 @@ import '../models/room_model.dart';
 import '../services/room_database_helper.dart';
 import '../theme/app_theme.dart';
 import '../widgets/interactive_floor_map.dart' show freeSvgPolygons;
+import '../widgets/room_shape_picker.dart';
 
 class AddEditRoomScreen extends StatefulWidget {
   final Room? room;
@@ -29,6 +30,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
   late int _selectedAlertLimitMinutes;
   bool _isSaving = false;
   String? _selectedSvgId;
+  String? _customPath;
   Set<String> _takenSvgIds = {};
 
   final List<String> _floors = ['Piętro', 'Parter', 'Garaż podziemny'];
@@ -63,6 +65,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
 
     _isAvailable = r?.isAvailable ?? true;
     _selectedSvgId = r?.svgId;
+    _customPath = r?.customPath;
     RoomDatabaseHelper.instance.getRooms().then((all) {
       if (!mounted) return;
       setState(() => _takenSvgIds = {
@@ -115,6 +118,8 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
           defaultAlertLimitSeconds: limitSeconds,
           svgId: _selectedSvgId,
           clearSvgId: _selectedSvgId == null,
+          customPath: _customPath,
+          clearCustomPath: _customPath == null,
         );
         await RoomDatabaseHelper.instance.updateRoom(updated);
         await RoomDatabaseHelper.instance.updateRoomAlertLimit(number, limitSeconds);
@@ -139,6 +144,7 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
           customNote: _notesController.text.trim(),
           defaultAlertLimitSeconds: limitSeconds,
           svgId: _selectedSvgId,
+          customPath: _customPath,
         );
         await RoomDatabaseHelper.instance.insertRoom(newRoom);
         await RoomDatabaseHelper.instance.updateRoomAlertLimit(number, limitSeconds);
@@ -192,8 +198,8 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
       ),
     );
 
-    if (confirm == true && widget.room?.id != null) {
-      await RoomDatabaseHelper.instance.deleteRoom(widget.room!.id!);
+    if (confirm == true) {
+      await RoomDatabaseHelper.instance.deleteRoomByNumber(widget.room!.number);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -396,6 +402,26 @@ class _AddEditRoomScreenState extends State<AddEditRoomScreen> {
                   ],
                 );
               }),
+
+              const SizedBox(height: 16),
+              ExpansionTile(
+                title: const Text(
+                  'Własny kształt sali (klikaj punkty na planie)',
+                  style: TextStyle(color: Colors.white, fontSize: 13),
+                ),
+                iconColor: AppColors.primary,
+                collapsedIconColor: Colors.white54,
+                children: [
+                  RoomShapePicker(
+                    floor: _selectedFloor,
+                    initialPath: _customPath,
+                    onChanged: (path) => setState(() {
+                      _customPath = path.isEmpty ? null : path;
+                      if (_customPath != null) _selectedSvgId = null;
+                    }),
+                  ),
+                ],
+              ),
 
               // Category Selector
               _buildSectionTitle('Typ sali / Kategoria'),

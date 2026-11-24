@@ -4,7 +4,7 @@ deploy_apk.py
 -------------
 Skrypt dystrybucji APK uruchamiany po każdym flutter build apk --release.
 
-Kopiuje plik app-release.apk do wszystkich miejsc serwujących go przez Cloudflare,
+Kopiuje plik app-release.apk do wszystkich miejsc serwujących go przez backend,
 i automatycznie AKTUALIZUJE server/app_version.json o nowy versionCode + versionName
 odczytując je bezpośrednio z pliku APK poprzez AndroidManifest.xml (aapt/aapt2).
 
@@ -167,8 +167,8 @@ def main():
             print(f"[deploy] Wersja z app_version.json: {version_name} (versionCode={version_code})")
         else:
             print("[deploy] Nie można ustalić wersji. Podaj ręcznie:")
-            version_name = input("  versionName (np. 1.4.0): ").strip() or "1.3.43"
-            version_code = int(input("  versionCode (np. 26): ").strip() or "48")
+            version_name = input("  versionName (np. 1.4.0): ").strip() or "1.3.28"
+            version_code = int(input("  versionCode (np. 26): ").strip() or "33")
 
     # Distribute APK
     copy_apk(SRC_APK, version_name, version_code)

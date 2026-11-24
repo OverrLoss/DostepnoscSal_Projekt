@@ -77,6 +77,9 @@ class Room {
   /// ID pokoju z SVG (np. room-1-41), do którego sala jest przylepiona na planie.
   final String? svgId;
 
+  /// Własna ścieżka (linie) sali edytowana z poziomu aplikacji.
+  final String? customPath;
+
   final RoomSession? activeSession;
   final int? defaultAlertLimitSeconds;
   final String? operatorId;
@@ -104,6 +107,7 @@ class Room {
     this.layoutScale,
     this.layoutAngle,
     this.svgId,
+    this.customPath,
     this.activeSession,
     this.defaultAlertLimitSeconds,
     this.operatorId,
@@ -171,6 +175,7 @@ class Room {
       if (layoutScale != null) 'layout_scale': layoutScale,
       if (layoutAngle != null) 'layout_angle': layoutAngle,
       'svg_id': svgId,
+      if (customPath != null) 'custom_path': customPath,
       if (defaultAlertLimitSeconds != null) 'default_alert_limit_seconds': defaultAlertLimitSeconds,
       if (operatorId != null) 'operator_id': operatorId,
       if (deviceId != null) 'device_id': deviceId,
@@ -200,6 +205,7 @@ class Room {
       if (layoutScale != null) 'layout_scale': layoutScale,
       if (layoutAngle != null) 'layout_angle': layoutAngle,
       'svg_id': svgId,
+      if (customPath != null) 'custom_path': customPath,
       if (activeSession != null) 'active_session': activeSession!.toMap(),
       if (defaultAlertLimitSeconds != null) 'default_alert_limit_seconds': defaultAlertLimitSeconds,
       if (operatorId != null) 'operator_id': operatorId,
@@ -272,6 +278,7 @@ class Room {
       layoutScale: (map['layout_scale'] as num?)?.toDouble(),
       layoutAngle: (map['layout_angle'] as num?)?.toDouble(),
       svgId: ((map['svg_id'] as String?) ?? '').isEmpty ? null : map['svg_id'] as String,
+      customPath: ((map['custom_path'] as String?) ?? '').trim().isEmpty ? null : map['custom_path'] as String,
       activeSession: session,
       defaultAlertLimitSeconds: map['default_alert_limit_seconds'] as int?,
       operatorId: map['operator_id'] as String?,
@@ -303,6 +310,8 @@ class Room {
     double? layoutAngle,
     String? svgId,
     bool clearSvgId = false,
+    String? customPath,
+    bool clearCustomPath = false,
     RoomSession? activeSession,
     int? defaultAlertLimitSeconds,
     String? operatorId,
@@ -334,6 +343,7 @@ class Room {
       layoutScale: resetPosition ? null : (layoutScale ?? this.layoutScale),
       layoutAngle: resetPosition ? null : (layoutAngle ?? this.layoutAngle),
       svgId: clearSvgId ? null : (svgId ?? this.svgId),
+      customPath: clearCustomPath ? null : (customPath ?? this.customPath),
       activeSession: activeSession ?? this.activeSession,
       defaultAlertLimitSeconds: defaultAlertLimitSeconds ?? this.defaultAlertLimitSeconds,
       operatorId: operatorId ?? this.operatorId,

@@ -55,8 +55,8 @@ def _load_app_version() -> dict:
             continue
     # Hardcoded fallback — will be overwritten by deploy_apk.py on each build
     return {
-        "versionCode": 48,
-        "versionName": "1.3.43",
+        "versionCode": 33,
+        "versionName": "1.3.28",
         "releaseNotes": "Nowa wersja jest dostępna.",
         "apkUrl": None,
         "apkSize": None,
@@ -350,7 +350,7 @@ def init_db():
     except sqlite3.OperationalError:
         pass  # kolumna już istnieje
     # Migracja: rozmiar (skala) i obrót sali na planie
-    for column in ("layout_scale REAL", "layout_angle REAL", "svg_id TEXT", "is_break INTEGER NOT NULL DEFAULT 0",
+    for column in ("layout_scale REAL", "layout_angle REAL", "svg_id TEXT", "custom_path TEXT", "is_break INTEGER NOT NULL DEFAULT 0",
                    "lock_status INTEGER NOT NULL DEFAULT 0", "lock_info INTEGER NOT NULL DEFAULT 0",
                    "lock_layout INTEGER NOT NULL DEFAULT 0"):
         try:
@@ -863,6 +863,7 @@ def build_room_representation(r: sqlite3.Row, db: sqlite3.Connection) -> Dict[st
         "posY": r["posY"],
         "layout_scale": r["layout_scale"] if "layout_scale" in keys else None,
         "layout_angle": r["layout_angle"] if "layout_angle" in keys else None,
+        "custom_path": r["custom_path"] if "custom_path" in keys else None,
         "svg_id": r["svg_id"] if "svg_id" in keys else None,
         "is_break": bool(r["is_break"]) if "is_break" in keys else False,
         "lock_status": bool(r["lock_status"]) if "lock_status" in keys else False,
@@ -1022,6 +1023,7 @@ def get_public_rooms(floor: Optional[str] = None, db: sqlite3.Connection = Depen
             "posY": r["posY"],
             "layout_scale": r["layout_scale"],
             "layout_angle": r["layout_angle"],
+            "custom_path": r["custom_path"],
             "svg_id": r["svg_id"],
             "is_break": bool(r["is_break"]),
             "lock_status": bool(r["lock_status"]),
@@ -1074,6 +1076,7 @@ def get_public_room(room_id: str, db: sqlite3.Connection = Depends(get_db)):
         "posY": r["posY"],
         "layout_scale": r["layout_scale"],
         "layout_angle": r["layout_angle"],
+        "custom_path": r["custom_path"],
         "svg_id": r["svg_id"],
         "is_break": bool(r["is_break"]),
         "lock_status": bool(r["lock_status"]),
@@ -1244,6 +1247,7 @@ def get_rooms_detailed(user: sqlite3.Row = Depends(require_current_user), db: sq
             "posY": r["posY"],
             "layout_scale": r["layout_scale"],
             "layout_angle": r["layout_angle"],
+            "custom_path": r["custom_path"],
             "svg_id": r["svg_id"],
             "is_break": bool(r["is_break"]),
             "lock_status": bool(r["lock_status"]),
@@ -1302,6 +1306,7 @@ def get_room_detailed(room_id: str, user: sqlite3.Row = Depends(require_current_
         "posY": r["posY"],
         "layout_scale": r["layout_scale"],
         "layout_angle": r["layout_angle"],
+        "custom_path": r["custom_path"],
         "svg_id": r["svg_id"],
         "is_break": bool(r["is_break"]),
         "lock_status": bool(r["lock_status"]),
@@ -1757,6 +1762,32 @@ async def set_room_layout(room_id: str, req: RoomLayoutRequest, admin: sqlite3.R
     await broadcast_ws_event("room.updated", updated)
     return {"status": "success", "room": updated}
 
+class RoomPathRequest(BaseModel):
+    path: str = Field(..., max_length=2000)
+
+
+@app.post("/api/v1/admin/rooms/{room_id}/path", tags=["Admin"])
+async def set_room_path(room_id: str, req: RoomPathRequest, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
+    """Własna ścieżka (linie) sali na planie; pusty string przywraca domyślną."""
+    raw = req.path.strip()
+    if raw and not re.fullmatch(r"[MLZ0-9.\s\-]+", raw):
+        raise DomainException(400, "INVALID_PATH", "Nieprawidłowa ścieżka sali.")
+    cursor = db.cursor()
+    cursor.execute("SELECT 1 FROM rooms WHERE id = ?", (room_id,))
+    if not cursor.fetchone():
+        raise DomainException(404, "RESOURCE_NOT_FOUND", "Sala nie istnieje.")
+    now = utc_now()
+    cursor.execute(
+        "UPDATE rooms SET custom_path = ?, updated_at = ? WHERE id = ?",
+        (raw or None, now, room_id),
+    )
+    db.commit()
+    cursor.execute("SELECT * FROM rooms WHERE id = ?", (room_id,))
+    updated = build_room_representation(cursor.fetchone(), db)
+    await broadcast_ws_event("room.updated", updated)
+    return {"status": "success", "room": updated}
+
+
 class ResetPositionsRequest(BaseModel):
     floor: Optional[str] = None
 
@@ -1765,9 +1796,9 @@ def reset_room_positions(req: ResetPositionsRequest, admin: sqlite3.Row = Depend
     cursor = db.cursor()
     now = utc_now()
     if req.floor and req.floor != "Wszystkie":
-        cursor.execute("UPDATE rooms SET posX = NULL, posY = NULL, layout_scale = NULL, layout_angle = NULL, updated_at = ? WHERE floor = ?", (now, req.floor))
+        cursor.execute("UPDATE rooms SET posX = NULL, posY = NULL, layout_scale = NULL, layout_angle = NULL, custom_path = NULL, updated_at = ? WHERE floor = ?", (now, req.floor))
     else:
-        cursor.execute("UPDATE rooms SET posX = NULL, posY = NULL, layout_scale = NULL, layout_angle = NULL, updated_at = ?", (now,))
+        cursor.execute("UPDATE rooms SET posX = NULL, posY = NULL, layout_scale = NULL, layout_angle = NULL, custom_path = NULL, updated_at = ?", (now,))
     db.commit()
     cursor.execute("SELECT * FROM rooms ORDER BY sortOrder ASC, id ASC")
     rooms = [build_room_representation(r, db) for r in cursor.fetchall()]
@@ -2335,7 +2366,7 @@ def get_app_version():
 @app.get("/DostepnoscSal.apk", tags=["System"])
 @app.get("/dostepnoscsal.apk", tags=["System"])
 def download_apk():
-    """Download the latest APK (always newest build, bypasses Cloudflare cache via ?v=N query param)."""
+    """Download the latest APK (always newest build, bypasses cache via ?v=N query param)."""
     apk_path = _find_apk_file()
     if os.path.exists(apk_path):
         return FileResponse(

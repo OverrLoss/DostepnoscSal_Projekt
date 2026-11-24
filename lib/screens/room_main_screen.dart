@@ -674,8 +674,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       ),
     );
 
-    if (confirm == true && room.id != null) {
-      await RoomDatabaseHelper.instance.deleteRoom(room.id!);
+    if (confirm == true) {
+      await RoomDatabaseHelper.instance.deleteRoomByNumber(room.number);
       _loadRooms();
     }
   }
@@ -1332,7 +1332,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               ),
             ),
             const Text(
-              'Politechnika Rzeszowska, wersja 1.3.43',
+              'Politechnika Rzeszowska, wersja 1.3.28',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
@@ -1632,16 +1632,15 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
                 ),
               ),
 
-            // Stats Banner
-            _buildStatsBanner(),
-
-            // View Content
+            // View Content (statystyki po lewej na szerokich ekranach)
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                  : _currentViewIndex == 0
-                      ? _buildMapView()
-                      : _buildListView(),
+              child: _buildViewWithSideStats(
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                    : _currentViewIndex == 0
+                        ? _buildMapView()
+                        : _buildListView(),
+              ),
             ),
           ],
         ),
@@ -1913,6 +1912,39 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
     return many;
   }
 
+  /// Na szerokich ekranach pasek wolnych/zajętych sal idzie na lewą stronę,
+  /// żeby mapa zajmowała więcej miejsca i nie było pustych pasów nad/pod nią.
+  Widget _buildViewWithSideStats(Widget view) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 700) {
+          return Column(
+            children: [
+              _buildStatsBanner(),
+              Expanded(child: view),
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 210,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _buildStatsBanner(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: view),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildStatsBanner() {
     final total = _rooms.length;
     final free = _freeCount;
@@ -1993,7 +2025,7 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       children: [
         // Map Legend
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+          padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -2070,9 +2102,9 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 88),
             child: Column(
               children: [
-                _buildFloorCard('Parter', 'POZIOM 0 (PARTER)', AppColors.cyan, fixedHeight: 560),
+                _buildFloorCard('Parter', 'POZIOM 0 (PARTER)', AppColors.cyan, fixedHeight: 760),
                 const SizedBox(height: 16),
-                _buildFloorCard('Piętro', 'POZIOM +1 (I PIĘTRO)', AppColors.primary, fixedHeight: 560, controlsBottomOffset: 80),
+                _buildFloorCard('Piętro', 'POZIOM +1 (I PIĘTRO)', AppColors.primary, fixedHeight: 760, controlsBottomOffset: 80),
               ],
             ),
           );
@@ -2141,6 +2173,11 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               if (!saved) _showLayoutSaveError();
               return saved;
             },
+            onRoomPathChanged: (room, path) async {
+              final saved = await RoomDatabaseHelper.instance.updateRoomPath(room, path);
+              if (!saved) _showLayoutSaveError();
+              return saved;
+            },
             onResetPositions: (fl) async {
               await RoomDatabaseHelper.instance.resetRoomPositions(floor: fl);
               await _loadRooms();
@@ -2203,6 +2240,11 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
       },
       onRoomLayoutChanged: (room, scale, angle) async {
         final saved = await RoomDatabaseHelper.instance.updateRoomLayout(room, scale, angle);
+        if (!saved) _showLayoutSaveError();
+        return saved;
+      },
+      onRoomPathChanged: (room, path) async {
+        final saved = await RoomDatabaseHelper.instance.updateRoomPath(room, path);
         if (!saved) _showLayoutSaveError();
         return saved;
       },

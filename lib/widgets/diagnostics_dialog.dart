@@ -117,7 +117,7 @@ class _DiagnosticsDialogState extends State<DiagnosticsDialog> {
                     const SizedBox(height: 12),
 
                     // Section 2: Sieć i Tunel
-                    _buildSectionHeader('🌐 Łączność & Tunel Cloudflare', AppColors.success),
+                    _buildSectionHeader('🌐 Łączność & Serwer', AppColors.success),
                     _buildInfoCard([
                       _buildRow('Status synchronizacji:', syncStatus?['connection_state']?.toString().toUpperCase() ?? '-'),
                       _buildRow('Adres serwera:', syncStatus?['server_url']?.toString() ?? '-'),

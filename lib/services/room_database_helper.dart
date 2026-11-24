@@ -40,6 +40,7 @@ class RoomDatabaseHelper {
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_scale REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN layout_angle REAL'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN svg_id TEXT'); } catch (_) {}
+try { await db.execute('ALTER TABLE $tableName ADD COLUMN custom_path TEXT'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN is_break INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN lock_status INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
         try { await db.execute('ALTER TABLE $tableName ADD COLUMN lock_info INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
@@ -81,6 +82,7 @@ class RoomDatabaseHelper {
         layout_scale REAL,
         layout_angle REAL,
         svg_id TEXT,
+      custom_path TEXT,
         default_alert_limit_seconds INTEGER,
         updatedAt TEXT
       )
@@ -312,6 +314,23 @@ class RoomDatabaseHelper {
     return count;
   }
 
+  /// Usuwa salę po numerze (również sale z nazwą, które nie mają numerycznego id).
+  Future<int> deleteRoomByNumber(String number) async {
+    if (kIsWeb) {
+      await RoomSyncService.instance.deleteRemoteRoom(number);
+      _webRoomsCache?.removeWhere((r) => r.number == number);
+      return 1;
+    }
+    final db = await database;
+    final count = await db.delete(
+      tableName,
+      where: 'number = ?',
+      whereArgs: [number],
+    );
+    RoomSyncService.instance.deleteRemoteRoom(number).ignore();
+    return count;
+  }
+
   Future<bool> toggleAvailability(int id, bool currentStatus, {String? roomNumber, String? occupantName}) async {
     final effectiveRoomNumber = (roomNumber != null && roomNumber.isNotEmpty)
         ? roomNumber
@@ -534,6 +553,36 @@ class RoomDatabaseHelper {
           {
             'layout_scale': scale,
             'layout_angle': angle,
+            'updatedAt': DateTime.now().toIso8601String(),
+          },
+          where: 'number = ?',
+          whereArgs: [roomNumber],
+        );
+      } catch (_) {}
+    }
+    return updated != null;
+  }
+
+  /// Zapisuje własną ścieżkę (linie) sali na planie. Zwraca true po zapisie na serwerze.
+  Future<bool> updateRoomPath(Room room, String path) async {
+    final roomNumber = room.number;
+    final updated = await RoomSyncService.instance.updateRoomPath(roomNumber, path);
+
+    if (kIsWeb) {
+      if (updated != null && _webRoomsCache != null) {
+        final idx = _webRoomsCache!.indexWhere((r) => r.number == roomNumber);
+        if (idx != -1) _webRoomsCache![idx] = updated;
+      }
+      return updated != null;
+    }
+
+    if (updated != null) {
+      try {
+        final db = await database;
+        await db.update(
+          tableName,
+          {
+            'custom_path': path.isEmpty ? null : path,
             'updatedAt': DateTime.now().toIso8601String(),
           },
           where: 'number = ?',
