@@ -14,7 +14,6 @@ Niniejszy przewodnik opisuje krok po kroku, jak uruchomić, skompilować i rozwi
 3. **Flutter SDK** 3.24 lub nowszy, tylko do przebudowy aplikacji.
    - Sprawdzenie: `flutter doctor`.
 4. **Android Studio / Android SDK**, JDK 17+ i Android SDK Command-line Tools — tylko przy kompilacji `.apk`.
-5. **Cloudflared CLI** — tylko przy wystawianiu tunelu HTTPS do Internetu.
 6. **Arduino IDE 2.x lub `arduino-cli`** — tylko przy kompilacji firmware ESP8266 i ESP32 CYD.
 
 Backend nie wymaga instalacji systemu bazodanowego. SQLite jest w bibliotece standardowej Pythona, a bazę `server/rooms_backend.db` serwer tworzy i migruje przy pierwszym starcie.
@@ -116,7 +115,7 @@ Gotowy plik: `build/app/outputs/flutter-apk/app-release.apk`. Skrypt `build_and_
 
 Przed publikacją zwiększ numer w:
 
-- `pubspec.yaml` (`version: 1.3.28+33`),
+- `pubspec.yaml` (`version: 1.3.42+47`),
 - `lib/services/app_update_service.dart` (wersja lokalna Web),
 - `lib/services/diagnostics_service.dart`,
 - `lib/screens/room_main_screen.dart` (nagłówek),
@@ -127,15 +126,9 @@ Następnie uruchom `python build_and_deploy.py`, który wygeneruje `server/app_v
 
 ---
 
-## 5. Tunel Cloudflare na nowym urządzeniu
+## 5. Domena publiczna
 
-Projekt używa jednego tunelu `victus` i nie wymaga plików poza folderem projektu.
-
-1. Umieść otrzymany plik `victus.token` w `.cloudflared/` (jest objęty `.gitignore`).
-2. Upewnij się, że w `.cloudflared/` jest `cloudflared.exe`. `PRZYGOTUJ_KOMPUTER.bat` pobierze go automatycznie, alternatywnie: `winget install --id Cloudflare.cloudflared`.
-3. Uruchom `run_server_and_tunnel.bat` — skrypt odpali serwer i tunel z tokenu, chyba że działa już usługa `Cloudflared`.
-
-Trasy publiczne (`sale`, `gra`, `plan`) konfiguruje się w panelu Cloudflare Zero Trust, nie w lokalnym `config.yml`. Szczegóły przekazania tokenu: [`TUNNEL_TOKEN.md`](TUNNEL_TOKEN.md).
+Repozytorium nie zawiera żadnej konfiguracji tunelu ani tokenów. Domenę `sale.pwojtaszek.5g.in` obsługuje tunel skonfigurowany w Home Assistant; jego trasa wskazuje na serwer Proxmox (port 8081). W przypadku pracy lokalnej wystarczy `python server/sync_server.py` i `http://localhost:8081`.
 
 ---
 

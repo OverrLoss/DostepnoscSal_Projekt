@@ -4,7 +4,7 @@ Dokument przeznaczony dla osoby wykonującej testy przed wydaniem nowej wersji. 
 
 ## 0. Przygotowanie stanowiska
 
-- [ ] Odnotuj wersję aplikacji z ekranu głównego i z `pubspec.yaml` (`1.3.28+33`), wersje firmware (CYD `1.3.8`, ESP8266 `1.3.10`) oraz numer tagu Git.
+- [ ] Odnotuj wersję aplikacji z ekranu głównego i z `pubspec.yaml` (`1.3.42+47`), wersje firmware (CYD `1.3.8`, ESP8266 `1.3.10`) oraz numer tagu Git.
 - [ ] Uruchom backend poleceniem `python server/sync_server.py` i potwierdź dostęp do `http://localhost:8081/docs` oraz `http://localhost:8081/`.
 - [ ] Przygotuj konta: `admin`, operator z przypisaną salą i dostęp do widoku gościa (przeglądarka bez tokenu).
 - [ ] Zrób kopię bazy przed testami mutującymi. Nie uruchamiaj `python server/test_contract.py` na bazie produkcyjnej: `DB_PATH` jest na sztywno `server/rooms_backend.db`.
@@ -23,7 +23,7 @@ Wyniki wpisuj w tabelę na końcu pliku albo w osobny arkusz: identyfikator scen
 | INF-02 | Otwórz `/docs` i `/api/v1/openapi.json` | Swagger i schemat zawierają grupy Public, Auth, Rooms, Limits, Admin, Devices, System, Firmware |
 | INF-03 | Otwórz adres główny serwera | Ładuje się SPA z `build/web/`. Jeśli katalogu brak, widoczny jest komunikat informacyjny zamiast strony |
 | INF-04 | Wyślij `DISCOVER_ROOM_SERVER` na `255.255.255.255:8082` z innego urządzenia w LAN | Odpowiedź `ROOM_SERVER_ANNOUNCEMENT` z poprawnym `lanUrl`. Upewnij się, że serwer został uruchomiony jako skrypt, nie tylko zaimportowany |
-| INF-05 | Otwórz `https://sale.pwojtaszek.5g.in` | Aplikacja działa przez tunel `victus`, bez błędów mixed content i certyfikatu |
+| INF-05 | Otwórz `https://sale.pwojtaszek.5g.in` | Aplikacja działa przez tunel w HA, bez błędów mixed content i certyfikatu |
 | INF-06 | Zrestartuj serwer w trakcie otwartej aplikacji | Klient WS łączy się ponownie z opóźnieniem 3 s do 60 s, dane wracają bez odświeżania strony |
 
 ---
@@ -144,7 +144,7 @@ Wyniki wpisuj w tabelę na końcu pliku albo w osobny arkusz: identyfikator scen
 
 | ID | Scenariusz | Oczekiwany wynik |
 |---|---|---|
-| REL-01 | Otwórz dialog diagnostyki z menu ekranu sal | Raport zawiera platformę, wersję `1.3.28+33`, ping `/api/v1/health`, liczbę sal i dane `/api/service-info` |
+| REL-01 | Otwórz dialog diagnostyki z menu ekranu sal | Raport zawiera platformę, wersję `1.3.42+47`, ping `/api/v1/health`, liczbę sal i dane `/api/service-info` |
 | REL-02 | Skopiuj raport diagnostyczny | Schowek zawiera poprawny JSON |
 | REL-03 | Porównaj wersje we wszystkich miejscach z `AGENTS.md` | `pubspec.yaml`, `app_update_service.dart`, `diagnostics_service.dart`, nagłówek `room_main_screen.dart`, fallback w `sync_server.py`, `deploy_apk.py` i `app_version.json` są spójne |
 | REL-04 | Sprawdź tag i Release na GitHubie | Dla wersji istnieje annotowany tag `vX.Y.Z` i Release z plikiem APK |

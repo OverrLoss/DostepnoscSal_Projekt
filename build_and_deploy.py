@@ -15,7 +15,8 @@ Co robi:
   2. flutter build apk --release
   3. Kopiuje APK do wszystkich lokalizacji serwera (server/, build/web/, PROJECT_ROOT/)
   4. Aktualizuje server/app_version.json z nowym versionCode, versionName i rozmiar
-  5. Restartuje sync_server.py (opcjonalnie)
+  5. Tworzy web_vX.Y.Z.zip — asset Release z SPA dla serwera na Proxmox
+  6. Restartuje sync_server.py (opcjonalnie)
 """
 
 import os
@@ -25,6 +26,7 @@ import glob
 import re
 import shutil
 import subprocess
+import zipfile
 from datetime import datetime
 import argparse
 
@@ -166,6 +168,21 @@ def distribute_apk(version_name, version_code):
     return apk_size
 
 
+def package_web(version_name):
+    """Pakuje SPA do assetu Release — serwer na Proxmox aktualizuje z niego build/web."""
+    if not os.path.isdir(WEB_DIR):
+        return
+    dest = os.path.join(PROJECT_ROOT, f"web_v{version_name}.zip")
+    with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zf:
+        for base, _, files in os.walk(WEB_DIR):
+            for name in files:
+                if name.endswith(".apk"):
+                    continue
+                p = os.path.join(base, name)
+                zf.write(p, os.path.relpath(p, WEB_DIR))
+    print(f"[build] SPA asset: {dest}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Build & Deploy Dostępność Sal")
     parser.add_argument("--web-only",    action="store_true", help="Tylko Flutter Web")
@@ -183,6 +200,7 @@ def main():
     if not args.skip_build:
         if build_web:
             run(["flutter", "build", "web", "--release"])
+            package_web(version_name)
 
         if build_apk:
             run(["flutter", "build", "apk", "--release"])

@@ -18,7 +18,7 @@ Backend `server/sync_server.py` udostępnia REST API, WebSocket i pliki do pobra
 | Baza danych | `server/rooms_backend.db` | stała ścieżka w kodzie |
 | Klucz podpisu | losowy przy starcie | zmienna `SERVER_SECRET_KEY` |
 | Katalog Web | `build/web/` | stała ścieżka względem projektu |
-| Domena publiczna | `https://sale.pwojtaszek.5g.in` | tunel `victus` |
+| Domena publiczna | `https://sale.pwojtaszek.5g.in` | tunel w HA (poza repozytorium) |
 
 ### Autoryzacja
 
@@ -42,7 +42,7 @@ Błędy prostych endpointów (APK, firmware) zwracają `{"detail": "..."}`. Każ
 
 **Sala publiczna** (`GET /api/v1/public/rooms[*]`):
 
-`id`, `name`, `location`, `floor`, `status`, `category`, `description`, `capacity`, `customNote`, `posX`, `posY`, `layout_scale`, `layout_angle`, `svg_id`, `is_break`, `lock_status`, `lock_info`, `lock_layout`, `default_alert_limit_seconds`, `active_session`, `updated_at`.
+`id`, `name`, `location`, `floor`, `status`, `category`, `description`, `capacity`, `customNote`, `posX`, `posY`, `layout_scale`, `layout_angle`, `svg_id`, `custom_path`, `is_break`, `lock_status`, `lock_info`, `lock_layout`, `default_alert_limit_seconds`, `active_session`, `updated_at`.
 
 **Sala szczegółowa** (`GET /api/v1/rooms[*]`, admin/operator): te same pola oraz `operator_id`, `device_id` (widoczne tylko dla admina, inaczej `null`) i `created_at`.
 
@@ -82,6 +82,7 @@ Błędy prostych endpointów (APK, firmware) zwracają `{"detail": "..."}`. Każ
 | `RoomLocksRequest` | opcjonalnie `lock_status?: bool`, `lock_info?: bool`, `lock_layout?: bool` |
 | `RoomPositionRequest` | `posX: float`, `posY: float` |
 | `RoomLayoutRequest` | `scale: float = 1.0` (0.4 do 3.0), `angle: float = 0.0` (-360 do 360) |
+| `RoomPathRequest` | `path: str` — własna ścieżka M/L/Z (max 2000 znaków); pusty string przywraca domyślną |
 | `ResetPositionsRequest` | `floor?: str` (`"Wszystkie"` lub brak czyści wszystkie piętra) |
 | `ReorderRoomsRequest` | `roomIds: List[str]` |
 | `CreateUserRequest` | `username: str`, `password: str`, `display_name: str`, `role: str` (`admin` lub `operator`), `room_id?: str` |
@@ -150,7 +151,8 @@ Domyślny limit: 900 s (15 min), maksymalny: 7200 s (2 h). Monitor sprawdza prze
 | `DELETE /api/v1/admin/rooms/{room_id}` | brak | usunięcie sali z kaskadą sesji i alertów, audyt `room_deleted` |
 | `POST /api/v1/admin/rooms/{room_id}/position` | `RoomPositionRequest` | `{"status":"success","room":<reprezentacja sali>}`; WS |
 | `POST /api/v1/admin/rooms/{room_id}/layout` | `RoomLayoutRequest` | skala zaokrąglona i ograniczona do 0.4 do 3.0, kąt znormalizowany do (-180, 180]; WS |
-| `POST /api/v1/admin/rooms/reset-positions` | `ResetPositionsRequest` | czyści `posX`, `posY`, `layout_scale`, `layout_angle` |
+| `POST /api/v1/admin/rooms/{room_id}/path` | `RoomPathRequest` | zapisuje `custom_path` (linie sali edytowane w aplikacji); WS |
+| `POST /api/v1/admin/rooms/reset-positions` | `ResetPositionsRequest` | czyści `posX`, `posY`, `layout_scale`, `layout_angle`, `custom_path` |
 | `POST /api/v1/admin/rooms/reorder` | `ReorderRoomsRequest` | nadpisuje `sortOrder` wg kolejności listy |
 | `GET /api/v1/admin/users` | brak | `id`, `username`, `display_name`, `role`, `room_id`, `is_active`, `created_at`, `updated_at` |
 | `POST /api/v1/admin/users` | `CreateUserRequest` | `{"status":"success","id","username"}`; hash hasła, przypisanie operatora do sali, audyt |
@@ -180,7 +182,7 @@ Wszystkie endpointy w tej grupie wymagają roli `admin`.
 |---|---|
 | `GET /api/v1/health`, `GET /api/health`, `GET /api/server-info` | Trzy aliasy tej samej funkcji: `status: "ok"`, `service: "DostepnoscSal-FastAPI"`, `contract_version: "0.1"`, `time`, `lanIp`, `lanUrl` |
 | `GET /api/service-info` | `status`, `service`, `contract_version`, `uptime_human`, `uptime_seconds`, `server_os`, `python_version`, `sqlite_version`, `database{path, size_formatted, total_rooms, free_rooms, occupied_rooms}`, `traffic_metrics` |
-| `GET /api/app-version`, `GET /api/v1/app-version` | `versionCode`, `versionName`, `apkUrl`, `apkSize`, `releaseNotes`; dane z `server/app_version.json`, fallback `1.3.28` / 33 |
+| `GET /api/app-version`, `GET /api/v1/app-version` | `versionCode`, `versionName`, `apkUrl`, `apkSize`, `releaseNotes`; dane z `server/app_version.json`, fallback `1.3.42` / 47 |
 | `GET /DostepnoscSal.apk`, `GET /dostepnoscsal.apk` | plik APK, typ `application/vnd.android.package-archive` |
 | `GET /DostepnoscSal_v{version}.apk` | zawsze najnowszy APK, niezależnie od `{version}` |
 | `GET /api/v1/firmware/version?chip=esp32` | `chip`, `version`, `has_update`, `firmware_url`, `firmware_size`, `release_notes` |
