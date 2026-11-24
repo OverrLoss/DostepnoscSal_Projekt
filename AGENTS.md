@@ -8,7 +8,8 @@ Język pracy: polski.
 - Zakaz dopisków o agentach/AI i znaczników `Co-authored-by` w commitach.
 - Nie commituj i nie podnoś wersji dopóki człowiek nie zatwierdzi zmiany — dotyczy wszystkich zmian, szczególnie geometrii mapy i sal. Najpierw pokaż efekt (dane, API, wizualnie), poczekaj na akceptację, dopiero potem jeden commit i jedna wersja. Nie łącz wielu prób i poprawek w osobne commity/tagi.
 - Po każdym podniesieniu wersji utwórz annotowany tag `vX.Y.Z` na commicie z nową wersją, wypchnij go (`git push origin --tags`) i opublikuj GitHub Release z plikiem APK jako assetem. Tagi są punktami powrotu: `git checkout vX.Y.Z`. Przed wdrożeniem sprawdź, że tag i release dla wersji istnieją.
-- Wydanie wykonuj przez `release_assets.ps1 -Tag vX.Y.Z -Notes "..."`: wrzuca APK oraz `web_vX.Y.Z.zip` (SPA). Serwer na Proxmox pobiera oba z Release — bez tego interfejs WWW nie zaktualizuje się przy nowej wersji.
+- Wydanie wykonuj przez `release_assets.ps1 -Tag vX.Y.Z` (bez `-Notes`): notatki bierze z sekcji bieżącej wersji w `CHANGELOG.md`, wrzuca APK oraz `web_vX.Y.Z.zip` (SPA). Serwer na Proxmox pobiera oba z Release — bez tego interfejs WWW nie zaktualizuje się przy nowej wersji.
+- Zmiany w ramach jednej wersji zapisuj w `CHANGELOG.md` w sekcji bieżącego numeru; przed commitem i przed wydaniem sprawdź `git log <ostatni tag>..HEAD` oraz ten plik i dopisz brakujące pozycje, także zmiany innych kontrybutorów. Nigdy nie nadpisuj istniejących wpisów ani nie zastępuj notatek Release pojedynczym opisem ostatniej zmiany. Numeru wersji nie zmieniaj bez zatwierdzenia przez człowieka.
 - Sprawdzaj `git fetch --all --prune`, `git status` i `git pull --ff-only` tylko przed commitami, pushami, merge’ami i wdrożeniami — wtedy, gdy nieaktualne repo mogłoby spowodować konflikt. PR i issue sprawdzaj tylko wtedy, gdy mogą wpłynąć na wykonywaną zmianę.
 
 ## Ścieżki i domena
