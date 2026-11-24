@@ -49,7 +49,7 @@ class AppUpdateService {
 
   Future<Map<String, dynamic>> getLocalAppVersion() async {
     if (kIsWeb) {
-      return {'versionCode': 33, 'versionName': '1.3.28'};
+      return {'versionCode': 48, 'versionName': '1.3.43'};
     }
     try {
       final res = await _channel.invokeMethod<Map<dynamic, dynamic>>('getAppVersion');
@@ -100,10 +100,10 @@ class AppUpdateService {
         final apkSize = (data['apkSize'] as num?)?.toInt() ?? 0;
         final releaseNotes = data['releaseNotes']?.toString() ?? 'Nowa wersja jest dostępna.';
 
-        final bool isNewer = remoteCode > localCode;
+        final bool isDifferent = remoteCode != localCode;
         _lastCheckTime = DateTime.now();
 
-        debugPrint('[AppUpdateService] local=$localCode remote=$remoteCode isNewer=$isNewer apkUrl=$apkUrl');
+        debugPrint('[AppUpdateService] local=$localCode remote=$remoteCode isDifferent=$isDifferent apkUrl=$apkUrl');
 
         return AppUpdateInfo(
           versionCode: remoteCode,
@@ -111,7 +111,7 @@ class AppUpdateService {
           apkUrl: apkUrl,
           apkSize: apkSize,
           releaseNotes: releaseNotes,
-          isUpdateAvailable: isNewer,
+          isUpdateAvailable: isDifferent,
           currentVersionName: localName,
           currentVersionCode: localCode,
         );
@@ -193,7 +193,7 @@ class AppUpdateService {
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
-                  'Nowa aktualizacja',
+                  'Wersja na serwerze',
                   style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -204,7 +204,7 @@ class AppUpdateService {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Dostępna jest nowa wersja ${info.versionName} (${info.formattedSize})',
+                'Dostępna jest wersja ${info.versionName} (${info.formattedSize})',
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 6),
@@ -212,6 +212,14 @@ class AppUpdateService {
                 'Obecna wersja: v${info.currentVersionName}',
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
+              if (info.versionCode < info.currentVersionCode)
+                const Padding(
+                  padding: EdgeInsets.only(top: 6),
+                  child: Text(
+                    'Wersja serwera jest starsza. Android może wymagać odinstalowania obecnej aplikacji przed instalacją.',
+                    style: TextStyle(color: Colors.amber, fontSize: 12),
+                  ),
+                ),
               const SizedBox(height: 12),
               const Text(
                 'Co nowego:',
@@ -244,7 +252,7 @@ class AppUpdateService {
                 _startDownloadAndInstall(context, info);
               },
               icon: const Icon(Icons.download_rounded, color: Colors.black, size: 18),
-              label: const Text('Aktualizuj teraz', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              label: const Text('Pobierz i zainstaluj', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.greenAccent,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),

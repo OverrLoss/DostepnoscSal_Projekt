@@ -1,8 +1,8 @@
 {
-  "versionCode": 33,
-  "versionName": "1.3.28",
+  "versionCode": 48,
+  "versionName": "1.3.43",
   "apkSize": 54959050,
-  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=33",
-  "releaseNotes": "Wersja 1.3.28: dociągnięcie krawędzi sal 122 i 123 do linii ścian obrysu piętra",
-  "builtAt": "2026-11-23T17:56:13Z"
+  "apkUrl": "https://sale.pwojtaszek.5g.in/DostepnoscSal.apk?v=48",
+  "releaseNotes": "Wersja 1.3.43: powrót do układu sal sprzed zmian mapy; pobieranie wersji z serwera przy każdej różnicy APK (także starszej)",
+  "builtAt": "2026-11-24T21:19:23Z"
 }
