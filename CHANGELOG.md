@@ -11,3 +11,4 @@ Wpisy w sekcji bieżącej wersji opisują zmiany wprowadzone bez podnoszenia num
 - Dokumentacja: opis infrastruktury uogólniony do prywatnego serwera z tunelem Cloudflare, bez szczegółów hostingu.
 - Mapa wypełnia całą dostępną przestrzeń karty (skala wg większego wymiaru, proporcje przez FittedBox); górny limit skali podniesiony do 6.0.
 - Usunięto puste marginesy płótna mapy (wysokość 520→340, przesunięcie planu 118→8); etykieta piętra przeniesiona w prawy górny róg z tłem.
+- Powrót do dopasowania całego planu do okna (skala wg mniejszego wymiaru) — cała mapa jest widoczna naraz, bez przewijania.

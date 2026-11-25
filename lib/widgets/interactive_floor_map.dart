@@ -503,12 +503,12 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
         final availW = hasFiniteW ? constraints.maxWidth : _canvasWidth;
         final availH = hasFiniteH ? constraints.maxHeight : _canvasHeight;
 
-        // Użyj całej dostępnej przestrzeni: FittedBox zachowa proporcje canvasu.
+        // Cały plan musi być widoczny naraz — dopasuj do mniejszego wymiaru.
         final paddingH = 16.0;
         final paddingV = 0.0;
         final scaleX = (availW - paddingH) / _canvasWidth;
         final scaleY = (availH - paddingV) / _canvasHeight;
-        final calculatedScale = (scaleX > scaleY ? scaleX : scaleY).clamp(_minScale, _maxScale);
+        final calculatedScale = (scaleX < scaleY ? scaleX : scaleY).clamp(_minScale, _maxScale);
         _activeFitScale = calculatedScale;
 
         Widget mapContent = SingleChildScrollView(
