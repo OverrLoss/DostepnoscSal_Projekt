@@ -312,7 +312,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   void _zoomBy(double factor) {
     final matrix = _transformController.value;
     final scale = matrix.getMaxScaleOnAxis();
-    final next = (scale * factor).clamp(0.25, 3.5);
+    final next = (scale * factor).clamp(_minScale, _maxScale);
     final cx = _canvasWidth / 2;
     final cy = _canvasHeight / 2;
     final t = matrix.getTranslation();
@@ -365,7 +365,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
 
   // Canvas bounds
   static const double _canvasWidth = 360.0;
-  static const double _canvasHeight = 520.0;
+  static const double _canvasHeight = 340.0;
 
   Room? _findRoom(String number) {
     try {
@@ -661,45 +661,41 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
 
                             // Floor Title Watermark
                             Positioned(
-                              left: 20,
-                              top: 20,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration: const BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: AppColors.primary,
+                              right: 12,
+                              top: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.65),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: AppColors.primary,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        widget.floor.toUpperCase(),
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.2,
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          widget.floor.toUpperCase(),
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.2,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _isEditMode
-                                        ? '✥ Przeciągnij salę, aby zmienić jej położenie'
-                                        : 'Dotknij: zmiana stanu • Przytrzymaj: szczegóły',
-                                    style: TextStyle(
-                                      color: _isEditMode ? AppColors.primary : AppColors.primary.withValues(alpha: 0.8),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
 

@@ -41,7 +41,7 @@ const Map<String, String> floor1Rooms = {
 
 // Dopasowanie rzutu do płótna 360x520 (mapa trzyma płótno na sztywno).
 const double floor1Scale = 360.0 / floor1ViewW;
-const double floor1OffsetY = (520.0 - floor1ViewH * floor1Scale) / 2 + 20;
+const double floor1OffsetY = 8.0;
 
 Offset floor1ToCanvas(double x, double y) =>
     Offset((x - floor1ViewX) * floor1Scale, (y - floor1ViewY) * floor1Scale + floor1OffsetY);
