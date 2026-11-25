@@ -103,7 +103,7 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
   final Map<String, double> _baseAngleDeg = {};
 
   static const double _minScale = 0.5;
-  static const double _maxScale = 2.5;
+  static const double _maxScale = 6.0;
 
   // Edycja linii sali: wierzchołki w współrzędnych SVG zapisane jako robocze.
   final Map<String, List<List<Offset>>> _draftPaths = {};
@@ -503,12 +503,12 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
         final availW = hasFiniteW ? constraints.maxWidth : _canvasWidth;
         final availH = hasFiniteH ? constraints.maxHeight : _canvasHeight;
 
-        // Auto-scale calculation so the 360x520 canvas automatically scales to fit viewport
+        // Użyj całej dostępnej przestrzeni: FittedBox zachowa proporcje canvasu.
         final paddingH = 16.0;
         final paddingV = 0.0;
         final scaleX = (availW - paddingH) / _canvasWidth;
         final scaleY = (availH - paddingV) / _canvasHeight;
-        final calculatedScale = (scaleX < scaleY ? scaleX : scaleY).clamp(0.25, 2.5);
+        final calculatedScale = (scaleX > scaleY ? scaleX : scaleY).clamp(_minScale, _maxScale);
         _activeFitScale = calculatedScale;
 
         Widget mapContent = SingleChildScrollView(
@@ -780,8 +780,8 @@ class _InteractiveFloorMapState extends State<InteractiveFloorMap> {
         children: [
           InteractiveViewer(
             transformationController: _transformController,
-            minScale: 0.25,
-            maxScale: 3.5,
+            minScale: _minScale,
+            maxScale: _maxScale,
             panEnabled: !_isEditMode,
             scaleEnabled: true,
             boundaryMargin: const EdgeInsets.all(50),

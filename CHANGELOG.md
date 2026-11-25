@@ -9,3 +9,4 @@ Wpisy w sekcji bieżącej wersji opisują zmiany wprowadzone bez podnoszenia num
 - Self-update: pobieranie APK przy każdej różnicy wersji między telefonem a serwerem, także przy wersji starszej.
 - Usunięcie wewnętrznej ściany w sali 7 na parterze (`room-0-12`).
 - Dokumentacja: opis infrastruktury uogólniony do prywatnego serwera z tunelem Cloudflare, bez szczegółów hostingu.
+- Mapa wypełnia całą dostępną przestrzeń karty (skala wg większego wymiaru, proporcje przez FittedBox); górny limit skali podniesiony do 6.0.
