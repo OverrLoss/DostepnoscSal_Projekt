@@ -18,7 +18,7 @@ Dokument opisuje stan na wersję **1.3.28 (build 33)** oraz kierunki dalszego ro
 - [x] **Auto-discovery serwera** w LAN przez UDP 8082 z weryfikacją przez `/api/v1/health`.
 - [x] **Aktualizacje OTA** aplikacji Android (APK z `app_version.json`) oraz firmware CYD `1.3.8` i ESP8266 `1.3.10`.
 - [x] **Węzły IoT** ESP32 CYD z ekranem dotykowym i ESP8266 z dwukolorowymi diodami.
-- [x] **Serwer produkcyjny na Proxmox** z automatyczną aktualizacją po nowym tagu; domena przez tunel w HA.
+- [x] **Serwer produkcyjny na prywatnym serwerze** z automatyczną aktualizacją po nowym tagu; domena przez tunel Cloudflare.
 - [x] **Wersjonowanie** tagami `vX.Y.Z`, wydania GitHub Release z plikiem APK.
 - [x] **Dokumentacja zgodna z kodem**: `README.md`, `DEVELOPER_GUIDE.md`, `API_REFERENCE.md`, `TEST_PLAN.md`.
 

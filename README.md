@@ -31,7 +31,7 @@ System monitorowania i zarządzania dostępnością sal wykładowych, laboratori
 | Baza danych | SQLite | `server/rooms_backend.db` |
 | Web SPA | zbudowana aplikacja Flutter | `build/web/` |
 | IoT | ESP32 CYD, ESP8266 (Arduino C++) | `esp32_cyd/`, `esp8266_d1mini/` |
-| Produkcja | Proxmox LXC 102, autodeploy po nowym tagu | poza repozytorium |
+| Produkcja | prywatny serwer z tunelem Cloudflare, autodeploy po nowym tagu | poza repozytorium |
 | Wdrożenie | Python + Flutter + arduino-cli | `build_and_deploy.py` |
 | Zależności Pythona | FastAPI, uvicorn, pydantic, httpx | `requirements.txt` |
 
@@ -41,7 +41,7 @@ Serwer nasłuchuje na porcie **8081** (HTTP, WebSocket i Swagger) oraz **8082** 
 
 ### Wymagania
 
-- Python 3.10+ w `PATH` (Windows do prac deweloperskich, Linux/Proxmox jako produkcja).
+- Python 3.10+ w `PATH` (Windows do prac deweloperskich, Linux jako produkcja).
 - Zależności backendu z `requirements.txt`: `python -m pip install -r requirements.txt`.
 - Flutter SDK — tylko do przebudowy aplikacji.
 - `arduino-cli` i odpowiednie rdzenie — tylko do kompilacji firmware.
@@ -65,7 +65,7 @@ Dostępne adresy:
 
 ## Konfiguracja i bezpieczeństwo
 
-- Domena `sale.pwojtaszek.5g.in` jest obsługiwana przez tunel w Home Assistant; konfiguracja tunelu nie jest częścią repozytorium.
+- Domena `sale.pwojtaszek.5g.in` jest obsługiwana przez tunel Cloudflare; konfiguracja tunelu nie jest częścią repozytorium.
 - Zmienne środowiskowe backendu: `PORT` (domyślnie `8081`) i `SERVER_SECRET_KEY` (domyślnie losowy klucz przy każdym starcie). Ścieżka bazy jest stała: `server/rooms_backend.db`.
 - Konfiguracja serwera jest względna względem katalogu projektu; skrypty używają `%~dp0`, `$PSScriptRoot` i `__file__`.
 - Pliki `*.apk`, `*.bin`, `*.db` oraz konfiguracja tunelu są wykluczone z Git — nie trafiają do repozytorium.
@@ -114,11 +114,11 @@ Bieżąca wersja: **1.3.28 (build 33)**, firmware CYD **1.3.8**, ESP8266 **1.3.1
 | [`AGENTS.md`](AGENTS.md) | Zasady pracy w repozytorium |
 | [`requirements.txt`](requirements.txt) | Zależności backendu i testów kontraktu |
 
-## Produkcja — Proxmox i automatyczna aktualizacja
+## Produkcja i automatyczna aktualizacja
 
-Kod źródłowy jest wyłącznie na GitHub (`main`). Stały serwer działa na Proxmox w kontenerze LXC 102 i obsługuje `https://sale.pwojtaszek.5g.in` przez tunel skonfigurowany w Home Assistant. Repozytorium nie zawiera tokenów ani konfiguracji tunelu.
+Kod źródłowy jest wyłącznie na GitHub (`main`). Stały serwer działa na prywatnym serwerze z tunelem Cloudflare i obsługuje `https://sale.pwojtaszek.5g.in`. Repozytorium nie zawiera tokenów ani konfiguracji tunelu.
 
-Po opublikowaniu nowego tagu `vX.Y.Z` i Release z APK, kontener sam pobiera nową wersję z GitHub i restartuje backend. Baza danych, firmware'y i APK zostają lokalnie na Proxmox. Aby sprawdzić wdrożoną wersję:
+Po opublikowaniu nowego tagu `vX.Y.Z` i Release z APK, serwer sam pobiera nową wersję z GitHub i restartuje backend. Baza danych, firmware'y i APK zostają lokalnie na serwerze. Aby sprawdzić wdrożoną wersję:
 
 ```bash
 curl https://sale.pwojtaszek.5g.in/api/v1/app-version

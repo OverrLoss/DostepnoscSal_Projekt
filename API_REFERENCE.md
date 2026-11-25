@@ -18,7 +18,7 @@ Backend `server/sync_server.py` udostępnia REST API, WebSocket i pliki do pobra
 | Baza danych | `server/rooms_backend.db` | stała ścieżka w kodzie |
 | Klucz podpisu | losowy przy starcie | zmienna `SERVER_SECRET_KEY` |
 | Katalog Web | `build/web/` | stała ścieżka względem projektu |
-| Domena publiczna | `https://sale.pwojtaszek.5g.in` | tunel w HA (poza repozytorium) |
+| Domena publiczna | `https://sale.pwojtaszek.5g.in` | tunel Cloudflare (poza repozytorium) |
 
 ### Autoryzacja
 

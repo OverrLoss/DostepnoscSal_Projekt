@@ -8,7 +8,7 @@ Język pracy: polski.
 - Zakaz dopisków o agentach/AI i znaczników `Co-authored-by` w commitach.
 - Nie commituj i nie podnoś wersji dopóki człowiek nie zatwierdzi zmiany — dotyczy wszystkich zmian, szczególnie geometrii mapy i sal. Najpierw pokaż efekt (dane, API, wizualnie), poczekaj na akceptację, dopiero potem jeden commit i jedna wersja. Nie łącz wielu prób i poprawek w osobne commity/tagi.
 - Po każdym podniesieniu wersji utwórz annotowany tag `vX.Y.Z` na commicie z nową wersją, wypchnij go (`git push origin --tags`) i opublikuj GitHub Release z plikiem APK jako assetem. Tagi są punktami powrotu: `git checkout vX.Y.Z`. Przed wdrożeniem sprawdź, że tag i release dla wersji istnieją.
-- Wydanie wykonuj przez `release_assets.ps1 -Tag vX.Y.Z` (bez `-Notes`): notatki bierze z sekcji bieżącej wersji w `CHANGELOG.md`, wrzuca APK oraz `web_vX.Y.Z.zip` (SPA). Serwer na Proxmox pobiera oba z Release — bez tego interfejs WWW nie zaktualizuje się przy nowej wersji.
+- Wydanie wykonuj przez `release_assets.ps1 -Tag vX.Y.Z` (bez `-Notes`): notatki bierze z sekcji bieżącej wersji w `CHANGELOG.md`, wrzuca APK oraz `web_vX.Y.Z.zip` (SPA). Serwer produkcyjny pobiera oba z Release — bez tego interfejs WWW nie zaktualizuje się przy nowej wersji.
 - Zmiany w ramach jednej wersji zapisuj w `CHANGELOG.md` w sekcji bieżącego numeru; przed commitem i przed wydaniem sprawdź `git log <ostatni tag>..HEAD` oraz ten plik i dopisz brakujące pozycje, także zmiany innych kontrybutorów. Nigdy nie nadpisuj istniejących wpisów ani nie zastępuj notatek Release pojedynczym opisem ostatniej zmiany. Numeru wersji nie zmieniaj bez zatwierdzenia przez człowieka.
 - Sprawdzaj `git fetch --all --prune`, `git status` i `git pull --ff-only` tylko przed commitami, pushami, merge’ami i wdrożeniami — wtedy, gdy nieaktualne repo mogłoby spowodować konflikt. PR i issue sprawdzaj tylko wtedy, gdy mogą wpłynąć na wykonywaną zmianę.
 
@@ -16,8 +16,8 @@ Język pracy: polski.
 
 - Ścieżki relatywne/dynamiczne: `%~dp0`, `$PSScriptRoot`, `os.path.dirname(__file__)`, `ANDROID_HOME`/`LOCALAPPDATA`.
 - Zakaz sztywnych `C:\...` i plików poza folderem projektu.
-- Domena publiczna: `https://sale.pwojtaszek.5g.in` — ruch obsługuje tunel w Home Assistant (Konfiguracja poza repozytorium).
-- Serwer produkcyjny działa na Proxmox (LXC 102) i jest aktualizowany automatycznie po nowym tagu/wersji.
+- Domena publiczna: `https://sale.pwojtaszek.5g.in` — ruch obsługuje tunel Cloudflare na prywatnym serwerze. Konfiguracja poza repozytorium.
+- Serwer produkcyjny działa na prywatnym serwerze i jest aktualizowany automatycznie po nowym tagu/wersji.
 - Nigdy nie commituj: `.cloudflared/`, tokenu, `*.apk`, `*.bin`, `*.db`, `__pycache__/`.
 
 ## Uruchamianie
@@ -54,8 +54,8 @@ Język pracy: polski.
 ## Architektura wdrożenia (od 2026-11-24)
 
 - GitHub `main` jest jedynym źródłem kodu. Kontrybutorzy edytują repozytorium; produkcji nie zmienia się ręcznie.
-- Serwer produkcyjny działa na Proxmox w LXC 102, jest cały czas włączony i nasłuchuje na `8081/TCP` oraz `8082/UDP` w bridge `vmbr0`.
-- Domena `https://sale.pwojtaszek.5g.in` jest obsługiwana przez tunel w Home Assistant — trasa wskazuje na adres IP LXC, port 8081. Konfiguracja tunelu i tokeny żyją poza repozytorium; do Git nie trafiają żadne dane Cloudflare.
-- Auto-aktualizacja: skrypt w LXC co kilka minut sprawdza publiczny API GitHub pod kątem nowego Release. Po pojawieniu się nowego tagu pobiera archiwum kodu i APK, wdraża do `/opt/dostepnosc-sal`, restartuje usługę i sprawdza `/api/v1/health`; przy błędzie wraca do poprzedniej wersji. Nie wymaga sekretów w repo ani self-hosted runnera.
-- Baza `rooms_backend.db`, pliki `*.bin` i `*.apk` pozostają lokalne na Proxmox i są wykluczone z Git.
-- Podnoszenie wersji i wydawanie tagu pozostaje jedynym wyzwalaczem deployu — nie wdrażamy przy każdym commicie.
+- Serwer produkcyjny działa na prywatnym serwerze, jest cały czas włączony i nasłuchuje na `8081/TCP` oraz `8082/UDP`.
+- Domena `https://sale.pwojtaszek.5g.in` jest obsługiwana przez tunel Cloudflare na prywatnym serwerze (port 8081). Konfiguracja tunelu i tokeny żyją poza repozytorium; do Git nie trafiają żadne dane Cloudflare.
+- Auto-aktualizacja: skrypt na serwerze co kilka minut sprawdza publiczny API GitHub pod kątem nowego Release. Po jego pojawieniu się pobiera archiwum kodu i APK, wdraża do `/opt/dostepnosc-sal`, restartuje usługę i sprawdza `/api/v1/health`; przy błędzie wraca do poprzedniego stanu. Nie wymaga sekretów w repo ani self-hosted runnera.
+- Baza `rooms_backend.db`, pliki `*.bin` i `*.apk` pozostają lokalne na serwerze produkcyjnym i są wykluczone z Git.
+- Publikacja nowego Release jest wyzwalaczem deployu — nie wdrażamy przy każdym commicie.

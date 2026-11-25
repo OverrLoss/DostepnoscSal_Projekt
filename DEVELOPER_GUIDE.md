@@ -128,7 +128,7 @@ Następnie uruchom `python build_and_deploy.py`, który wygeneruje `server/app_v
 
 ## 5. Domena publiczna
 
-Repozytorium nie zawiera żadnej konfiguracji tunelu ani tokenów. Domenę `sale.pwojtaszek.5g.in` obsługuje tunel skonfigurowany w Home Assistant; jego trasa wskazuje na serwer Proxmox (port 8081). W przypadku pracy lokalnej wystarczy `python server/sync_server.py` i `http://localhost:8081`.
+Repozytorium nie zawiera żadnej konfiguracji tunelu ani tokenów. Domenę `sale.pwojtaszek.5g.in` obsługuje tunel Cloudflare na prywatnym serwerze (port 8081). W przypadku pracy lokalnej wystarczy `python server/sync_server.py` i `http://localhost:8081`.
 
 ---
 

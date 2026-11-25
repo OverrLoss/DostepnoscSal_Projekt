@@ -23,7 +23,7 @@ Wyniki wpisuj w tabelę na końcu pliku albo w osobny arkusz: identyfikator scen
 | INF-02 | Otwórz `/docs` i `/api/v1/openapi.json` | Swagger i schemat zawierają grupy Public, Auth, Rooms, Limits, Admin, Devices, System, Firmware |
 | INF-03 | Otwórz adres główny serwera | Ładuje się SPA z `build/web/`. Jeśli katalogu brak, widoczny jest komunikat informacyjny zamiast strony |
 | INF-04 | Wyślij `DISCOVER_ROOM_SERVER` na `255.255.255.255:8082` z innego urządzenia w LAN | Odpowiedź `ROOM_SERVER_ANNOUNCEMENT` z poprawnym `lanUrl`. Upewnij się, że serwer został uruchomiony jako skrypt, nie tylko zaimportowany |
-| INF-05 | Otwórz `https://sale.pwojtaszek.5g.in` | Aplikacja działa przez tunel w HA, bez błędów mixed content i certyfikatu |
+| INF-05 | Otwórz `https://sale.pwojtaszek.5g.in` | Aplikacja działa przez tunel Cloudflare, bez błędów mixed content i certyfikatu |
 | INF-06 | Zrestartuj serwer w trakcie otwartej aplikacji | Klient WS łączy się ponownie z opóźnieniem 3 s do 60 s, dane wracają bez odświeżania strony |
 
 ---
