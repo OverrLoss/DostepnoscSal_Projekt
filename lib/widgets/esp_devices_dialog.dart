@@ -639,6 +639,7 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                             final lastSeen = dev['last_seen_at'] as String?;
                             final type = _getDeviceType(dev);
                             final isEsp32 = type == 'esp32';
+                            final pairCode = dev['pair_code_hint'] as String?;
 
                             // Find room info if assigned
                             Room? assignedRoom;
@@ -739,6 +740,25 @@ class _EspDevicesDialogState extends State<EspDevicesDialog> {
                                                 child: const Text(
                                                   'NIEAKTYWNY',
                                                   style: TextStyle(color: AppColors.danger, fontSize: 9, fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                            ],
+                                            if (pairCode != null && pairCode.isNotEmpty) ...[
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.primary.withValues(alpha: 0.2),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  'KOD: $pairCode',
+                                                  style: const TextStyle(
+                                                    color: AppColors.primary,
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'monospace',
+                                                  ),
                                                 ),
                                               ),
                                             ],

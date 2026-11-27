@@ -34,7 +34,7 @@ PORT = int(os.environ.get("PORT", 8081))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
 WEB_DIR = os.path.join(PROJECT_ROOT, "build", "web")
-DB_PATH = os.path.join(BASE_DIR, "rooms_backend.db")
+DB_PATH = os.environ.get("DB_PATH") or os.path.join(BASE_DIR, "rooms_backend.db")
 SECRET_KEY = os.environ.get("SERVER_SECRET_KEY") or secrets.token_hex(32)
 SERVER_START_TIME = datetime.now(timezone.utc)
 APP_VERSION_FILE = os.path.join(BASE_DIR, "app_version.json")
@@ -87,6 +87,31 @@ def verify_password(password: str, stored_hash: str) -> bool:
 
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+DEVICE_TYPES = ("controller", "kiosk", "display")
+PAIR_CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+PAIR_CODE_LENGTH = 6
+
+def normalize_pair_code(code: str) -> str:
+    return re.sub(r"[^A-Z0-9]", "", (code or "").upper())
+
+def is_valid_pair_code(code: str) -> bool:
+    return (
+        len(code) == PAIR_CODE_LENGTH
+        and all(char in PAIR_CODE_ALPHABET for char in code)
+    )
+
+def new_pair_code(cursor: sqlite3.Cursor) -> str:
+    """Generuje nieużywany, krótki kod identyfikacyjny urządzenia."""
+    for _ in range(50):
+        code = "".join(secrets.choice(PAIR_CODE_ALPHABET) for _ in range(PAIR_CODE_LENGTH))
+        exists = cursor.execute(
+            "SELECT 1 FROM devices WHERE pair_code_hash = ?",
+            (hash_token(code),)
+        ).fetchone()
+        if not exists:
+            return code
+    raise RuntimeError("Nie udało się wygenerować unikalnego kodu urządzenia.")
 
 def get_primary_lan_ip() -> str:
     try:
@@ -323,6 +348,30 @@ def init_db():
         cursor.execute("ALTER TABLE devices ADD COLUMN firmware_version TEXT DEFAULT '1.0.0'")
     if "chip_type" not in dev_cols:
         cursor.execute("ALTER TABLE devices ADD COLUMN chip_type TEXT DEFAULT 'esp32'")
+    dev_cols = {row["name"] for row in cursor.execute("PRAGMA table_info(devices)").fetchall()}
+    if "device_type" not in dev_cols:
+        cursor.execute("ALTER TABLE devices ADD COLUMN device_type TEXT NOT NULL DEFAULT 'controller'")
+    if "pair_code_hash" not in dev_cols:
+        cursor.execute("ALTER TABLE devices ADD COLUMN pair_code_hash TEXT")
+    if "pair_code_hint" not in dev_cols:
+        cursor.execute("ALTER TABLE devices ADD COLUMN pair_code_hint TEXT")
+    if "client_id" not in dev_cols:
+        cursor.execute("ALTER TABLE devices ADD COLUMN client_id TEXT")
+    cursor.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_devices_pair_code_hash "
+        "ON devices(pair_code_hash) WHERE pair_code_hash IS NOT NULL"
+    )
+    cursor.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_devices_client_id "
+        "ON devices(client_id) WHERE client_id IS NOT NULL"
+    )
+    for row in cursor.execute("SELECT id, pair_code_hash FROM devices").fetchall():
+        if not row["pair_code_hash"]:
+            code = new_pair_code(cursor)
+            cursor.execute(
+                "UPDATE devices SET pair_code_hash = ?, pair_code_hint = ? WHERE id = ?",
+                (hash_token(code), code, row["id"])
+            )
 
     # 5. Occupancy Sessions
     cursor.execute("""
@@ -635,10 +684,12 @@ def init_db():
         for token, name, r_id in default_devices:
             dev_id = str(uuid.uuid4())
             token_h = hash_token(token)
+            pair_code = new_pair_code(cursor)
             cursor.execute("""
-                INSERT INTO devices (id, name, token_hash, room_id, is_active, last_seen_at, created_at, updated_at)
-                VALUES (?, ?, ?, ?, 1, ?, ?, ?)
-            """, (dev_id, name, token_h, r_id, now, now, now))
+                INSERT INTO devices (id, name, token_hash, room_id, is_active, last_seen_at, created_at, updated_at,
+                                     device_type, pair_code_hash, pair_code_hint)
+                VALUES (?, ?, ?, ?, 1, ?, ?, ?, 'controller', ?, ?)
+            """, (dev_id, name, token_h, r_id, now, now, now, hash_token(pair_code), pair_code))
             cursor.execute("UPDATE rooms SET device_id = ? WHERE id = ?", (dev_id, r_id))
         conn.commit()
         print("[DB] Seeded default hardware controller tokens.")
@@ -970,8 +1021,52 @@ async def startup_event():
     asyncio.create_task(clock_tick_loop())
 
 # ==============================================================================
-# 6.1 Publiczny podgląd sal
+# 6.1 Publiczny podgląd sal i rejestracja wyświetlaczy
 # ==============================================================================
+class DeviceClaimRequest(BaseModel):
+    client_id: str = Field(..., min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    name: Optional[str] = Field(None, max_length=80)
+    device_type: Optional[str] = "kiosk"
+
+@app.post("/api/v1/public/devices/claim", tags=["Public"])
+def claim_device(req: DeviceClaimRequest, db: sqlite3.Connection = Depends(get_db)):
+    """Rejestracja wyświetlacza/TV bez konta — kod identyfikacyjny nadaje serwer."""
+    device_type = (req.device_type or "kiosk").lower()
+    if device_type not in DEVICE_TYPES:
+        raise DomainException(400, "INVALID_DEVICE_TYPE", "Nieprawidłowy typ urządzenia.")
+    dev = db.execute("SELECT * FROM devices WHERE client_id = ?", (req.client_id,)).fetchone()
+    if dev:
+        return {
+            "device_id": dev["id"],
+            "name": dev["name"],
+            "device_type": dev["device_type"],
+            "pair_code": dev["pair_code_hint"],
+        }
+    cursor = db.cursor()
+    pair_code = new_pair_code(cursor)
+    device_id = str(uuid.uuid4())
+    name = (req.name or "").strip()[:80] or "TV / Kiosk"
+    now = utc_now()
+    cursor.execute("""
+        INSERT INTO devices (id, name, token_hash, room_id, is_active, last_seen_at, created_at, updated_at,
+                             device_type, pair_code_hash, pair_code_hint, client_id)
+        VALUES (?, ?, ?, NULL, 1, NULL, ?, ?, ?, ?, ?, ?)
+    """, (
+        device_id, name, hash_token(secrets.token_hex(20)), now, now,
+        device_type, hash_token(pair_code), pair_code, req.client_id,
+    ))
+    db.commit()
+    log_audit(db, "device", req.client_id, "device_claimed", "device", device_id, {"device_type": device_type})
+    return {"device_id": device_id, "name": name, "device_type": device_type, "pair_code": pair_code}
+
+@app.get("/api/v1/public/devices/{client_id}/code", tags=["Public"])
+def get_device_code(client_id: str, db: sqlite3.Connection = Depends(get_db)):
+    """Aktualny kod wyświetlacza — używany do odświeżenia po rotacji z panelu admina."""
+    dev = db.execute("SELECT pair_code_hint FROM devices WHERE client_id = ?", (client_id,)).fetchone()
+    if not dev:
+        raise DomainException(404, "RESOURCE_NOT_FOUND", "Urządzenie nie istnieje.")
+    return {"pair_code": dev["pair_code_hint"]}
+
 @app.get("/api/v1/public/rooms", tags=["Public"])
 def get_public_rooms(floor: Optional[str] = None, db: sqlite3.Connection = Depends(get_db)):
     cursor = db.cursor()
@@ -1919,46 +2014,178 @@ def reset_user_password(user_id: str, req: PasswordResetRequest, admin: sqlite3.
 # ==============================================================================
 # 6.6 Urządzenia ESP8266
 # ==============================================================================
+def device_payload(db: sqlite3.Connection, dev: sqlite3.Row) -> Dict[str, Any]:
+    """Reprezentacja urządzenia używana przez panel administratora."""
+    room = None
+    operator = None
+    if dev["room_id"]:
+        room_row = db.execute(
+            "SELECT id, name, floor, status, is_break, operator_id FROM rooms WHERE id = ?",
+            (dev["room_id"],)
+        ).fetchone()
+        if room_row:
+            room = {
+                "id": room_row["id"],
+                "name": room_row["name"],
+                "floor": room_row["floor"],
+                "status": room_row["status"],
+                "is_break": bool(room_row["is_break"]),
+            }
+            if room_row["operator_id"]:
+                user = db.execute(
+                    "SELECT id, username, display_name FROM users WHERE id = ?",
+                    (room_row["operator_id"],)
+                ).fetchone()
+                if user:
+                    operator = dict(user)
+    device_type = dev["device_type"]
+    return {
+        "id": dev["id"],
+        "name": dev["name"],
+        "device_type": device_type,
+        "room_id": dev["room_id"],
+        "room": room,
+        "operator": operator,
+        "is_active": bool(dev["is_active"]),
+        "last_seen_at": dev["last_seen_at"],
+        "created_at": dev["created_at"],
+        "updated_at": dev["updated_at"],
+        "firmware_version": dev["firmware_version"],
+        "chip_type": dev["chip_type"],
+        "pair_code_hint": dev["pair_code_hint"],
+        "capabilities": {
+            "can_set_status": device_type == "controller",
+            "can_show_only": device_type in ("kiosk", "display"),
+        },
+    }
+
 class RegisterDeviceRequest(BaseModel):
     name: str
     room_id: Optional[str] = None
+    device_type: Optional[str] = None
 
 @app.post("/api/v1/admin/devices", tags=["Devices"])
 def register_device(req: RegisterDeviceRequest, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
+    device_type = (req.device_type or "controller").lower()
+    if device_type not in DEVICE_TYPES:
+        raise DomainException(400, "INVALID_DEVICE_TYPE", "Nieprawidłowy typ urządzenia.")
+
     raw_token = secrets.token_hex(20)
     token_h = hash_token(raw_token)
     device_id = str(uuid.uuid4())
     now = utc_now()
 
     cursor = db.cursor()
+    pair_code = new_pair_code(cursor)
     cursor.execute("""
-        INSERT INTO devices (id, name, token_hash, room_id, is_active, last_seen_at, created_at, updated_at)
-        VALUES (?, ?, ?, ?, 1, NULL, ?, ?)
-    """, (device_id, req.name, token_h, req.room_id, now, now))
+        INSERT INTO devices (id, name, token_hash, room_id, is_active, last_seen_at, created_at, updated_at,
+                             device_type, pair_code_hash, pair_code_hint)
+        VALUES (?, ?, ?, ?, 1, NULL, ?, ?, ?, ?, ?)
+    """, (device_id, req.name, token_h, req.room_id, now, now, device_type, hash_token(pair_code), pair_code))
 
     if req.room_id:
         cursor.execute("UPDATE rooms SET device_id = ? WHERE id = ?", (device_id, req.room_id))
 
     db.commit()
-    log_audit(db, "user", admin["id"], "device_registered", "device", device_id, {"name": req.name, "room_id": req.room_id})
+    log_audit(db, "user", admin["id"], "device_registered", "device", device_id,
+              {"name": req.name, "room_id": req.room_id, "device_type": device_type})
 
     return {
         "status": "success",
         "device_id": device_id,
         "name": req.name,
+        "device_type": device_type,
+        "pair_code": pair_code,
         "token": raw_token # Only returned once at registration
     }
 
 @app.get("/api/v1/admin/devices", tags=["Devices"])
 def list_devices(admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
     cursor = db.cursor()
-    cursor.execute("SELECT id, name, room_id, is_active, last_seen_at, created_at, updated_at FROM devices")
+    cursor.execute("""
+        SELECT id, name, device_type, room_id, is_active, last_seen_at, created_at, updated_at,
+               firmware_version, chip_type, pair_code_hint
+        FROM devices
+    """)
     return [dict(r) for r in cursor.fetchall()]
+
+class DeviceResolveRequest(BaseModel):
+    code: str = Field(..., min_length=4, max_length=32)
+
+@app.post("/api/v1/admin/devices/resolve", tags=["Devices"])
+def resolve_device(req: DeviceResolveRequest, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
+    code = normalize_pair_code(req.code)
+    if not is_valid_pair_code(code):
+        raise DomainException(400, "INVALID_DEVICE_CODE", "Nieprawidłowy kod urządzenia.")
+    dev = db.execute("SELECT * FROM devices WHERE pair_code_hash = ?", (hash_token(code),)).fetchone()
+    if not dev:
+        raise DomainException(404, "RESOURCE_NOT_FOUND", "Nie znaleziono urządzenia o podanym kodzie.")
+    log_audit(db, "user", admin["id"], "device_resolved", "device", dev["id"], {"channel": "code"})
+    return device_payload(db, dev)
+
+@app.get("/api/v1/admin/devices/{device_id}", tags=["Devices"])
+def get_device(device_id: str, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
+    dev = db.execute("SELECT * FROM devices WHERE id = ?", (device_id,)).fetchone()
+    if not dev:
+        raise DomainException(404, "RESOURCE_NOT_FOUND", "Urządzenie nie istnieje.")
+    return device_payload(db, dev)
+
+@app.get("/api/v1/admin/devices/{device_id}/audit", tags=["Devices"])
+def get_device_audit(device_id: str, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
+    dev = db.execute("SELECT 1 FROM devices WHERE id = ?", (device_id,)).fetchone()
+    if not dev:
+        raise DomainException(404, "RESOURCE_NOT_FOUND", "Urządzenie nie istnieje.")
+    rows = db.execute("""
+        SELECT id, created_at, actor_type, actor_id, action, resource_type, resource_id, details
+        FROM audit_logs
+        WHERE resource_type = 'device' AND resource_id = ?
+        ORDER BY created_at DESC
+        LIMIT 100
+    """, (device_id,)).fetchall()
+    result = []
+    for row in rows:
+        item = dict(row)
+        try:
+            item["details"] = json.loads(item["details"] or "{}")
+        except (ValueError, TypeError):
+            item["details"] = {}
+        result.append(item)
+    return result
+
+@app.post("/api/v1/admin/devices/{device_id}/rotate-token", tags=["Devices"])
+def rotate_device_token(device_id: str, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
+    dev = db.execute("SELECT 1 FROM devices WHERE id = ?", (device_id,)).fetchone()
+    if not dev:
+        raise DomainException(404, "RESOURCE_NOT_FOUND", "Urządzenie nie istnieje.")
+    raw_token = secrets.token_hex(20)
+    db.execute(
+        "UPDATE devices SET token_hash = ?, updated_at = ? WHERE id = ?",
+        (hash_token(raw_token), utc_now(), device_id)
+    )
+    db.commit()
+    log_audit(db, "user", admin["id"], "device_token_rotated", "device", device_id, {})
+    return {"status": "success", "device_id": device_id, "token": raw_token}
+
+@app.post("/api/v1/admin/devices/{device_id}/rotate-pair-code", tags=["Devices"])
+def rotate_device_pair_code(device_id: str, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    dev = cursor.execute("SELECT 1 FROM devices WHERE id = ?", (device_id,)).fetchone()
+    if not dev:
+        raise DomainException(404, "RESOURCE_NOT_FOUND", "Urządzenie nie istnieje.")
+    pair_code = new_pair_code(cursor)
+    cursor.execute(
+        "UPDATE devices SET pair_code_hash = ?, pair_code_hint = ?, updated_at = ? WHERE id = ?",
+        (hash_token(pair_code), pair_code, utc_now(), device_id)
+    )
+    db.commit()
+    log_audit(db, "user", admin["id"], "device_pair_code_rotated", "device", device_id, {})
+    return {"status": "success", "device_id": device_id, "pair_code": pair_code}
 
 class UpdateDeviceRequest(BaseModel):
     name: Optional[str] = None
     room_id: Optional[str] = None
     is_active: Optional[bool] = None
+    device_type: Optional[str] = None
 
 @app.patch("/api/v1/admin/devices/{device_id}", tags=["Devices"])
 def update_device(device_id: str, req: UpdateDeviceRequest, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):
@@ -1982,6 +2209,12 @@ def update_device(device_id: str, req: UpdateDeviceRequest, admin: sqlite3.Row =
     if req.is_active is not None:
         fields.append("is_active = ?")
         params.append(1 if req.is_active else 0)
+    if req.device_type is not None:
+        device_type = req.device_type.lower()
+        if device_type not in DEVICE_TYPES:
+            raise DomainException(400, "INVALID_DEVICE_TYPE", "Nieprawidłowy typ urządzenia.")
+        fields.append("device_type = ?")
+        params.append(device_type)
     
     if fields:
         fields.append("updated_at = ?")
@@ -1990,9 +2223,9 @@ def update_device(device_id: str, req: UpdateDeviceRequest, admin: sqlite3.Row =
         cursor.execute(f"UPDATE devices SET {', '.join(fields)} WHERE id = ?", params)
         db.commit()
     
-    log_audit(db, "user", admin["id"], "device_updated", "device", device_id, req.dict(exclude_unset=True))
-    cursor.execute("SELECT id, name, room_id, is_active, last_seen_at, created_at, updated_at FROM devices WHERE id = ?", (device_id,))
-    return dict(cursor.fetchone())
+    log_audit(db, "user", admin["id"], "device_updated", "device", device_id, req.model_dump(exclude_unset=True))
+    updated = db.execute("SELECT * FROM devices WHERE id = ?", (device_id,)).fetchone()
+    return device_payload(db, updated)
 
 @app.delete("/api/v1/admin/devices/{device_id}", tags=["Devices"])
 def delete_device(device_id: str, admin: sqlite3.Row = Depends(require_admin), db: sqlite3.Connection = Depends(get_db)):

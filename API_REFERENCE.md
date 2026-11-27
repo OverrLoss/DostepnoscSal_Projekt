@@ -88,9 +88,12 @@ Błędy prostych endpointów (APK, firmware) zwracają `{"detail": "..."}`. Każ
 | `CreateUserRequest` | `username: str`, `password: str`, `display_name: str`, `role: str` (`admin` lub `operator`), `room_id?: str` |
 | `UpdateUserRequest` | opcjonalnie `display_name`, `role`, `room_id`, `is_active`, `password` |
 | `PasswordResetRequest` | `new_password?: str` (gdy brak, generowane 8 znaków) |
-| `RegisterDeviceRequest` | `name: str`, `room_id?: str` |
-| `UpdateDeviceRequest` | opcjonalnie `name`, `room_id`, `is_active: bool` |
+| `RegisterDeviceRequest` | `name: str`, `room_id?: str`, `device_type?: str` (`controller` / `kiosk` / `display`, domyślnie `controller`) |
+| `UpdateDeviceRequest` | opcjonalnie `name`, `room_id`, `is_active: bool`, `device_type: str` |
+| `DeviceResolveRequest` | `code: str` (4–32 znaków; po normalizacji 6 znaków z zestawu `2-9A-HJ-NP-Z`) |
 | `DeviceAlertLimitRequest` | `limit_seconds?: int`, `alert_limit_seconds?: int` |
+
+`device_type` opisuje rolę urządzenia: `controller` (sterownik w sali, ma `capabilities.can_set_status = true`), `kiosk` i `display` (tylko wyświetlanie, `capabilities.can_show_only = true`). Krótki kod identyfikacyjny (`pair_code_hint`) jest jawnym identyfikatorem — nie jest tokenem uwierzytelniającym; zarządzanie zawsze wymaga roli `admin`. W bazie przechowywany jest wyłącznie `pair_code_hash`.
 
 ---
 
@@ -102,6 +105,10 @@ Błędy prostych endpointów (APK, firmware) zwracają `{"detail": "..."}`. Każ
 |---|---|---|
 | `GET /api/v1/public/rooms` | `floor?: str` | tablica sal publicznych. Dla `floor=Parter` odpowiedź zawiera też garaż, `floor=wszystkie` działa jak brak filtra |
 | `GET /api/v1/public/rooms/{room_id}` | `room_id` w ścieżce | jedna sala publiczna, `404 RESOURCE_NOT_FOUND` |
+| `POST /api/v1/public/devices/claim` | `DeviceClaimRequest{client_id, name?, device_type?}` | automatyczna rejestracja wyświetlacza/TV bez konta: `device_id`, `name`, `device_type`, `pair_code`. Idempotentna względem `client_id` — przy ponownym wywołaniu zwraca ten sam kod. Serwer nadaje kod; audyt `device_claimed` |
+| `GET /api/v1/public/devices/{client_id}/code` | `client_id` w ścieżce | aktualny `pair_code` — używany przez wyświetlacz do odświeżenia po rotacji w terminalu administratora, `404 RESOURCE_NOT_FOUND` |
+
+`client_id` to lokalny identyfikator instalacji aplikacji (8–64 znaków `[A-Za-z0-9_-]`), generowany przy pierwszym uruchomieniu. Endpoint publiczny nie daje uprawnień zarządzania — do edycji parametrów urządzenia wymagany jest token administratora i wpisanie kodu w `POST /api/v1/admin/devices/resolve`.
 
 ### 4.2. Uwierzytelnianie
 
@@ -165,9 +172,14 @@ Wszystkie endpointy w tej grupie wymagają roli `admin`.
 
 | Metoda i ścieżka | Auth | Body / nagłówki | Odpowiedź i efekty |
 |---|---|---|---|
-| `POST /api/v1/admin/devices` | admin | `RegisterDeviceRequest` | `{"status":"success","device_id","name","token"}`, token tylko raz, audyt |
-| `GET /api/v1/admin/devices` | admin | brak | `id`, `name`, `room_id`, `is_active`, `last_seen_at`, `created_at`, `updated_at` |
-| `PATCH /api/v1/admin/devices/{device_id}` | admin | `UpdateDeviceRequest` | pełny wiersz urządzenia; audyt |
+| `POST /api/v1/admin/devices` | admin | `RegisterDeviceRequest` | `{"status":"success","device_id","name","device_type","pair_code","token"}` — `pair_code` i `token` tylko raz, audyt |
+| `GET /api/v1/admin/devices` | admin | brak | `id`, `name`, `device_type`, `room_id`, `is_active`, `last_seen_at`, `created_at`, `updated_at`, `firmware_version`, `chip_type`, `pair_code_hint` |
+| `POST /api/v1/admin/devices/resolve` | admin | `DeviceResolveRequest` | identyfikacja po krótkim kodzie: `id`, `name`, `device_type`, `room`, `operator`, `is_active`, `pair_code_hint`, `capabilities`; `400 INVALID_DEVICE_CODE`, `404 RESOURCE_NOT_FOUND`, audyt `device_resolved` |
+| `GET /api/v1/admin/devices/{device_id}` | admin | brak | pełna reprezentacja urządzenia (jak `resolve`), `404 RESOURCE_NOT_FOUND` |
+| `GET /api/v1/admin/devices/{device_id}/audit` | admin | brak | ostatnie 100 wpisów `audit_logs` dla urządzenia (z deserializowanym `details`) |
+| `POST /api/v1/admin/devices/{device_id}/rotate-token` | admin | brak | nowy `token` jednorazowo, audyt `device_token_rotated` |
+| `POST /api/v1/admin/devices/{device_id}/rotate-pair-code` | admin | brak | nowy `pair_code` jednorazowo, audyt `device_pair_code_rotated` |
+| `PATCH /api/v1/admin/devices/{device_id}` | admin | `UpdateDeviceRequest` | pełna reprezentacja urządzenia; audyt |
 | `DELETE /api/v1/admin/devices/{device_id}` | admin | brak | usunięcie i wyczyszczenie `rooms.device_id`, audyt |
 | `GET /api/v1/device/state` | device | `X-Firmware-Version?`, `X-Chip-Type?` | `device_id`, `room_id`, `room_name`, `status`, `server_time`, `active_session`, `firmware{chip, version, has_update, url}`; aktualizacja `last_seen_at` |
 | `POST /api/v1/device/status` | device, blokada `lock_status` | `StatusChangeRequest` | `room_id`, `status`, `is_break`, `changed`, `active_session`; audyt z aktorem `device`, WS |

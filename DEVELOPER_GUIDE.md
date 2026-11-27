@@ -161,6 +161,7 @@ Wersje firmware: CYD **1.3.8**, ESP8266 **1.3.10**. Po zmianie firmware zbuduj b
 4. **Ścieżki.** Używaj `%~dp0`, `$PSScriptRoot`, `os.path.dirname(__file__)` oraz `ANDROID_HOME`/`LOCALAPPDATA`. Zakaz sztywnych `C:\...` i plików poza folderem projektu.
 5. **Baza testowa.** `DB_PATH` w `server/sync_server.py` jest obecnie stałą ścieżką `server/rooms_backend.db`. Nie uruchamiaj testów mutujących API na produkcyjnej bazie bez wcześniejszego odizolowania bazy.
 6. **Brak modułów pobocznych.** Widok sal jest jedynym ekranem aplikacji; nieużywane moduły pogodowe, kontaktowe i gra w węża zostały usunięte razem z niepotrzebnymi zależnościami i uprawnieniami.
+7. **Kod identyfikacyjny urządzenia.** Każdy wpis w `devices` ma 6-znakowy kod (`pair_code_hint`, hash w `pair_code_hash`) i typ (`controller`/`kiosk`/`display`). Kod jest wyświetlany w trybie TV i w panelu sterowników; administrator ustawia kod tego urządzenia przyciskiem w nagłówku i wpisuje kody w dashboardzie (`POST /api/v1/admin/devices/resolve`). Kod nie jest tokenem uwierzytelniającym — zarządzanie zawsze wymaga roli `admin`. Konfigurowalna zmienna `DB_PATH` pozwala uruchamiać testy API na tymczasowej bazie.
 
 ---
 

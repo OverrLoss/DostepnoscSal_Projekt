@@ -12,6 +12,7 @@ import '../widgets/diagnostics_dialog.dart';
 import '../widgets/esp_devices_dialog.dart';
 import '../services/app_update_service.dart';
 import 'add_edit_room_screen.dart';
+import 'admin_device_dashboard_screen.dart';
 import 'tv_dashboard_screen.dart';
 import '../theme/app_theme.dart';
 import '../services/occupant_nick.dart';
@@ -47,6 +48,45 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
   void _openTvDashboard() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const TvDashboardScreen()),
+    );
+  }
+
+  void _openAdminDeviceDashboard() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AdminDeviceDashboardScreen()),
+    );
+  }
+
+  Future<void> _showDeviceCodeDialog() async {
+    final sync = RoomSyncService.instance;
+    await sync.refreshThisDeviceCode();
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Kod identyfikacyjny urządzenia'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              sync.deviceCode.isEmpty
+                  ? 'Kod jest przypisywany automatycznie przy pierwszym połączeniu z serwerem.'
+                  : 'Kod tego urządzenia: ${sync.deviceCode}',
+              style: const TextStyle(fontSize: 16, fontFamily: 'monospace'),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Wpisz ten kod w terminalu administratora, aby zarządzać urządzeniem. '
+              'Kod można zmienić tylko z poziomu terminala.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Zamknij')),
+        ],
+      ),
     );
   }
 
@@ -1410,6 +1450,17 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             icon: const Icon(Icons.tv_rounded, color: AppColors.cyan),
             onPressed: _openTvDashboard,
           ),
+          IconButton(
+            tooltip: 'Kod identyfikacyjny tego urządzenia',
+            icon: const Icon(Icons.badge_outlined, color: AppColors.cyan),
+            onPressed: _showDeviceCodeDialog,
+          ),
+          if (RoomSyncService.instance.isAdmin)
+            IconButton(
+              tooltip: 'Terminal administratora — zarządzanie urządzeniem po kodzie',
+              icon: const Icon(Icons.admin_panel_settings, color: AppColors.primary),
+              onPressed: _openAdminDeviceDashboard,
+            ),
           ValueListenableBuilder<SyncConnectionState>(
             valueListenable: RoomSyncService.instance.connectionNotifier,
             builder: (context, state, _) {
@@ -1487,6 +1538,8 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
             onSelected: (val) {
               if (val == 'tv_dashboard') {
                 _openTvDashboard();
+              } else if (val == 'device_dashboard') {
+                _openAdminDeviceDashboard();
               } else if (val == 'esp_devices') {
                 EspDevicesDialog.show(context);
               } else if (val == 'check_updates') {
@@ -1557,6 +1610,16 @@ class _RoomMainScreenState extends State<RoomMainScreen> {
               ),
               if (RoomSyncService.instance.isAdmin) ...[
                 const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'device_dashboard',
+                  child: Row(
+                    children: [
+                      Icon(Icons.admin_panel_settings, color: AppColors.primary, size: 18),
+                      SizedBox(width: 10),
+                      Text('Terminal administratora (po kodzie urządzenia)', style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem(
                   value: 'free_all',
                 child: Row(

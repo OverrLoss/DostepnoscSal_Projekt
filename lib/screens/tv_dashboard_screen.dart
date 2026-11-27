@@ -19,12 +19,15 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
   bool _isLoading = true;
   Timer? _clockTimer;
   Timer? _refreshTimer;
+  Timer? _codeRefreshTimer;
   StreamSubscription<DateTime>? _clockSubscription;
   DateTime _now = DateTime.now();
+  String _deviceCode = '';
 
   @override
   void initState() {
     super.initState();
+    _deviceCode = RoomSyncService.instance.deviceCode;
     _loadRooms();
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
@@ -41,6 +44,13 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
     _refreshTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       _loadRooms(silent: true);
     });
+    // Kod jest nadawany przez serwer i może zostać zrotowany w terminalu admina.
+    _codeRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
+      await RoomSyncService.instance.refreshThisDeviceCode();
+      if (mounted) {
+        setState(() => _deviceCode = RoomSyncService.instance.deviceCode);
+      }
+    });
   }
 
   @override
@@ -48,6 +58,7 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
     _clockTimer?.cancel();
     _clockSubscription?.cancel();
     _refreshTimer?.cancel();
+    _codeRefreshTimer?.cancel();
     super.dispose();
   }
 
@@ -276,6 +287,32 @@ class _TvDashboardScreenState extends State<TvDashboardScreen> {
                   ),
                 ],
               ),
+              if (_deviceCode.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.badge_outlined, color: AppColors.primary, size: 13),
+                      const SizedBox(width: 5),
+                      Text(
+                        'KOD: $_deviceCode',
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'monospace',
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(width: 16),
               IconButton(
                 tooltip: 'Zamknij widok TV',

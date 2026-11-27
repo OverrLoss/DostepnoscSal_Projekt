@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +23,18 @@ class RoomSyncService {
   static const String _prefKeyServerUrl = 'room_sync_server_url';
   static const String _prefKeyToken = 'room_sync_auth_token';
   static const String _prefKeyUser = 'room_sync_auth_user';
+  static const String _prefKeyDeviceCode = 'room_sync_device_code';
+  static const String _prefKeyClientId = 'room_sync_client_id';
+
+  /// Lokalny identyfikator instalacji — pozwala serwerowi przypisać kod automatycznie.
+  String _clientId = '';
+  String get clientId => _clientId;
+
+  /// Kod identyfikacyjny nadany przez serwer przy pierwszym uruchomieniu.
+  String _deviceCode = '';
+  String get deviceCode => _deviceCode;
+
+  static final RegExp pairCodePattern = RegExp(r'^[2-9A-HJ-NP-Z]{6}$');
 
   static String get _initialServerUrl {
     if (kIsWeb) {
@@ -119,6 +132,13 @@ class RoomSyncService {
 
       final savedToken = prefs.getString(_prefKeyToken);
       final savedUserJson = prefs.getString(_prefKeyUser);
+      _deviceCode = (prefs.getString(_prefKeyDeviceCode) ?? '').trim().toUpperCase();
+      _clientId = (prefs.getString(_prefKeyClientId) ?? '').trim();
+      if (_clientId.isEmpty) {
+        final random = Random.secure();
+        _clientId = List.generate(12, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
+        await prefs.setString(_prefKeyClientId, _clientId);
+      }
       if (savedToken != null && savedToken.isNotEmpty) {
         _authToken = savedToken;
         if (savedUserJson != null) {
@@ -135,6 +155,7 @@ class RoomSyncService {
       debugPrint('[SyncService] Error reading prefs: $e');
     }
     await checkConnection();
+    await claimThisDevice();
     if (isLoggedIn) {
       refreshCurrentUser().ignore();
     }
@@ -164,6 +185,61 @@ class RoomSyncService {
       debugPrint('[SyncService] Error saving url: $e');
     }
     await checkConnection();
+  }
+
+  Future<bool> _storeDeviceCode(String code) async {
+    final normalized = code.trim().toUpperCase();
+    if (!pairCodePattern.hasMatch(normalized)) return false;
+    _deviceCode = normalized;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefKeyDeviceCode, normalized);
+      return true;
+    } catch (e) {
+      debugPrint('[SyncService] _storeDeviceCode error: $e');
+      return false;
+    }
+  }
+
+  /// Pierwsze uruchomienie: serwer nadaje kod dla tej instalacji (idempotentne).
+  Future<bool> claimThisDevice() async {
+    if (_clientId.isEmpty) return false;
+    try {
+      final uri = _buildUri('/api/v1/public/devices/claim');
+      final res = await http
+          .post(
+            uri,
+            headers: _headers(),
+            body: json.encode({
+              'client_id': _clientId,
+              'name': 'TV / Kiosk',
+              'device_type': 'kiosk',
+            }),
+          )
+          .timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        final data = json.decode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        final code = data['pair_code']?.toString();
+        if (code != null) return await _storeDeviceCode(code);
+      }
+    } catch (e) {
+      debugPrint('[SyncService] claimThisDevice error: $e');
+    }
+    return false;
+  }
+
+  /// Odświeża kod po rotacji wykonanej w terminalu administratora.
+  Future<void> refreshThisDeviceCode() async {
+    if (_clientId.isEmpty) return;
+    try {
+      final uri = _buildUri('/api/v1/public/devices/$_clientId/code');
+      final res = await http.get(uri).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final data = json.decode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        final code = data['pair_code']?.toString();
+        if (code != null && code != _deviceCode) await _storeDeviceCode(code);
+      }
+    } catch (_) {}
   }
 
   Uri buildUri(String path, [Map<String, String>? queryParams]) {
@@ -716,7 +792,7 @@ class RoomSyncService {
     return [];
   }
 
-  Future<Map<String, dynamic>?> registerDevice(String name, String roomId) async {
+  Future<Map<String, dynamic>?> registerDevice(String name, String roomId, {String deviceType = 'controller'}) async {
     if (!isAdmin) return null;
     try {
       final uri = _buildUri('/api/v1/admin/devices');
@@ -724,7 +800,7 @@ class RoomSyncService {
           .post(
             uri,
             headers: _headers(),
-            body: json.encode({'name': name, 'room_id': roomId}),
+            body: json.encode({'name': name, 'room_id': roomId, 'device_type': deviceType}),
           )
           .timeout(const Duration(seconds: 5));
 
@@ -740,6 +816,7 @@ class RoomSyncService {
     String? name,
     String? roomId,
     bool? isActive,
+    String? deviceType,
   }) async {
     if (!isAdmin) return null;
     try {
@@ -748,6 +825,7 @@ class RoomSyncService {
       if (name != null) body['name'] = name;
       if (roomId != null) body['room_id'] = roomId;
       if (isActive != null) body['is_active'] = isActive;
+      if (deviceType != null) body['device_type'] = deviceType;
 
       final res = await http
           .patch(
@@ -772,6 +850,83 @@ class RoomSyncService {
       return res.statusCode == 200;
     } catch (_) {}
     return false;
+  }
+
+  /// Identyfikuje urządzenie po krótkim kodzie (tylko administrator).
+  Future<Map<String, dynamic>?> resolveDevice(String code) async {
+    if (!isAdmin) return null;
+    final normalized = code.trim().toUpperCase();
+    if (!pairCodePattern.hasMatch(normalized)) {
+      _lastErrorMessage = 'Kod musi mieć 6 znaków (cyfry 2-9 i litery bez I/O).';
+      return null;
+    }
+    try {
+      final uri = _buildUri('/api/v1/admin/devices/resolve');
+      final res = await http
+          .post(uri, headers: _headers(), body: json.encode({'code': normalized}))
+          .timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        return json.decode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      }
+      final err = json.decode(utf8.decode(res.bodyBytes));
+      _lastErrorMessage = err['error']?['message'] ?? 'Nie znaleziono urządzenia (${res.statusCode})';
+    } catch (e) {
+      _lastErrorMessage = 'Błąd połączenia: $e';
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> getDevice(String deviceId) async {
+    if (!isAdmin) return null;
+    try {
+      final uri = _buildUri('/api/v1/admin/devices/$deviceId');
+      final res = await http.get(uri, headers: _headers()).timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        return json.decode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>> getDeviceAudit(String deviceId) async {
+    if (!isAdmin) return [];
+    try {
+      final uri = _buildUri('/api/v1/admin/devices/$deviceId/audit');
+      final res = await http.get(uri, headers: _headers()).timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        final list = json.decode(utf8.decode(res.bodyBytes)) as List<dynamic>;
+        return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Zwraca nowy token urządzenia — tylko raz, do wpisania w firmware.
+  Future<String?> rotateDeviceToken(String deviceId) async {
+    if (!isAdmin) return null;
+    try {
+      final uri = _buildUri('/api/v1/admin/devices/$deviceId/rotate-token');
+      final res = await http.post(uri, headers: _headers()).timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        final data = json.decode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        return data['token']?.toString();
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Zwraca nowy krótki kod urządzenia — tylko raz.
+  Future<String?> rotateDevicePairCode(String deviceId) async {
+    if (!isAdmin) return null;
+    try {
+      final uri = _buildUri('/api/v1/admin/devices/$deviceId/rotate-pair-code');
+      final res = await http.post(uri, headers: _headers()).timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        final data = json.decode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        return data['pair_code']?.toString();
+      }
+    } catch (_) {}
+    return null;
   }
 
   // Compatibility helpers

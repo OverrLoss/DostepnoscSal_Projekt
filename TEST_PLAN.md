@@ -152,7 +152,31 @@ Wyniki wpisuj w tabelę na końcu pliku albo w osobny arkusz: identyfikator scen
 
 ---
 
-## 11. Wyniki
+## 11. Identyfikacja urządzeń po krótkim kodzie
+
+Kod to 6 znaków (cyfry `2-9` i litery `A-Z` bez `I`/`O`), stabilny do momentu rotacji. Nie wymaga kamery ani dodatkowych zależności. Testy mutujące wykonuj wyłącznie na kopii bazy.
+
+| ID | Scenariusz | Oczekiwany wynik |
+|---|---|---|
+| QR-01 | Otwórz widok TV na ekranie z ustawionym kodem urządzenia | Kod widoczny stale w nagłówku, np. `KOD: K7M3Q2` |
+| QR-02 | Uruchom aplikację na czystej instalacji i naciśnij przycisk kodu w widoku głównym | Kod został automatycznie nadany przez serwer (`POST /public/devices/claim`); dialog tylko go pokazuje, bez pola ręcznego wpisu |
+| QR-03 | Zaloguj się jako admin i otwórz terminal administratora z nagłówka oraz z menu | Terminal otwiera się w obu miejscach; ręczne ustawianie kodu nie jest dostępne |
+| QR-04 | W panelu sterowników ESP sprawdź listę urządzeń | Przy każdym urządzeniu widoczna etykieta `KOD: xxxxxx` |
+| QR-05 | W menu admina wybierz „Zarządzaj urządzeniem po kodzie", wpisz kod z wyświetlacza i wyszukaj | Dashboard pokazuje nazwę, typ, salę, operatora i kod urządzenia |
+| QR-06 | Wpisz nieprawidłowy kod (za krótki, z literą `I`/`O` lub nieistniejący) | Komunikat o błędzie; brak danych urządzenia |
+| QR-07 | Jako operator/gość spróbuj otworzyć dashboard lub wywołać `resolve` | Brak pozycji w menu; API zwraca `403 FORBIDDEN` |
+| QR-08 | W zakładce Status zmień salę na wolną/zajętą/przerwę i przełącz aktywność urządzenia | Zmiany widoczne w API i na planie, zapisane w audycie |
+| QR-09 | W zakładce Limity ustaw limit i zapisz | Limit zapisany, audyt zawiera `room_id` |
+| QR-10 | W zakładce Blokady zmień `lock_status`, `lock_info`, `lock_layout` | Blokady zapisane; admin nadal ma dostęp do sali |
+| QR-11 | W zakładce Przypisanie zmień salę i typ urządzenia (`controller`/`kiosk`/`display`) | Przypisanie i typ zapisane, dashboard odświeżony |
+| QR-12 | W zakładce Token i operator wygeneruj nowy token i nowy kod | Wartości pokazane jednorazowo; stare przestają działać; audyt zawiera rotacje |
+| QR-13 | W zakładce Audyt sprawdź historię urządzenia | Wpisy `device_registered`, `device_resolved`, `device_updated`, rotacje — bez surowych tokenów i kodów |
+| QR-14 | Uruchom `python -m py_compile server/sync_server.py build_and_deploy.py` oraz test API na tymczasowej bazie przez `DB_PATH` | Brak błędów składni; testy nie modyfikują `server/rooms_backend.db` |
+| QR-15 | Wywołaj `POST /api/v1/public/devices/claim` dwukrotnie z tym samym `client_id`, a potem rotuj kod w terminalu i odczytaj `GET /public/devices/{client_id}/code` | Ponowny claim zwraca ten sam kod; po rotacji endpoint zwraca nowy kod, a TV odświeża go w ciągu 30 s |
+
+---
+
+## 12. Wyniki
 
 | ID | Data | Środowisko | Wynik | Uwagi |
 |---|---|---|---|---|

@@ -12,3 +12,6 @@ Wpisy w sekcji bieżącej wersji opisują zmiany wprowadzone bez podnoszenia num
 - Mapa wypełnia całą dostępną przestrzeń karty (skala wg większego wymiaru, proporcje przez FittedBox); górny limit skali podniesiony do 6.0.
 - Usunięto puste marginesy płótna mapy (wysokość 520→340, przesunięcie planu 118→8); etykieta piętra przeniesiona w prawy górny róg z tłem.
 - Powrót do dopasowania całego planu do okna (skala wg mniejszego wymiaru) — cała mapa jest widoczna naraz, bez przewijania.
+- Identyfikacja urządzeń krótkim kodem: nowe pola `device_type`/`pair_code_hash`/`pair_code_hint`, endpointy `resolve`/`get`/`audit`/rotacji kodu i tokenu, kod w widoku TV i panelu sterowników, dashboard administratora z zakładkami (status, limity, blokady, przypisanie, token i operator, audyt). Bez kamery i nowych zależności.
+- Testy kontraktu API: izolacja bazy przez `DB_PATH`, aktualizacja numerów sal po migracjach (`Aula 103_104`), zgodność oczekiwań dla gościa (`403 FORBIDDEN`) oraz nowe przypadki identyfikacji i rotacji urządzenia.
+- Automatyczne przypisywanie kodu TV/kiosk przez serwer (`POST /api/v1/public/devices/claim`, `GET /public/devices/{client_id}/code`), odświeżanie kodu na wyświetlaczu po rotacji oraz wydzielony terminal administratora w nagłówku i menu; usunięto ręczne ustawianie kodu na TV.

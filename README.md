@@ -20,6 +20,7 @@ System monitorowania i zarządzania dostępnością sal wykładowych, laboratori
 - **Zarządzanie z poziomu API** — CRUD sal, pozycje i kolejność na planie, konta użytkowników, reset haseł, rejestracja i konfiguracja urządzeń. Dokumentacja Swagger pod `/docs`.
 - **Tryb TV / kiosk** — pełnoekranowy widok obu kondygnacji ze zegarem i statystykami.
 - **Węzły IoT** — ESP32 CYD z ekranem dotykowym (firmware `1.3.8`) i ESP8266 Wemos D1 mini (`1.3.10`), automatyczne OTA z serwera.
+- **Identyfikacja urządzeń krótkim kodem** — każde urządzenie (TV/kiosk i sterowniki) otrzymuje 6-znakowy kod automatycznie od serwera przy pierwszym połączeniu; kod jest wyświetlany stale w trybie TV i w panelu sterowników. Administrator wpisuje go w terminalu administratora i zarządza urządzeniem (status, limity, blokady, przypisanie, token, operator, audyt). Bez kamery i nowych zależności.
 - **Aktualizacje aplikacji Android** — sprawdzanie wersji, pobieranie APK i instalacja z poziomu aplikacji na podstawie `server/app_version.json`.
 
 ## Architektura
